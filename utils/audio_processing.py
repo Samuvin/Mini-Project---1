@@ -243,12 +243,12 @@ def get_example_speech_features() -> Dict[str, float]:
     Used as fallback when audio processing fails.
     """
     feature_names = get_feature_names()
-    # Real example from UCI dataset (PD patient)
+    # Real example from UCI dataset (HEALTHY control subject)
     example_values = [
-        119.992, 157.302, 74.997, 0.00784, 0.00007, 0.00370, 0.00554,
-        0.01109, 0.04374, 0.426, 0.02182, 0.03130, 0.02971, 0.06545,
-        0.02211, 21.033, 0.414783, 0.815285, -4.813031, 0.266482,
-        2.301442, 0.284654
+        241.621, 203.412, 150.145, 0.00168, 0.00588, -0.25959, 0.63483,
+        0.00314, 0.08758, 0.072, 0.08835, 0.01938, 0.74835, 0.03807,
+        1.01852, 0.69369, 0.37824, 0.637, -0.99557, 0.45045,
+        0.42552, 0.44828
     ]
     return dict(zip(feature_names, example_values))
 

@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 
 def extract_handwriting_features(image_path: str) -> Dict[str, float]:
     """
-    Extract 10 handwriting features from image.
+    Extract 10 handwriting features from image using real-time image analysis.
     
     Note: These are estimated features from static images.
     Real handwriting analysis requires time-series pen data from digitizers.
@@ -25,7 +25,7 @@ def extract_handwriting_features(image_path: str) -> Dict[str, float]:
         image_path: Path to handwriting image
         
     Returns:
-        Dictionary with 10 handwriting features
+        Dictionary with 10 handwriting features extracted from the actual image
     """
     # Load and preprocess image
     img = cv2.imread(image_path)

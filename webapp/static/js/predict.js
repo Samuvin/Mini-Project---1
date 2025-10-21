@@ -34,16 +34,39 @@ $(document).ready(function() {
         uploadGaitFile();
     });
     
-    // Example buttons
-    $('#useAudioExample').click(function() {
-        useExampleAudio();
+    // Example buttons (from modal)
+    $('#useHealthyExampleModal').click(function() {
+        useHealthyExample();
     });
     
-    $('#useHandwritingExample').click(function() {
-        useExampleHandwriting();
+    $('#useParkinsonExampleModal').click(function() {
+        useParkinsonExample();
     });
     
-    $('#useGaitExample').click(function() {
+    // Handwriting examples - Healthy
+    $('#useSpiralHealthyModal').click(function() {
+        useExampleImage('/static/examples/example_spiral_healthy.jpg', 'example_spiral_healthy.jpg');
+    });
+    
+    $('#useSentenceHealthyModal').click(function() {
+        useExampleImage('/static/examples/example_sentence_healthy.jpg', 'example_sentence_healthy.jpg');
+    });
+    
+    // Handwriting examples - PD
+    $('#useSpiralPDModal').click(function() {
+        useExampleImage('/static/examples/example_spiral_pd.jpg', 'example_spiral_pd.jpg');
+    });
+    
+    $('#useSentencePDModal').click(function() {
+        useExampleImage('/static/examples/example_sentence_pd.jpg', 'example_sentence_pd.jpg');
+    });
+    
+    $('#useWavePDModal').click(function() {
+        useExampleImage('/static/examples/example_wave_pd.jpg', 'example_wave_pd.jpg');
+    });
+    
+    // Gait example
+    $('#useGaitExampleModal').click(function() {
         useExampleGait();
     });
     
@@ -87,8 +110,6 @@ async function startRecording() {
         $('#recordBtn').removeClass('btn-danger').addClass('btn-warning');
         $('#recordBtnText').text('Stop Recording');
         $('#recordingStatus').show();
-        
-        showNotification('🎤 Recording started! Say "Aaaaahhh" for 3-5 seconds', 'info');
         
     } catch (error) {
         console.error('Error accessing microphone:', error);
@@ -308,7 +329,6 @@ function makePrediction() {
             setTimeout(function() {
                 if (response.success) {
                     displayResults(response, modalitiesUsed, totalFeatures);
-                    showNotification('✅ Prediction complete!', 'success');
                 } else {
                     showNotification('❌ Prediction failed: ' + response.error, 'danger');
                     $('#loadingSection').hide();
@@ -366,8 +386,8 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
     }
     
     // Update probabilities
-    $('#healthyProb').text((response.probabilities.healthy * 100).toFixed(2) + '%');
-    $('#parkinsonsProb').text((response.probabilities.parkinsons * 100).toFixed(2) + '%');
+    $('#healthyProb').text((response.probabilities.healthy * 100).toFixed(6) + '%');
+    $('#parkinsonsProb').text((response.probabilities.parkinsons * 100).toFixed(6) + '%');
     
     // Show results
     $('#resultsSection').fadeIn('slow');
@@ -424,34 +444,86 @@ function resetForm() {
 
 // ===== EXAMPLE FUNCTIONS =====
 
-// Use Audio Example
-function useExampleAudio() {
-    showNotification('📥 Loading audio example...', 'info');
-    $('#audioUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
+// Load Healthy Sample (all modalities)
+function useHealthyExample() {
+    showNotification('📥 Loading REAL healthy sample...', 'info');
+    $('#speechFeatureStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
     
-    fetch('/static/examples/example_audio.wav')
-        .then(response => response.blob())
-        .then(blob => {
-            const formData = new FormData();
-            formData.append('file', blob, 'example_audio.wav');
-            uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus');
+    fetch('/static/examples/real_examples.json')
+        .then(response => response.json())
+        .then(data => {
+            const sample = data.healthy;
+            
+            // Load all available modalities
+            extractedFeatures.speech = sample.speech_features;
+            extractedFeatures.handwriting = sample.handwriting_features.length > 0 ? sample.handwriting_features : null;
+            extractedFeatures.gait = sample.gait_features.length > 0 ? sample.gait_features : null;
+            
+            $('#speechFeatureStatus').html(`
+                <div class="alert alert-success">
+                    <i class="fas fa-database"></i> 
+                    <strong>Healthy Control Sample Loaded</strong><br>
+                    <small>Speech: ${sample.speech_features.length} features</small><br>
+                    <small>Handwriting: ${sample.handwriting_features.length} features</small><br>
+                    <small>Gait: ${sample.gait_features.length} features</small><br>
+                    <small class="text-muted">Source: Real patient data</small>
+                </div>
+            `);
+            
+            updatePredictButton();
+            showNotification('✅ Healthy sample loaded - ready to predict!', 'success');
         })
         .catch(error => {
-            showNotification('❌ Error loading example: ' + error, 'danger');
-            $('#audioUploadStatus').html('');
+            showNotification('❌ Error: ' + error, 'danger');
+            $('#speechFeatureStatus').html('');
         });
 }
 
-// Use Handwriting Example
-function useExampleHandwriting() {
+// Load Parkinson's Sample (all modalities)
+function useParkinsonExample() {
+    showNotification('📥 Loading REAL Parkinson\'s sample...', 'info');
+    $('#speechFeatureStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+    
+    fetch('/static/examples/real_examples.json')
+        .then(response => response.json())
+        .then(data => {
+            const sample = data.parkinsons;
+            
+            // Load all available modalities
+            extractedFeatures.speech = sample.speech_features;
+            extractedFeatures.handwriting = sample.handwriting_features.length > 0 ? sample.handwriting_features : null;
+            extractedFeatures.gait = sample.gait_features.length > 0 ? sample.gait_features : null;
+            
+            $('#speechFeatureStatus').html(`
+                <div class="alert alert-warning">
+                    <i class="fas fa-database"></i> 
+                    <strong>Parkinson's Disease Sample Loaded</strong><br>
+                    <small>Speech: ${sample.speech_features.length} features</small><br>
+                    <small>Handwriting: ${sample.handwriting_features.length} features</small><br>
+                    <small>Gait: ${sample.gait_features.length} features</small><br>
+                    <small class="text-muted">Source: Real patient data</small>
+                </div>
+            `);
+            
+            updatePredictButton();
+            showNotification('✅ PD sample loaded - ready to predict!', 'success');
+        })
+        .catch(error => {
+            showNotification('❌ Error: ' + error, 'danger');
+            $('#speechFeatureStatus').html('');
+        });
+}
+
+// Generic function to load handwriting image examples
+function useExampleImage(imageUrl, filename) {
     showNotification('📥 Loading handwriting example...', 'info');
     $('#handwritingUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
     
-    fetch('/static/examples/example_handwriting.jpg')
+    fetch(imageUrl)
         .then(response => response.blob())
         .then(blob => {
             const formData = new FormData();
-            formData.append('file', blob, 'example_handwriting.jpg');
+            formData.append('file', blob, filename);
             uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus');
         })
         .catch(error => {
@@ -478,15 +550,30 @@ function useExampleGait() {
         });
 }
 
-// View Handwriting Example in Modal
-function viewExampleHandwriting() {
-    $('#exampleModalTitle').text('Handwriting Example - Spiral Drawing');
-    $('#examplePreviewContent').html(
-        '<img src="/static/examples/example_handwriting.jpg" class="img-fluid" alt="Handwriting example">' +
-        '<p class="mt-3 text-muted">This is an Archimedes spiral, commonly used in Parkinson\'s disease assessment.</p>'
-    );
-    const modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
-    modal.show();
+// View functions for handwriting examples
+function viewExampleHealthySpiral() {
+    showImageModal('Healthy Spiral - Control Sample', '/static/examples/example_spiral_healthy.jpg', 
+        'Smooth, confident strokes with consistent size. Typical of neurologically healthy individuals.');
+}
+
+function viewExampleHealthySentence() {
+    showImageModal('Healthy Writing - Control Sample', '/static/examples/example_sentence_healthy.jpg', 
+        'Consistent letter size and fluid movements characteristic of healthy motor control.');
+}
+
+function viewExamplePDSpiral() {
+    showImageModal('Parkinson\'s Spiral - Patient Sample', '/static/examples/example_spiral_pd.jpg', 
+        'Shows micrographia (smaller size) and tremor-induced irregularities typical of PD.');
+}
+
+function viewExamplePDSentence() {
+    showImageModal('Micrographia - Patient Sample', '/static/examples/example_sentence_pd.jpg', 
+        'Progressive reduction in letter size (micrographia) - a hallmark sign of Parkinson\'s disease.');
+}
+
+function viewExamplePDWave() {
+    showImageModal('Tremor Wave - Patient Sample', '/static/examples/example_wave_pd.jpg', 
+        'Irregular wave patterns showing tremor and motor control difficulties associated with PD.');
 }
 
 // View Gait Example in Modal
@@ -498,6 +585,86 @@ function viewExampleGait() {
     );
     const modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
     modal.show();
+}
+
+// Helper function to show image in modal
+function showImageModal(title, imageUrl, description) {
+    $('#exampleModalTitle').text(title);
+    $('#examplePreviewContent').html(
+        `<img src="${imageUrl}" class="img-fluid" alt="${title}">` +
+        `<p class="mt-3 text-muted">${description}</p>`
+    );
+    const modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
+    modal.show();
+}
+
+// ===== TAB SWITCH HANDLER =====
+// Reset form to original state when switching tabs
+$('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+    const targetTab = $(e.target).attr('data-bs-target');
+    console.log('Tab switched to:', targetTab);
+    
+    // Clear ALL extracted features
+    extractedFeatures = {
+        speech: null,
+        handwriting: null,
+        gait: null
+    };
+    
+    // Clear status messages for all tabs
+    $('#speechFeatureStatus').html('');
+    $('#handwritingFeatureStatus').html('');
+    $('#gaitFeatureStatus').html('');
+    $('#audioUploadStatus').html('');
+    $('#handwritingUploadStatus').html('');
+    $('#gaitUploadStatus').html('');
+    
+    // Hide handwriting preview
+    $('#handwritingPreview').hide();
+    
+    // Stop recording if active
+    if (isRecording) {
+        stopRecording();
+    }
+    
+    // Clear file inputs
+    $('#audioFileInput').val('');
+    $('#handwritingFileInput').val('');
+    $('#gaitFileInput').val('');
+    
+    // Disable predict button
+    $('#predictBtn').prop('disabled', true);
+    
+    // Hide results section
+    $('#resultsSection').hide();
+    $('#loadingSection').hide();
+    $('#placeholderSection').show();
+});
+
+// Show notification helper
+function showNotification(message, type) {
+    const alertClass = type === 'success' ? 'alert-success' : 
+                      type === 'danger' ? 'alert-danger' : 
+                      type === 'warning' ? 'alert-warning' : 
+                      'alert-info';
+    
+    // Create notification element
+    const notification = $('<div>')
+        .addClass('alert ' + alertClass + ' alert-dismissible fade show position-fixed')
+        .css({
+            top: '20px',
+            right: '20px',
+            zIndex: 9999,
+            minWidth: '300px',
+            maxWidth: '500px'
+        })
+        .html(message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>')
+        .appendTo('body');
+    
+    // Auto-dismiss after 4 seconds
+    setTimeout(function() {
+        notification.alert('close');
+    }, 4000);
 }
 
 console.log('✅ File Upload Prediction System loaded - Real ML feature extraction enabled!');
