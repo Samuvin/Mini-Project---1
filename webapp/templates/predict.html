@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Predict - Parkinson's Disease Detection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4"><i class="fas fa-chart-line"></i> Parkinson's Disease Prediction</h1>
+    
+    <div class="row">
+        <!-- Input Section with Tabs -->
+        <div class="col-lg-7 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Select Data Modality</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-star"></i> <strong>New? Try the examples first!</strong> Each tab has a demonstration you can use to see how it works.
+                    </div>
+                    
+                    <!-- Tabs Navigation -->
+                    <ul class="nav nav-tabs mb-3" id="modalityTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="speech-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#speechTab" type="button" role="tab">
+                                <i class="fas fa-microphone text-primary"></i> Speech/Audio
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="handwriting-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#handwritingTab" type="button" role="tab">
+                                <i class="fas fa-pen text-success"></i> Handwriting
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="gait-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#gaitTab" type="button" role="tab">
+                                <i class="fas fa-walking text-warning"></i> Walking/Gait
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="modalityTabsContent">
+                        <!-- Speech/Audio Tab -->
+                        <div class="tab-pane fade show active" id="speechTab" role="tabpanel">
+                            <h5 class="mb-3"><i class="fas fa-microphone text-primary"></i> Speech/Audio Analysis</h5>
+                            
+                            <!-- EXAMPLE SECTION -->
+                            <div class="card border-info mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-lightbulb text-warning"></i> See Example</h6>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <audio controls class="w-100" id="exampleAudioPlayer">
+                                                <source src="{{ url_for('static', filename='examples/example_audio.wav') }}" type="audio/wav">
+                                            </audio>
+                                            <small class="text-muted">3-second "Aaaaahhh" sound</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="small mb-2">Demonstration: Sustained vowel sound for voice analysis</p>
+                                            <button type="button" class="btn btn-sm btn-success w-100" id="useAudioExample">
+                                                <i class="fas fa-play-circle"></i> Use This Example
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Voice Recording Section -->
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-record-vinyl text-danger"></i> Record Your Voice</h6>
+                                    <p class="small text-muted mb-2">Say "Aaaaahhh" steadily for 3-5 seconds</p>
+                                    
+                                    <div class="text-center mb-2">
+                                        <button type="button" class="btn btn-danger btn-lg" id="recordBtn">
+                                            <i class="fas fa-microphone"></i> <span id="recordBtnText">Start Recording</span>
+                                        </button>
+                                    </div>
+                                    
+                                    <div id="recordingStatus" class="alert alert-warning text-center mt-2" style="display: none;">
+                                        <i class="fas fa-circle text-danger blink"></i> Recording... Speak now!
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center my-2"><strong>OR</strong></div>
+                            
+                            <!-- Audio File Upload -->
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-upload"></i> Upload Audio File</h6>
+                                    <p class="small text-muted mb-2">Upload MP3, WAV, or other audio file (max 50MB)</p>
+                                    
+                                    <input type="file" class="form-control" id="audioFileInput" accept="audio/*">
+                                    
+                                    <button type="button" class="btn btn-primary mt-2 w-100" id="uploadAudioBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i> Extract Features from Audio
+                                    </button>
+                                    
+                                    <div id="audioUploadStatus" class="mt-2"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Display -->
+                            <div id="speechFeatureStatus"></div>
+                        </div>
+
+                        <!-- Handwriting Tab -->
+                        <div class="tab-pane fade" id="handwritingTab" role="tabpanel">
+                            <h5 class="mb-3"><i class="fas fa-pen text-success"></i> Handwriting Analysis</h5>
+                            
+                            <!-- EXAMPLE SECTION -->
+                            <div class="card border-success mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-lightbulb text-warning"></i> See Example</h6>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <img src="{{ url_for('static', filename='examples/example_handwriting.jpg') }}" 
+                                                 class="img-fluid rounded border" 
+                                                 alt="Spiral drawing example"
+                                                 style="cursor: pointer;"
+                                                 onclick="viewExampleHandwriting()">
+                                            <small class="text-muted">Click to enlarge</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="small mb-2">Demonstration: Spiral drawing test (Archimedes spiral)</p>
+                                            <button type="button" class="btn btn-sm btn-success w-100 mb-1" id="useHandwritingExample">
+                                                <i class="fas fa-play-circle"></i> Use This Example
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-info w-100" onclick="viewExampleHandwriting()">
+                                                <i class="fas fa-search-plus"></i> View Full Size
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-lightbulb"></i> <strong>Instructions:</strong>
+                                <ul class="mb-0">
+                                    <li>Draw a spiral on white paper</li>
+                                    <li>OR write a sentence</li>
+                                    <li>Take a clear photo with good lighting</li>
+                                    <li>Upload the image below</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Image Upload -->
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-image"></i> Upload Handwriting Image</h6>
+                                    <p class="small text-muted mb-2">JPG, PNG, or other image formats (max 50MB)</p>
+                                    
+                                    <input type="file" class="form-control" id="handwritingFileInput" accept="image/*">
+                                    
+                                    <div id="handwritingPreview" class="mt-2" style="display: none;">
+                                        <img id="handwritingImg" class="img-fluid rounded" style="max-height: 200px;">
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-success mt-2 w-100" id="uploadHandwritingBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i> Extract Features from Image
+                                    </button>
+                                    
+                                    <div id="handwritingUploadStatus" class="mt-2"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Display -->
+                            <div id="handwritingFeatureStatus"></div>
+                        </div>
+
+                        <!-- Gait Tab -->
+                        <div class="tab-pane fade" id="gaitTab" role="tabpanel">
+                            <h5 class="mb-3"><i class="fas fa-walking text-warning"></i> Walking/Gait Analysis</h5>
+                            
+                            <!-- EXAMPLE SECTION -->
+                            <div class="card border-warning mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-lightbulb text-warning"></i> See Example</h6>
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <video controls class="w-100 rounded border" id="exampleGaitVideo">
+                                                <source src="{{ url_for('static', filename='examples/example_gait.mp4') }}" type="video/mp4">
+                                            </video>
+                                            <small class="text-muted">10-second walking animation</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="small mb-2">Demonstration: Side-view walking for gait analysis</p>
+                                            <button type="button" class="btn btn-sm btn-success w-100 mb-1" id="useGaitExample">
+                                                <i class="fas fa-play-circle"></i> Use This Example
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-info w-100" onclick="viewExampleGait()">
+                                                <i class="fas fa-expand"></i> View Fullscreen
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-question-circle"></i> What is Gait?</h6>
+                                    <p class="small mb-2">
+                                        <strong>Gait</strong> means "the way you walk." We analyze your walking pattern to detect changes associated with Parkinson's.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-lightbulb"></i> <strong>Instructions:</strong>
+                                <ul class="mb-0">
+                                    <li>Record a video of yourself walking</li>
+                                    <li>Walk naturally for 10-15 seconds</li>
+                                    <li>Side view works best</li>
+                                    <li>Ensure good lighting</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Video Upload -->
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6><i class="fas fa-video"></i> Upload Walking Video</h6>
+                                    <p class="small text-muted mb-2">MP4, MOV, or other video formats (max 50MB)</p>
+                                    
+                                    <input type="file" class="form-control" id="gaitFileInput" accept="video/*">
+                                    
+                                    <button type="button" class="btn btn-warning mt-2 w-100" id="uploadGaitBtn">
+                                        <i class="fas fa-cloud-upload-alt"></i> Extract Features from Video
+                                    </button>
+                                    
+                                    <div id="gaitUploadStatus" class="mt-2"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Display -->
+                            <div id="gaitFeatureStatus"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons Below Tabs -->
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary btn-lg" id="predictBtn" disabled>
+                                <i class="fas fa-play-circle"></i> Make Prediction
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="resetBtn">
+                                <i class="fas fa-redo"></i> Reset All
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> Upload at least one file or use an example to enable prediction
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="col-lg-5 mb-4">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Prediction Results</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsSection" style="display: none;">
+                        <!-- Prediction Result -->
+                        <div class="alert" id="predictionAlert" role="alert">
+                            <h4 class="alert-heading" id="predictionLabel"></h4>
+                            <p class="mb-0" id="predictionText"></p>
+                        </div>
+
+                        <!-- Modalities Used -->
+                        <div class="mb-3">
+                            <h6>Data Sources Used:</h6>
+                            <div id="modalitiesUsed"></div>
+                        </div>
+
+                        <!-- Confidence Score -->
+                        <div class="mb-4">
+                            <h6>Confidence Score:</h6>
+                            <div class="progress" style="height: 30px;">
+                                <div class="progress-bar" id="confidenceBar" role="progressbar" style="width: 0%;">
+                                    <span id="confidenceText">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Probability Distribution -->
+                        <div class="mb-4">
+                            <h6>Probability Distribution:</h6>
+                            <table class="table table-bordered table-sm">
+                                <tbody>
+                                    <tr>
+                                        <td><i class="fas fa-check-circle text-success"></i> Healthy</td>
+                                        <td id="healthyProb" class="fw-bold">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td><i class="fas fa-exclamation-triangle text-warning"></i> Parkinson's</td>
+                                        <td id="parkinsonsProb" class="fw-bold">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Disclaimer -->
+                        <div class="alert alert-warning" role="alert">
+                            <small>
+                                <strong><i class="fas fa-exclamation-triangle"></i> Disclaimer:</strong> 
+                                For research/educational purposes only. Always consult healthcare professionals for medical diagnosis.
+                            </small>
+                        </div>
+                    </div>
+
+                    <div id="loadingSection" style="display: none;" class="text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                        <h5>Running AI Analysis...</h5>
+                        <p class="text-muted" id="loadingText">Analyzing data...</p>
+                    </div>
+
+                    <div id="placeholderSection" class="text-center py-5">
+                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">Results will appear here after prediction</p>
+                        <small class="text-muted">Try an example or upload your own files</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Example Preview Modal -->
+<div class="modal fade" id="examplePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalTitle">Example Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center" id="examplePreviewContent">
+                <!-- Dynamic content loaded by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data storage -->
+<input type="hidden" id="speechFeatures" value="">
+<input type="hidden" id="handwritingFeatures" value="">
+<input type="hidden" id="gaitFeatures" value="">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/predict.js') }}?v=8.0"></script>
+<style>
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0; }
+}
+.blink {
+    animation: blink 1.5s linear infinite;
+}
+.nav-tabs .nav-link {
+    font-weight: 500;
+}
+.nav-tabs .nav-link.active {
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+

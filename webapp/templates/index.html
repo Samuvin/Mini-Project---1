@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Parkinson's Disease Detection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">Early Detection of Parkinson's Disease</h1>
+            <p class="lead mb-4">
+                Advanced machine learning system using multimodal data analysis (speech, handwriting, and gait patterns) 
+                for accurate and reliable early detection of Parkinson's Disease.
+            </p>
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('predict_page') }}" class="btn btn-primary btn-lg px-4">
+                    <i class="fas fa-chart-line"></i> Start Prediction
+                </a>
+                <a href="{{ url_for('about') }}" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="fas fa-info-circle"></i> Learn More
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+            <i class="fas fa-brain display-1 text-primary"></i>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Multimodal Analysis System</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-microphone fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Speech Analysis</h5>
+                    <p class="card-text">
+                        Analyzes 22 acoustic features including jitter, shimmer, harmonics-to-noise ratio (HNR),
+                        and pitch variations to detect speech patterns associated with Parkinson's disease.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-pen fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Handwriting Analysis</h5>
+                    <p class="card-text">
+                        Evaluates handwriting features including pressure, velocity, acceleration, and tremor frequency
+                        to identify motor control patterns characteristic of Parkinson's disease.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-walking fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Gait Analysis</h5>
+                    <p class="card-text">
+                        Examines walking patterns including stride intervals, cadence, and gait variability
+                        to detect movement abnormalities typical in Parkinson's disease.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">Technology Stack</h2>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-code"></i> Machine Learning</h5>
+                    <ul>
+                        <li><strong>Approach:</strong> Multimodal data fusion (early fusion)</li>
+                        <li><strong>Datasets:</strong> UCI Parkinson's, PaHaW, PhysioNet Gait</li>
+                        <li><strong>Features:</strong> ~42 combined features (speech + handwriting + gait)</li>
+                        <li><strong>Primary Model:</strong> Support Vector Machine (SVM)</li>
+                        <li><strong>Kernels:</strong> Linear, RBF, Polynomial, Sigmoid</li>
+                        <li><strong>Optimization:</strong> GridSearchCV with cross-validation</li>
+                        <li><strong>Class Balancing:</strong> SMOTE for robust training</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-bar"></i> Performance Metrics</h5>
+                    <ul>
+                        <li><strong>Accuracy:</strong> 90-93% on test set</li>
+                        <li><strong>Precision:</strong> High true positive rate</li>
+                        <li><strong>Recall:</strong> Minimized false negatives</li>
+                        <li><strong>ROC-AUC:</strong> ~0.95 for optimized SVM</li>
+                        <li><strong>Validation:</strong> 5-fold cross-validation</li>
+                        <li><strong>Data:</strong> Real patient datasets only (no synthetic data)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-primary text-white shadow">
+                <div class="card-body text-center py-5">
+                    <h3 class="mb-4">Ready to Get Started?</h3>
+                    <p class="lead mb-4">
+                        Upload your data and get instant predictions using our advanced ML models.
+                    </p>
+                    <a href="{{ url_for('predict_page') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-play-circle"></i> Start Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

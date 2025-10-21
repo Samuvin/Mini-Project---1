@@ -1,0 +1,73 @@
+# Parkinson's Disease Detection System Configuration
+
+# Data Configuration
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  train_size: 0.70
+  val_size: 0.15
+  test_size: 0.15
+  random_state: 42
+
+# Feature Engineering
+features:
+  speech:
+    sample_rate: 16000
+    n_mfcc: 13
+    n_fft: 2048
+    hop_length: 512
+    num_features: 22
+
+# Model Configuration
+models:
+  logistic_regression:
+    C: [0.001, 0.01, 0.1, 1, 10, 100]
+    penalty: ['l1', 'l2']
+    solver: ['liblinear', 'saga']
+    max_iter: 1000
+    class_weight: 'balanced'
+  
+  svm:
+    kernel: ['linear', 'rbf']  # Reduced to prevent overfitting
+    C: [0.1, 0.5, 1, 5]  # Lower C values for better generalization
+    gamma: ['scale', 'auto']  # Simpler gamma options
+    degree: [2, 3]  # for polynomial kernel
+    class_weight: 'balanced'
+    probability: true
+
+# Training Configuration
+training:
+  cv_folds: 5
+  scoring: 'roc_auc'
+  n_jobs: -1
+  verbose: 1
+  use_smote: true
+  smote_sampling_strategy: 'auto'
+
+# Evaluation Metrics
+evaluation:
+  metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1
+    - roc_auc
+  plot_confusion_matrix: true
+  plot_roc_curve: true
+  plot_feature_importance: true
+
+# Web Application
+webapp:
+  host: '0.0.0.0'
+  port: 5000
+  debug: false
+  model_path: 'models/best_model.joblib'
+  max_upload_size: 16777216  # 16MB
+  allowed_extensions: ['csv', 'txt']
+
+# Model Persistence
+model_persistence:
+  save_dir: 'models'
+  save_best_only: true
+  save_all_kernels: false
+

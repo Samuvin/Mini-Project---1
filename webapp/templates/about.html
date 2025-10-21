@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}About - Parkinson's Disease Detection{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4"><i class="fas fa-info-circle"></i> About Parkinson's Disease Detection System</h1>
+    
+    <!-- Introduction -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title">Project Overview</h3>
+                    <p class="lead">
+                        This system uses advanced machine learning techniques to enable early detection 
+                        of Parkinson's Disease through multimodal data analysis using ONLY real patient datasets.
+                    </p>
+                    <p>
+                        <strong>Key Principle:</strong> This system uses <strong>NO synthetic data</strong>. 
+                        All features come from real, publicly available medical research datasets.
+                    </p>
+                    <p>
+                        Parkinson's Disease (PD) is the second most common brain disorder, affecting millions 
+                        worldwide. Early detection is crucial as it allows for timely intervention and 
+                        significantly improves patient quality of life. Traditional diagnosis methods rely 
+                        on clinical observation, which can be subjective and may miss early-stage symptoms.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Methodology -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-cogs"></i> Methodology</h5>
+                    <h6>Baseline Model:</h6>
+                    <ul>
+                        <li>Logistic Regression with L1/L2 regularization</li>
+                        <li>Serves as performance benchmark</li>
+                        <li>Expected accuracy: 80-85%</li>
+                    </ul>
+                    
+                    <h6>Primary Model:</h6>
+                    <ul>
+                        <li>Support Vector Machine (SVM)</li>
+                        <li>Kernel types: Linear, RBF, Polynomial, Sigmoid</li>
+                        <li>Hyperparameter optimization via GridSearchCV</li>
+                        <li>Expected accuracy: 90-93%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-database"></i> Real Data Sources</h5>
+                    <h6>Speech Data:</h6>
+                    <ul>
+                        <li>UCI Parkinson's Dataset</li>
+                        <li>195 real patient samples</li>
+                        <li>22 acoustic features</li>
+                        <li>✅ Auto-downloaded</li>
+                    </ul>
+                    
+                    <h6>Handwriting Data:</h6>
+                    <ul>
+                        <li>PaHaW / NewHandPD Database</li>
+                        <li>10 kinematic features</li>
+                        <li>⚠️ Manual download required</li>
+                    </ul>
+                    
+                    <h6>Gait Data:</h6>
+                    <ul>
+                        <li>PhysioNet Gait Database</li>
+                        <li>10 temporal-spatial features</li>
+                        <li>⚠️ Manual download required</li>
+                    </ul>
+                    
+                    <p class="mb-0"><small><strong>Note:</strong> See DATASETS.md for download instructions</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-star"></i> Key Features</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li>Multimodal data fusion (early fusion strategy)</li>
+                                <li>Comprehensive feature extraction</li>
+                                <li>Automated hyperparameter optimization</li>
+                                <li>Class imbalance handling with SMOTE</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li>Cross-validation for robust evaluation</li>
+                                <li>Multiple performance metrics</li>
+                                <li>Real-time prediction via web interface</li>
+                                <li>Interpretable results with confidence scores</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Parkinson's Disease -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-heartbeat"></i> About Parkinson's Disease</h5>
+                    <p>
+                        Parkinson's Disease is a long-term brain disorder that mainly affects body movement. 
+                        It is a neurodegenerative disease, which means it slowly damages brain cells over time.
+                    </p>
+                    
+                    <h6>Common Symptoms:</h6>
+                    <ul>
+                        <li><strong>Tremor:</strong> Shaking that usually starts in the hands or fingers</li>
+                        <li><strong>Bradykinesia:</strong> Slowed movement making simple tasks difficult</li>
+                        <li><strong>Muscle Rigidity:</strong> Stiffness that can occur in any part of the body</li>
+                        <li><strong>Postural Instability:</strong> Balance problems that can lead to falls</li>
+                        <li><strong>Speech Changes:</strong> Softer voice, slurred speech, or monotone speaking</li>
+                        <li><strong>Writing Changes:</strong> Handwriting may become smaller (micrographia)</li>
+                    </ul>
+                    
+                    <h6>Why Early Detection Matters:</h6>
+                    <p>
+                        Early detection allows for timely treatment, which can slow disease progression, 
+                        manage symptoms more effectively, and significantly improve quality of life. 
+                        With early intervention, patients can maintain independence and functionality 
+                        for longer periods.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-warning shadow-sm" role="alert">
+                <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Important Disclaimer</h5>
+                <p>
+                    This system is designed for research and educational purposes only. It is not 
+                    intended to replace professional medical diagnosis or advice. The predictions 
+                    made by this system should not be used as the sole basis for any medical decisions.
+                </p>
+                <hr>
+                <p class="mb-0">
+                    <strong>Always consult qualified healthcare professionals</strong> for proper 
+                    diagnosis, treatment, and medical advice regarding Parkinson's Disease or any 
+                    other health concerns.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
