@@ -15,7 +15,7 @@ from flask_cors import CORS
 import numpy as np
 
 from src.utils.config import Config
-from webapp.api.predict import predict_bp, load_model
+from webapp.api.predict import predict_bp, get_manager
 
 
 def setup_logging(app):
@@ -72,16 +72,21 @@ def create_app(config_path=None):
     # Register blueprints
     app.register_blueprint(predict_bp, url_prefix='/api')
     
-    # Import and register file upload blueprint
+    # Import and register upload blueprint for file uploads
     from webapp.api.file_upload import upload_bp
     app.register_blueprint(upload_bp, url_prefix='/api/upload')
     
-    # Load model on startup
+    # Import and register combined processing blueprint
+    from webapp.api.combined_processing import combined_bp
+    app.register_blueprint(combined_bp, url_prefix='/api')
+    
+    # Load models on startup
     try:
-        load_model()
-        print("Model loaded successfully on startup")
+        manager = get_manager()
+        loaded_models = manager.get_loaded_modalities()
+        print(f"✓ Models loaded successfully on startup: {', '.join(loaded_models)}")
     except Exception as e:
-        print(f"Warning: Could not load model on startup: {e}")
+        print(f"Warning: Could not load models on startup: {e}")
     
     # Routes
     @app.route('/')

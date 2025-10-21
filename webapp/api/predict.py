@@ -15,97 +15,57 @@ warnings.filterwarnings('ignore', message='X does not have valid feature names')
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.utils.config import get_models_dir
+from src.models.model_manager import get_model_manager
 
 predict_bp = Blueprint('predict', __name__)
 
-# Global variables to store loaded model and scaler
-_model = None
-_scaler = None
-_model_loaded = False
+# Global model manager instance
+_model_manager = None
 
 
-def load_model(model_path: str = None):
-    """Load the trained model and scaler."""
-    global _model, _scaler, _model_loaded
-    
-    if _model_loaded:
-        return _model, _scaler
-    
-    models_dir = get_models_dir()
-    
-    # Try to load SVM model first, then logistic regression
-    model_files = [
-        'best_model.joblib',
-        'svm_model.joblib',
-        'logistic_regression_model.joblib'
-    ]
-    
-    if model_path:
-        model_files.insert(0, model_path)
-    
-    for model_file in model_files:
-        try:
-            filepath = models_dir / model_file
-            if filepath.exists():
-                model_data = joblib.load(filepath)
-                _model = model_data['model']
-                _model_loaded = True
-                print(f"Model loaded successfully from {filepath}")
-                
-                # Try to load the scaler
-                scaler_path = models_dir / 'scaler.joblib'
-                if scaler_path.exists():
-                    _scaler = joblib.load(scaler_path)
-                    print(f"Scaler loaded successfully from {scaler_path}")
-                else:
-                    print("Warning: No scaler found. Predictions may be inaccurate.")
-                    _scaler = None
-                
-                return _model, _scaler
-        except Exception as e:
-            print(f"Error loading model from {model_file}: {e}")
-            continue
-    
-    print("Warning: No trained model found. Please train a model first.")
-    return None, None
+def get_manager():
+    """Get or initialize the model manager."""
+    global _model_manager
+    if _model_manager is None:
+        _model_manager = get_model_manager()
+    return _model_manager
 
 
 @predict_bp.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""
-    model, scaler = load_model()
-    return jsonify({
-        'status': 'healthy',
-        'model_loaded': model is not None,
-        'scaler_loaded': scaler is not None
-    })
+    try:
+        manager = get_manager()
+        loaded_models = manager.get_loaded_modalities()
+        
+        return jsonify({
+            'status': 'healthy',
+            'models_loaded': loaded_models,
+            'model_info': manager.get_model_info()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e)
+        }), 500
 
 
 @predict_bp.route('/predict', methods=['POST'])
 def predict():
     """
-    Make a prediction based on input features.
+    Make a prediction using multi-model ensemble.
     
-    Expected JSON format (Option 1 - Combined):
+    Expected JSON format:
     {
-        "features": [all feature values concatenated]
+        "speech_features": [22 speech values] (optional),
+        "handwriting_features": [10 handwriting values] (optional),
+        "gait_features": [10 gait values] (optional)
     }
     
-    Expected JSON format (Option 2 - Separate modalities):
-    {
-        "speech_features": [22 speech values],
-        "handwriting_features": [10 handwriting values],
-        "gait_features": [10 gait values]
-    }
+    At least one modality must be provided.
     """
     try:
-        model, scaler = load_model()
-        
-        if model is None:
-            return jsonify({
-                'error': 'Model not loaded. Please train a model first.',
-                'success': False
-            }), 500
+        manager = get_manager()
         
         data = request.get_json()
         
@@ -115,104 +75,85 @@ def predict():
                 'success': False
             }), 400
         
-        # Extract features - support flexible modality inputs
-        if 'features' in data:
-            # Combined features format
-            features = np.array(data['features']).reshape(1, -1)
-        else:
-            # Build features from available modalities with padding
-            # Model expects 42 features: 22 speech + 10 handwriting + 10 gait
-            
-            # Initialize with neutral values (zeros work well with scaled data)
-            speech_features = np.zeros(22)
-            handwriting_features = np.zeros(10)
-            gait_features = np.zeros(10)
-            
-            modalities_provided = []
-            
-            if 'speech_features' in data and data['speech_features']:
-                speech = np.array(data['speech_features'])
-                if len(speech) == 22:
-                    speech_features = speech
-                    modalities_provided.append('speech')
-                    print(f"  ✓ Speech features: {len(speech)}")
-                else:
-                    print(f"  ⚠ Warning: Expected 22 speech features, got {len(speech)}")
-            
-            if 'handwriting_features' in data and data['handwriting_features']:
-                handwriting = np.array(data['handwriting_features'])
-                if len(handwriting) == 10:
-                    handwriting_features = handwriting
-                    modalities_provided.append('handwriting')
-                    print(f"  ✓ Handwriting features: {len(handwriting)}")
-                else:
-                    print(f"  ⚠ Warning: Expected 10 handwriting features, got {len(handwriting)}")
-            
-            if 'gait_features' in data and data['gait_features']:
-                gait = np.array(data['gait_features'])
-                if len(gait) == 10:
-                    gait_features = gait
-                    modalities_provided.append('gait')
-                    print(f"  ✓ Gait features: {len(gait)}")
-                else:
-                    print(f"  ⚠ Warning: Expected 10 gait features, got {len(gait)}")
-            
-            if not modalities_provided:
+        # Extract features for each modality
+        speech_features = None
+        handwriting_features = None
+        gait_features = None
+        
+        # Validate and extract speech features
+        if 'speech_features' in data and data['speech_features']:
+            speech = data['speech_features']
+            if len(speech) != 22:
                 return jsonify({
-                    'error': 'No features provided. Please provide at least one modality (speech, handwriting, or gait).',
+                    'error': f'Expected 22 speech features, got {len(speech)}',
                     'success': False
                 }), 400
-            
-            # Concatenate all features (with padding for missing modalities)
-            features = np.concatenate([speech_features, handwriting_features, gait_features]).reshape(1, -1)
-            print(f"  Modalities used: {', '.join(modalities_provided)}")
-            print(f"  Total features (with padding): {features.shape[1]}")
+            speech_features = np.array(speech)
+            print(f"✓ Speech features provided: {len(speech)}")
         
-        # Scale features if scaler is available
+        # Validate and extract handwriting features
+        if 'handwriting_features' in data and data['handwriting_features']:
+            handwriting = data['handwriting_features']
+            if len(handwriting) != 10:
+                return jsonify({
+                    'error': f'Expected 10 handwriting features, got {len(handwriting)}',
+                    'success': False
+                }), 400
+            handwriting_features = np.array(handwriting)
+            print(f"✓ Handwriting features provided: {len(handwriting)}")
+        
+        # Validate and extract gait features
+        if 'gait_features' in data and data['gait_features']:
+            gait = data['gait_features']
+            if len(gait) != 10:
+                return jsonify({
+                    'error': f'Expected 10 gait features, got {len(gait)}',
+                    'success': False
+                }), 400
+            gait_features = np.array(gait)
+            print(f"✓ Gait features provided: {len(gait)}")
+        
+        # Check if at least one modality is provided
+        if speech_features is None and handwriting_features is None and gait_features is None:
+            return jsonify({
+                'error': 'At least one modality (speech, handwriting, or gait) must be provided',
+                'success': False
+            }), 400
+        
+        # Make ensemble prediction
         print(f"\n{'='*60}")
-        print(f"PREDICTION REQUEST RECEIVED")
+        print(f"MULTI-MODEL ENSEMBLE PREDICTION")
         print(f"{'='*60}")
-        print(f"Input features shape: {features.shape}")
-        print(f"Input features (first 5): {features[0][:5]}")
         
-        if scaler is not None:
-            print("✓ Scaling features using StandardScaler...")
-            features = scaler.transform(features)
-            print(f"Scaled features (first 5): {features[0][:5]}")
-        else:
-            print("⚠ Warning: Making prediction without scaling - results may be inaccurate")
+        result = manager.predict_ensemble(
+            speech_features=speech_features,
+            handwriting_features=handwriting_features,
+            gait_features=gait_features,
+            voting_method='soft'
+        )
         
-        # Make prediction
-        print(f"✓ Running SVM model prediction...")
-        prediction = model.predict(features)[0]
-        prediction_proba = model.predict_proba(features)[0]
-        
-        # Debug logging
+        # Log results
         print(f"✓ Prediction complete!")
-        print(f"  Result: {'Parkinson\'s Disease' if prediction == 1 else 'Healthy'}")
-        print(f"  Confidence: {prediction_proba[prediction]*100:.2f}%")
-        print(f"  Probabilities: Healthy={prediction_proba[0]*100:.2f}%, PD={prediction_proba[1]*100:.2f}%")
-        print(f"{'='*60}\n")
+        print(f"  Modalities used: {', '.join(result['modalities_used'])}")
+        print(f"  Ensemble method: {result['ensemble_method']}")
+        print(f"  Result: {result['prediction_label']}")
+        print(f"  Confidence: {result['confidence']*100:.2f}%")
+        print(f"  Probabilities: Healthy={result['probabilities']['healthy']*100:.2f}%, "
+              f"PD={result['probabilities']['parkinsons']*100:.2f}%")
         
-        # Prepare response
-        result = {
-            'success': True,
-            'prediction': int(prediction),
-            'prediction_label': 'Parkinson\'s Disease' if prediction == 1 else 'Healthy',
-            'confidence': float(prediction_proba[prediction]),
-            'probabilities': {
-                'healthy': float(prediction_proba[0]),
-                'parkinsons': float(prediction_proba[1])
-            },
-            'debug_info': {
-                'features_count': int(features.shape[1]),
-                'model_type': type(model).__name__
-            }
-        }
+        if 'individual_predictions' in result:
+            print(f"\n  Individual Model Predictions:")
+            for modality, pred in result['individual_predictions'].items():
+                print(f"    {modality.capitalize()}: {pred['prediction_label']} "
+                      f"({pred['confidence']*100:.2f}%)")
+        
+        print(f"{'='*60}\n")
         
         return jsonify(result)
     
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'error': str(e),
             'success': False

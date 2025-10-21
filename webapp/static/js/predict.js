@@ -34,13 +34,46 @@ $(document).ready(function() {
         uploadGaitFile();
     });
     
-    // Example buttons (from modal)
-    $('#useHealthyExampleModal').click(function() {
-        useHealthyExample();
+    // Combined video upload button
+    $('#uploadCombinedBtn').click(function() {
+        uploadCombinedVideo();
     });
     
-    $('#useParkinsonExampleModal').click(function() {
-        useParkinsonExample();
+    // Example buttons in each tab
+    // Speech tab examples
+    $('#useSpeechHealthy').click(function() {
+        loadExample('healthy', 'speech');
+    });
+    
+    $('#useSpeechPD').click(function() {
+        loadExample('parkinsons', 'speech');
+    });
+    
+    // Handwriting tab examples
+    $('#useHandwritingHealthy').click(function() {
+        loadExample('healthy', 'handwriting');
+    });
+    
+    $('#useHandwritingPD').click(function() {
+        loadExample('parkinsons', 'handwriting');
+    });
+    
+    // Gait tab examples
+    $('#useGaitHealthy').click(function() {
+        loadExample('healthy', 'gait');
+    });
+    
+    $('#useGaitPD').click(function() {
+        loadExample('parkinsons', 'gait');
+    });
+    
+    // Combined tab examples
+    $('#useCombinedHealthy').click(function() {
+        loadExample('healthy', 'all');
+    });
+    
+    $('#useCombinedPD').click(function() {
+        loadExample('parkinsons', 'all');
     });
     
     // Handwriting examples - Healthy
@@ -186,6 +219,92 @@ function uploadGaitFile() {
     uploadFile('/api/upload/gait', formData, 'gait', 'gaitFeatureStatus');
 }
 
+// Upload combined video and extract selected modalities
+function uploadCombinedVideo() {
+    const fileInput = document.getElementById('combinedVideoInput');
+    if (!fileInput.files.length) {
+        showNotification('⚠️ Please select a video file first!', 'warning');
+        return;
+    }
+    
+    // Check which modalities are selected
+    const extractVoice = $('#extractVoiceCheck').is(':checked');
+    const extractHandwriting = $('#extractHandwritingCheck').is(':checked');
+    const extractGait = $('#extractGaitCheck').is(':checked');
+    
+    if (!extractVoice && !extractHandwriting && !extractGait) {
+        showNotification('⚠️ Please select at least one feature type to extract!', 'warning');
+        return;
+    }
+    
+    const modalitiesText = [
+        extractVoice ? 'Voice' : null,
+        extractHandwriting ? 'Handwriting' : null,
+        extractGait ? 'Gait' : null
+    ].filter(Boolean).join(', ');
+    
+    showNotification(`📤 Processing video for ${modalitiesText}...`, 'info');
+    
+    const formData = new FormData();
+    formData.append('video', fileInput.files[0]);
+    formData.append('extract_voice', extractVoice);
+    formData.append('extract_handwriting', extractHandwriting);
+    formData.append('extract_gait', extractGait);
+    
+    $('#combinedUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Processing video and extracting features...</div>');
+    
+    $.ajax({
+        url: '/api/process_combined_video',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.success) {
+                // Store extracted features
+                if (response.voice_features) {
+                    extractedFeatures.speech = response.voice_features;
+                }
+                if (response.handwriting_features) {
+                    extractedFeatures.handwriting = response.handwriting_features;
+                }
+                if (response.gait_features) {
+                    extractedFeatures.gait = response.gait_features;
+                }
+                
+                // Build success message
+                let featuresExtracted = [];
+                if (response.voice_features) featuresExtracted.push(`<i class="fas fa-microphone text-primary"></i> Voice: ${response.voice_features.length} features`);
+                if (response.handwriting_features) featuresExtracted.push(`<i class="fas fa-pen text-success"></i> Handwriting: ${response.handwriting_features.length} features`);
+                if (response.gait_features) featuresExtracted.push(`<i class="fas fa-walking text-warning"></i> Gait: ${response.gait_features.length} features`);
+                
+                $('#combinedFeatureStatus').html(`
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> 
+                        <strong>Combined analysis complete!</strong><br>
+                        ${featuresExtracted.join('<br>')}
+                        <br><small class="text-muted">Total: ${response.total_features} features extracted</small>
+                    </div>
+                `);
+                
+                $('#combinedUploadStatus').html('');
+                
+                updatePredictButton();
+                showNotification(`✅ Successfully extracted ${response.total_features} features!`, 'success');
+            } else {
+                $('#combinedUploadStatus').html(`<div class="alert alert-danger">${response.error}<br><small>${response.note || ''}</small></div>`);
+                showNotification('❌ Error: ' + response.error, 'danger');
+            }
+        },
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
+            const note = xhr.responseJSON?.note || '';
+            $('#combinedUploadStatus').html(`<div class="alert alert-danger">${errorMsg}<br><small>${note}</small></div>`);
+            showNotification('❌ Upload failed: ' + errorMsg, 'danger');
+        }
+    });
+}
+
 // Generic file upload function
 function uploadFile(endpoint, formData, modality, statusElementId) {
     $.ajax({
@@ -276,31 +395,38 @@ function makePrediction() {
     const modalitiesUsed = [];
     let totalFeatures = 0;
     
+    // Speech features (optional)
     if (extractedFeatures.speech) {
         requestData.speech_features = extractedFeatures.speech;
         modalitiesUsed.push('<span class="badge bg-primary"><i class="fas fa-microphone"></i> Speech (22)</span>');
         totalFeatures += 22;
     }
     
+    // Handwriting features (optional)
     if (extractedFeatures.handwriting) {
         requestData.handwriting_features = extractedFeatures.handwriting;
         modalitiesUsed.push('<span class="badge bg-success"><i class="fas fa-pen"></i> Handwriting (10)</span>');
         totalFeatures += 10;
     }
     
+    // Gait features (optional)
     if (extractedFeatures.gait) {
         requestData.gait_features = extractedFeatures.gait;
         modalitiesUsed.push('<span class="badge bg-warning text-dark"><i class="fas fa-walking"></i> Gait (10)</span>');
         totalFeatures += 10;
     }
     
+    // Check if at least one modality is available
     if (Object.keys(requestData).length === 0) {
         showNotification('⚠️ Please upload at least one file first!', 'warning');
         return;
     }
     
-    console.log('Making prediction with extracted features:', Object.keys(requestData));
-    console.log('Total features:', totalFeatures);
+    console.log('[PREDICTION] Making prediction with extracted features:', Object.keys(requestData));
+    console.log('[PREDICTION] Total features:', totalFeatures);
+    console.log('[PREDICTION] Speech features (first 5):', requestData.speech_features?.slice(0, 5));
+    console.log('[PREDICTION] Handwriting features (first 3):', requestData.handwriting_features?.slice(0, 3));
+    console.log('[PREDICTION] Gait features (first 3):', requestData.gait_features?.slice(0, 3));
     
     // Show loading
     $('#placeholderSection').hide();
@@ -442,73 +568,94 @@ function resetForm() {
 
 // ===== EXAMPLE FUNCTIONS =====
 
-// Load Healthy Sample (all modalities)
-function useHealthyExample() {
-    showNotification('📥 Loading REAL healthy sample...', 'info');
-    $('#speechFeatureStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+// Generic function to load examples by type and modality
+function loadExample(sampleType, modality) {
+    const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
+    showNotification(`📥 Loading ${typeName} ${modality} sample...`, 'info');
+    
+    // Determine which status element to use based on modality
+    let statusElement;
+    if (modality === 'speech') {
+        statusElement = '#speechFeatureStatus';
+    } else if (modality === 'handwriting') {
+        statusElement = '#handwritingFeatureStatus';
+    } else if (modality === 'gait') {
+        statusElement = '#gaitFeatureStatus';
+    } else if (modality === 'all') {
+        statusElement = '#combinedFeatureStatus';
+    } else {
+        statusElement = '#speechFeatureStatus';
+    }
+    
+    $(statusElement).html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
+    
+    console.log(`[LOAD EXAMPLE] Type: ${sampleType}, Modality: ${modality}`);
     
     fetch('/static/examples/real_examples.json')
         .then(response => response.json())
         .then(data => {
-            const sample = data.healthy;
+            const sample = data[sampleType];
             
-            // Load all available modalities
-            extractedFeatures.speech = sample.speech_features;
-            extractedFeatures.handwriting = sample.handwriting_features.length > 0 ? sample.handwriting_features : null;
-            extractedFeatures.gait = sample.gait_features.length > 0 ? sample.gait_features : null;
+            console.log(`[LOAD EXAMPLE] Sample data:`, sample);
+            console.log(`[LOAD EXAMPLE] Speech features (first 5):`, sample.speech_features?.slice(0, 5));
             
-            $('#speechFeatureStatus').html(`
-                <div class="alert alert-success">
+            // Load based on requested modality
+            if (modality === 'all') {
+                // Load all modalities
+                extractedFeatures.speech = sample.speech_features;
+                extractedFeatures.handwriting = sample.handwriting_features;
+                extractedFeatures.gait = sample.gait_features;
+                console.log(`[LOAD EXAMPLE] Loaded all modalities`);
+            } else if (modality === 'speech') {
+                extractedFeatures.speech = sample.speech_features;
+                extractedFeatures.handwriting = null;
+                extractedFeatures.gait = null;
+                console.log(`[LOAD EXAMPLE] Loaded speech only`);
+            } else if (modality === 'handwriting') {
+                // Load ONLY handwriting features (speech required separately)
+                extractedFeatures.speech = null;
+                extractedFeatures.handwriting = sample.handwriting_features;
+                extractedFeatures.gait = null;
+                console.log(`[LOAD EXAMPLE] Loaded handwriting only`);
+            } else if (modality === 'gait') {
+                // Load ONLY gait features (speech required separately)
+                extractedFeatures.speech = null;
+                extractedFeatures.handwriting = null;
+                extractedFeatures.gait = sample.gait_features;
+                console.log(`[LOAD EXAMPLE] Loaded gait only`);
+            }
+            
+            // Build status message
+            let features = [];
+            let alertClass = 'success';
+            let infoMessage = '';
+            
+            if (extractedFeatures.speech) features.push(`🎤 Speech: ${sample.speech_features.length} features`);
+            if (extractedFeatures.handwriting) features.push(`✍️ Handwriting: ${sample.handwriting_features.length} features`);
+            if (extractedFeatures.gait) features.push(`🚶 Gait: ${sample.gait_features.length} features`);
+            
+            // Show info if only one modality loaded
+            if (!extractedFeatures.speech && (extractedFeatures.handwriting || extractedFeatures.gait)) {
+                infoMessage = '<br><small class="text-info"><i class="fas fa-info-circle"></i> <strong>Tip:</strong> For best accuracy, combine with speech data from the Speech tab, or use the Combined tab to load all modalities at once.</small>';
+            }
+            
+            const statusHtml = `
+                <div class="alert alert-${alertClass}">
                     <i class="fas fa-database"></i> 
-                    <strong>Healthy Control Sample Loaded</strong><br>
-                    <small>Speech: ${sample.speech_features.length} features</small><br>
-                    <small>Handwriting: ${sample.handwriting_features.length} features</small><br>
-                    <small>Gait: ${sample.gait_features.length} features</small><br>
+                    <strong>${typeName} Sample Loaded</strong><br>
+                    <small>${features.join('<br>')}</small><br>
                     <small class="text-muted">Source: Real patient data</small>
+                    ${infoMessage}
                 </div>
-            `);
+            `;
+            $(statusElement).html(statusHtml);
             
             updatePredictButton();
-            showNotification('✅ Healthy sample loaded - ready to predict!', 'success');
+            showNotification(`✅ ${typeName} sample loaded!`, 'success');
         })
         .catch(error => {
             showNotification('❌ Error: ' + error, 'danger');
-            $('#speechFeatureStatus').html('');
-        });
-}
-
-// Load Parkinson's Sample (all modalities)
-function useParkinsonExample() {
-    showNotification('📥 Loading REAL Parkinson\'s sample...', 'info');
-    $('#speechFeatureStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
-    
-    fetch('/static/examples/real_examples.json')
-        .then(response => response.json())
-        .then(data => {
-            const sample = data.parkinsons;
-            
-            // Load all available modalities
-            extractedFeatures.speech = sample.speech_features;
-            extractedFeatures.handwriting = sample.handwriting_features.length > 0 ? sample.handwriting_features : null;
-            extractedFeatures.gait = sample.gait_features.length > 0 ? sample.gait_features : null;
-            
-            $('#speechFeatureStatus').html(`
-                <div class="alert alert-warning">
-                    <i class="fas fa-database"></i> 
-                    <strong>Parkinson's Disease Sample Loaded</strong><br>
-                    <small>Speech: ${sample.speech_features.length} features</small><br>
-                    <small>Handwriting: ${sample.handwriting_features.length} features</small><br>
-                    <small>Gait: ${sample.gait_features.length} features</small><br>
-                    <small class="text-muted">Source: Real patient data</small>
-                </div>
-            `);
-            
-            updatePredictButton();
-            showNotification('✅ PD sample loaded - ready to predict!', 'success');
-        })
-        .catch(error => {
-            showNotification('❌ Error: ' + error, 'danger');
-            $('#speechFeatureStatus').html('');
+            $(statusElement).html('');
         });
 }
 

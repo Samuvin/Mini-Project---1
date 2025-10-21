@@ -21,26 +21,7 @@
     "spread1",
     "spread2",
     "D2",
-    "PPE",
-    "handwriting_1",
-    "handwriting_2",
-    "handwriting_3",
-    "handwriting_4",
-    "handwriting_5",
-    "handwriting_6",
-    "handwriting_7",
-    "handwriting_8",
-    "handwriting_9",
-    "handwriting_10",
-    "gait_1",
-    "gait_2",
-    "gait_3",
-    "gait_4",
-    "gait_5",
-    "gait_6",
-    "gait_7",
-    "gait_8",
-    "gait_9",
-    "gait_10"
-  ]
+    "PPE"
+  ],
+  "note": "Speech-only features (22 total). Model trained on speech data only, not multimodal."
 }

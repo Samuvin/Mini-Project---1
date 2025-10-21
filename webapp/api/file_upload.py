@@ -159,7 +159,7 @@ def upload_handwriting():
                 'feature_names': list(features_dict.keys()),
                 'modality': 'handwriting',
                 'message': 'Handwriting features extracted successfully',
-                'note': 'Features estimated from static image'
+                'note': 'Optional features that enhance prediction accuracy when combined with speech'
             })
         
         except Exception as e:
@@ -229,7 +229,7 @@ def upload_gait():
                 'feature_names': list(features_dict.keys()),
                 'modality': 'gait',
                 'message': 'Gait features extracted successfully',
-                'note': 'Features estimated from video analysis'
+                'note': 'Optional features that enhance prediction accuracy when combined with speech'
             })
         
         except Exception as e:

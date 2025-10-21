@@ -74,34 +74,19 @@ echo ""
 # Step 4: Check and Download Datasets
 print_info "Checking datasets..."
 
-# Check speech data
+# Check speech data (only dataset we need for speech-only model)
 if [ ! -f "data/raw/speech/parkinsons.csv" ]; then
     print_info "Speech dataset not found. Downloading..."
-    python download_data.py
+    python download_datasets.py
     if [ $? -eq 0 ]; then
         print_success "Speech dataset downloaded"
-    else:
+    else
         print_error "Failed to download speech dataset"
-        print_info "Continuing anyway..."
+        print_error "Cannot proceed without speech data"
+        exit 1
     fi
-else:
+else
     print_success "Speech dataset found"
-fi
-
-# Check handwriting data
-if [ ! -f "data/raw/handwriting/handwriting_features.csv" ]; then
-    print_info "Handwriting dataset not found (manual download required)"
-    print_info "See DATASETS.md for instructions"
-else:
-    print_success "Handwriting dataset found"
-fi
-
-# Check gait data  
-if [ ! -f "data/raw/gait/gait_features.csv" ]; then
-    print_info "Gait dataset not found (manual download required)"
-    print_info "See DATASETS.md for instructions"
-else:
-    print_success "Gait dataset found"
 fi
 echo ""
 
