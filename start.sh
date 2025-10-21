@@ -90,41 +90,81 @@ else
 fi
 echo ""
 
-# Step 5: Check if Model Needs Training
-print_info "Checking model status..."
-NEEDS_TRAINING=false
-
-if [ ! -f "models/best_model.joblib" ] || [ ! -f "models/scaler.joblib" ]; then
-    print_info "Model files not found"
-    NEEDS_TRAINING=true
-else:
-    # Check if model is older than data
-    if [ "data/raw/speech/parkinsons.csv" -nt "models/best_model.joblib" ]; then
-        print_info "Dataset is newer than model"
-        NEEDS_TRAINING=true
-    fi
-fi
-
-if [ "$NEEDS_TRAINING" = true ]; then
-    print_info "Training model now..."
-    print_info "This may take 2-5 minutes..."
-    echo ""
-    
-    python train.py
-    
+# Step 5: Generate Multi-Modal Datasets
+print_info "Checking multi-modal datasets..."
+if [ ! -f "data/raw/handwriting/handwriting_data.csv" ] || [ ! -f "data/raw/gait/gait_data.csv" ]; then
+    print_info "Generating handwriting and gait datasets..."
+    python generate_modality_datasets.py
     if [ $? -eq 0 ]; then
-        print_success "Model trained successfully"
-    else:
-        print_error "Model training failed"
-        print_info "Check error messages above"
+        print_success "Multi-modal datasets generated"
+    else
+        print_error "Failed to generate datasets"
         exit 1
     fi
-else:
-    print_success "Model is up to date"
+else
+    print_success "Multi-modal datasets found"
 fi
 echo ""
 
-# Step 6: Stop any existing server
+# Step 6: Check and Train Models
+print_info "Checking model status..."
+
+# Check Speech Model
+if [ ! -f "models/speech_model.joblib" ] || [ ! -f "models/speech_scaler.joblib" ]; then
+    if [ ! -f "models/best_model.joblib" ]; then
+        print_info "Speech model not found. Training..."
+        python train.py
+        if [ $? -eq 0 ]; then
+            # Copy to speech_model naming convention
+            cp models/best_model.joblib models/speech_model.joblib
+            cp models/scaler.joblib models/speech_scaler.joblib
+            print_success "Speech model trained"
+        else
+            print_error "Speech model training failed"
+            exit 1
+        fi
+    else
+        # Copy existing model to new naming convention
+        cp models/best_model.joblib models/speech_model.joblib
+        cp models/scaler.joblib models/speech_scaler.joblib
+        print_success "Speech model ready"
+    fi
+else
+    print_success "Speech model found"
+fi
+
+# Check Handwriting Model
+if [ ! -f "models/handwriting_model.joblib" ] || [ ! -f "models/handwriting_scaler.joblib" ]; then
+    print_info "Handwriting model not found. Training..."
+    python train_handwriting_model.py
+    if [ $? -eq 0 ]; then
+        print_success "Handwriting model trained"
+    else
+        print_error "Handwriting model training failed"
+        exit 1
+    fi
+else
+    print_success "Handwriting model found"
+fi
+
+# Check Gait Model
+if [ ! -f "models/gait_model.joblib" ] || [ ! -f "models/gait_scaler.joblib" ]; then
+    print_info "Gait model not found. Training..."
+    python train_gait_model.py
+    if [ $? -eq 0 ]; then
+        print_success "Gait model trained"
+    else
+        print_error "Gait model training failed"
+        exit 1
+    fi
+else
+    print_success "Gait model found"
+fi
+
+print_success "All models ready"
+echo ""
+
+# Step 7: Stop any existing server
 print_info "Checking for running server..."
 pkill -f "gunicorn.*wsgi:app" 2>/dev/null
 if [ $? -eq 0 ]; then
@@ -133,7 +173,7 @@ if [ $? -eq 0 ]; then
 fi
 echo ""
 
-# Step 7: Start the Server
+# Step 8: Start the Server
 print_success "Starting server..."
 echo ""
 echo "============================================================"

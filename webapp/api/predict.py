@@ -163,53 +163,44 @@ def predict():
 @predict_bp.route('/predict_batch', methods=['POST'])
 def predict_batch():
     """
-    Make predictions for multiple samples.
+    Make batch predictions (deprecated - use individual /predict calls).
     
     Expected JSON format:
     {
-        "features": [[list of features for sample 1], [list of features for sample 2], ...]
+        "samples": [
+            {"speech_features": [...], "handwriting_features": [...], "gait_features": [...]},
+            ...
+        ]
     }
     """
     try:
-        model, scaler = load_model()
-        
-        if model is None:
-            return jsonify({
-                'error': 'Model not loaded. Please train a model first.',
-                'success': False
-            }), 500
-        
+        manager = get_manager()
         data = request.get_json()
         
-        if not data or 'features' not in data:
+        if not data or 'samples' not in data:
             return jsonify({
-                'error': 'No features provided',
+                'error': 'No samples provided',
                 'success': False
             }), 400
         
-        features = np.array(data['features'])
-        
-        # Scale features if scaler is available
-        if scaler is not None:
-            features = scaler.transform(features)
-        
-        # Make predictions
-        predictions = model.predict(features)
-        predictions_proba = model.predict_proba(features)
-        
-        # Prepare results
+        # Process each sample
         results = []
-        for i, (pred, proba) in enumerate(zip(predictions, predictions_proba)):
-            results.append({
-                'sample_id': i,
-                'prediction': int(pred),
-                'prediction_label': 'Parkinson\'s Disease' if pred == 1 else 'Healthy',
-                'confidence': float(proba[pred]),
-                'probabilities': {
-                    'healthy': float(proba[0]),
-                    'parkinsons': float(proba[1])
-                }
-            })
+        for i, sample in enumerate(data['samples']):
+            try:
+                result = manager.predict_ensemble(
+                    speech_features=sample.get('speech_features'),
+                    handwriting_features=sample.get('handwriting_features'),
+                    gait_features=sample.get('gait_features'),
+                    voting_method='soft'
+                )
+                result['sample_id'] = i
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    'sample_id': i,
+                    'success': False,
+                    'error': str(e)
+                })
         
         return jsonify({
             'success': True,
@@ -226,26 +217,16 @@ def predict_batch():
 
 @predict_bp.route('/model_info', methods=['GET'])
 def model_info():
-    """Get information about the loaded model."""
+    """Get information about all loaded models."""
     try:
-        model, scaler = load_model()
+        manager = get_manager()
+        info = manager.get_model_info()
         
-        if model is None:
-            return jsonify({
-                'error': 'Model not loaded',
-                'success': False
-            }), 500
-        
-        # Get model information
-        info = {
+        return jsonify({
             'success': True,
-            'model_type': type(model).__name__,
-            'kernel': getattr(model, 'kernel', 'N/A'),
-            'n_features': model.n_features_in_ if hasattr(model, 'n_features_in_') else 'Unknown',
-            'scaler_loaded': scaler is not None
-        }
-        
-        return jsonify(info)
+            'models': info['model_details'],
+            'loaded_modalities': info['loaded_models']
+        })
     
     except Exception as e:
         return jsonify({

@@ -571,7 +571,7 @@ function resetForm() {
 // Generic function to load examples by type and modality
 function loadExample(sampleType, modality) {
     const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
-    showNotification(`📥 Loading ${typeName} ${modality} sample...`, 'info');
+    // Removed loading notification - sample loads instantly
     
     // Determine which status element to use based on modality
     let statusElement;
@@ -651,17 +651,17 @@ function loadExample(sampleType, modality) {
             $(statusElement).html(statusHtml);
             
             updatePredictButton();
-            showNotification(`✅ ${typeName} sample loaded!`, 'success');
+            // Success notification removed - status shown in panel
         })
         .catch(error => {
-            showNotification('❌ Error: ' + error, 'danger');
+            showNotification('❌ Error loading example: ' + error, 'danger');
             $(statusElement).html('');
         });
 }
 
 // Generic function to load handwriting image examples
 function useExampleImage(imageUrl, filename) {
-    showNotification('📥 Loading handwriting example...', 'info');
+    // Removed loading notification
     $('#handwritingUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
     
     fetch(imageUrl)
@@ -679,7 +679,7 @@ function useExampleImage(imageUrl, filename) {
 
 // Use Gait Example
 function useExampleGait() {
-    showNotification('📥 Loading gait example...', 'info');
+    // Removed loading notification
     $('#gaitUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
     
     fetch('/static/examples/example_gait.mp4')
