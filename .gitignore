@@ -50,10 +50,16 @@ htmlcov/
 .nox/
 
 # Data
-data/raw/**/*.csv
-data/raw/**/*.data
-data/raw/**/*.txt
+# Ignore processed data
 data/processed/*.npy
+
+# Ignore generated datasets (can be recreated)
+data/raw/handwriting/*.csv
+data/raw/gait/*.csv
+
+# Allow speech dataset to be committed (needed for Docker builds)
+!data/raw/speech/parkinsons.csv
+!data/raw/speech/parkinsons_telemonitoring.csv
 !data/README.md
 
 # Models

@@ -32,9 +32,11 @@ ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 ENV FLASK_ENV=production
 
-# Generate datasets and train models on container build
-RUN python3 generate_modality_datasets.py && \
-    python3 train.py && \
+# Generate synthetic handwriting and gait datasets
+RUN python3 generate_modality_datasets.py
+
+# Train all models (speech data already in repo from git)
+RUN python3 train.py && \
     python3 train_handwriting_model.py && \
     python3 train_gait_model.py && \
     cp models/best_model.joblib models/speech_model.joblib && \

@@ -11,6 +11,10 @@ ENV/
 .eggs/
 *.egg
 
+# Important: Don't ignore speech data (needed for training)
+!data/raw/speech/parkinsons.csv
+!data/raw/speech/parkinsons_telemonitoring.csv
+
 # IDEs
 .vscode/
 .idea/
