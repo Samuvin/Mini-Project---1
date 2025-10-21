@@ -226,8 +226,6 @@ function uploadFile(endpoint, formData, modality, statusElementId) {
                 
                 // Enable predict button
                 updatePredictButton();
-                
-                showNotification('✅ Features extracted successfully!', 'success');
             } else {
                 showNotification('❌ ' + response.error, 'danger');
                 clearUploadStatus(modality);

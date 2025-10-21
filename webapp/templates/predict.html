@@ -56,7 +56,7 @@
                             <div class="card bg-light mb-3">
                                 <div class="card-body">
                                     <h6><i class="fas fa-record-vinyl text-danger"></i> Record Your Voice</h6>
-                                    <p class="small text-muted mb-2">Say "Aaaaahhh" steadily for 3-5 seconds</p>
+                                    <p class="small text-muted mb-2">Sustain a steady vowel sound "Ahh" for 5 seconds at comfortable pitch</p>
                                     
                                     <div class="text-center mb-2">
                                         <button type="button" class="btn btn-danger btn-lg" id="recordBtn">
@@ -310,59 +310,51 @@
                         <p class="text-muted">These samples include Speech (22 features), Handwriting (10 features), and Gait (10 features) = 42 total features</p>
                         
                         <div class="row g-3">
-                            <!-- Healthy Sample -->
+                            <!-- Sample A -->
                             <div class="col-md-6">
-                                <div class="card border-success h-100">
-                                    <div class="card-header bg-success text-white">
-                                        <h6 class="mb-0"><i class="fas fa-check-circle"></i> Healthy Control Sample</h6>
+                                <div class="card border-primary h-100">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-user"></i> Patient Sample A</h6>
                                     </div>
                                     <div class="card-body">
-                                        <p class="small mb-3">From a neurologically healthy individual with normal voice patterns, steady handwriting, and regular walking gait.</p>
-                                        
-                                        <div class="mb-2">
-                                            <strong>Expected Result:</strong> <span class="badge bg-success">Healthy</span>
-                                        </div>
+                                        <p class="small mb-3">Clinical data from a real patient study including voice recordings, handwriting samples, and gait measurements.</p>
                                         
                                         <div class="mb-3">
                                             <strong>Data Includes:</strong>
                                             <ul class="small mb-0">
-                                                <li>🎤 Voice: Stable vocal cord frequency</li>
-                                                <li>✍️ Handwriting: Smooth spiral patterns</li>
-                                                <li>🚶 Gait: Regular walking rhythm</li>
+                                                <li>🎤 Voice: 22 vocal features</li>
+                                                <li>✍️ Handwriting: 10 handwriting features</li>
+                                                <li>🚶 Gait: 10 walking pattern features</li>
                                             </ul>
                                         </div>
                                         
-                                        <button type="button" class="btn btn-success w-100" id="useHealthyExampleModal" data-bs-dismiss="modal">
-                                            <i class="fas fa-play-circle"></i> Load Healthy Sample
+                                        <button type="button" class="btn btn-primary w-100" id="useHealthyExampleModal" data-bs-dismiss="modal">
+                                            <i class="fas fa-play-circle"></i> Load Sample A
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Parkinson's Sample -->
+                            <!-- Sample B -->
                             <div class="col-md-6">
-                                <div class="card border-warning h-100">
-                                    <div class="card-header bg-warning">
-                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Parkinson's Disease Sample</h6>
+                                <div class="card border-secondary h-100">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-user"></i> Patient Sample B</h6>
                                     </div>
                                     <div class="card-body">
-                                        <p class="small mb-3">From a patient diagnosed with Parkinson's disease, showing typical indicators in voice, handwriting, and movement.</p>
-                                        
-                                        <div class="mb-2">
-                                            <strong>Expected Result:</strong> <span class="badge bg-warning text-dark">Parkinson's Disease</span>
-                                        </div>
+                                        <p class="small mb-3">Clinical data from a real patient study including voice recordings, handwriting samples, and gait measurements.</p>
                                         
                                         <div class="mb-3">
                                             <strong>Data Includes:</strong>
                                             <ul class="small mb-0">
-                                                <li>🎤 Voice: Reduced vocal range</li>
-                                                <li>✍️ Handwriting: Micrographia patterns</li>
-                                                <li>🚶 Gait: Irregular walking patterns</li>
+                                                <li>🎤 Voice: 22 vocal features</li>
+                                                <li>✍️ Handwriting: 10 handwriting features</li>
+                                                <li>🚶 Gait: 10 walking pattern features</li>
                                             </ul>
                                         </div>
                                         
-                                        <button type="button" class="btn btn-warning w-100" id="useParkinsonExampleModal" data-bs-dismiss="modal">
-                                            <i class="fas fa-play-circle"></i> Load PD Sample
+                                        <button type="button" class="btn btn-secondary w-100" id="useParkinsonExampleModal" data-bs-dismiss="modal">
+                                            <i class="fas fa-play-circle"></i> Load Sample B
                                         </button>
                                     </div>
                                 </div>
@@ -378,24 +370,23 @@
                     <div class="tab-pane fade" id="handwritingSamples">
                         <h6 class="mb-3"><i class="fas fa-pen"></i> Handwriting Sample Examples</h6>
                         
-                        <h6 class="text-success mb-2"><i class="fas fa-check-circle"></i> Healthy Control Samples</h6>
                         <div class="row g-3 mb-4">
-                            <!-- Healthy Spiral -->
-                            <div class="col-md-6">
-                                <div class="card h-100 border-success">
-                                    <div class="card-header bg-success text-white">
-                                        <small class="fw-bold"><i class="fas fa-circle-notch"></i> Healthy Spiral</small>
+                            <!-- Spiral Sample 1 -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <small class="fw-bold"><i class="fas fa-circle-notch"></i> Spiral Sample 1</small>
                                     </div>
                                     <div class="card-body text-center p-2">
                                         <img src="{{ url_for('static', filename='examples/example_spiral_healthy.jpg') }}" 
                                              class="img-fluid rounded border mb-2" 
-                                             alt="Healthy spiral"
+                                             alt="Spiral sample 1"
                                              style="max-height: 140px; cursor: pointer;"
                                              onclick="viewExampleHealthySpiral()">
-                                        <p class="small text-muted mb-2">Smooth, larger, consistent strokes</p>
+                                        <p class="small text-muted mb-2">Spiral drawing pattern</p>
                                         
                                         <div class="d-grid gap-1">
-                                            <button type="button" class="btn btn-success btn-sm" id="useSpiralHealthyModal" data-bs-dismiss="modal">
+                                            <button type="button" class="btn btn-primary btn-sm" id="useSpiralHealthyModal" data-bs-dismiss="modal">
                                                 <i class="fas fa-play-circle"></i> Use Sample
                                             </button>
                                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewExampleHealthySpiral()">
@@ -406,19 +397,45 @@
                                 </div>
                             </div>
                             
-                            <!-- Healthy Sentence -->
-                            <div class="col-md-6">
+                            <!-- Spiral Sample 2 -->
+                            <div class="col-md-4">
+                                <div class="card h-100 border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <small class="fw-bold"><i class="fas fa-circle-notch"></i> Spiral Sample 2</small>
+                                    </div>
+                                    <div class="card-body text-center p-2">
+                                        <img src="{{ url_for('static', filename='examples/example_spiral_pd.jpg') }}" 
+                                             class="img-fluid rounded border mb-2" 
+                                             alt="Spiral sample 2"
+                                             style="max-height: 140px; cursor: pointer;"
+                                             onclick="viewExamplePDSpiral()">
+                                        <p class="small text-muted mb-2">Spiral drawing pattern</p>
+                                        
+                                        <div class="d-grid gap-1">
+                                            <button type="button" class="btn btn-info btn-sm" id="useSpiralPDModal" data-bs-dismiss="modal">
+                                                <i class="fas fa-play-circle"></i> Use Sample
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewExamplePDSpiral()">
+                                                <i class="fas fa-search-plus"></i> Enlarge
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Sentence Sample 1 -->
+                            <div class="col-md-4">
                                 <div class="card h-100 border-success">
                                     <div class="card-header bg-success text-white">
-                                        <small class="fw-bold"><i class="fas fa-align-left"></i> Healthy Writing</small>
+                                        <small class="fw-bold"><i class="fas fa-align-left"></i> Sentence Sample 1</small>
                                     </div>
                                     <div class="card-body text-center p-2">
                                         <img src="{{ url_for('static', filename='examples/example_sentence_healthy.jpg') }}" 
                                              class="img-fluid rounded border mb-2" 
-                                             alt="Healthy writing"
+                                             alt="Sentence sample 1"
                                              style="max-height: 140px; cursor: pointer;"
                                              onclick="viewExampleHealthySentence()">
-                                        <p class="small text-muted mb-2">Consistent size, fluid movement</p>
+                                        <p class="small text-muted mb-2">Handwritten sentence</p>
                                         
                                         <div class="d-grid gap-1">
                                             <button type="button" class="btn btn-success btn-sm" id="useSentenceHealthyModal" data-bs-dismiss="modal">
@@ -431,52 +448,23 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <h6 class="text-warning mb-2"><i class="fas fa-exclamation-triangle"></i> Parkinson's Disease Samples</h6>
-                        <div class="row g-3 mb-4">
-                            <!-- PD Spiral -->
-                            <div class="col-md-4">
-                                <div class="card h-100 border-warning">
-                                    <div class="card-header bg-warning">
-                                        <small class="fw-bold"><i class="fas fa-circle-notch"></i> PD Spiral</small>
-                                    </div>
-                                    <div class="card-body text-center p-2">
-                                        <img src="{{ url_for('static', filename='examples/example_spiral_pd.jpg') }}" 
-                                             class="img-fluid rounded border mb-2" 
-                                             alt="PD spiral"
-                                             style="max-height: 140px; cursor: pointer;"
-                                             onclick="viewExamplePDSpiral()">
-                                        <p class="small text-muted mb-2">Smaller, tremor, irregular</p>
-                                        
-                                        <div class="d-grid gap-1">
-                                            <button type="button" class="btn btn-warning btn-sm" id="useSpiralPDModal" data-bs-dismiss="modal">
-                                                <i class="fas fa-play-circle"></i> Use Sample
-                                            </button>
-                                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewExamplePDSpiral()">
-                                                <i class="fas fa-search-plus"></i> Enlarge
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             
-                            <!-- PD Sentence -->
+                            <!-- Sentence Sample 2 -->
                             <div class="col-md-4">
-                                <div class="card h-100 border-warning">
-                                    <div class="card-header bg-warning">
-                                        <small class="fw-bold"><i class="fas fa-align-left"></i> PD Micrographia</small>
+                                <div class="card h-100 border-secondary">
+                                    <div class="card-header bg-secondary text-white">
+                                        <small class="fw-bold"><i class="fas fa-align-left"></i> Sentence Sample 2</small>
                                     </div>
                                     <div class="card-body text-center p-2">
                                         <img src="{{ url_for('static', filename='examples/example_sentence_pd.jpg') }}" 
                                              class="img-fluid rounded border mb-2" 
-                                             alt="PD micrographia"
+                                             alt="Sentence sample 2"
                                              style="max-height: 140px; cursor: pointer;"
                                              onclick="viewExamplePDSentence()">
-                                        <p class="small text-muted mb-2">Progressive size reduction</p>
+                                        <p class="small text-muted mb-2">Handwritten sentence</p>
                                         
                                         <div class="d-grid gap-1">
-                                            <button type="button" class="btn btn-warning btn-sm" id="useSentencePDModal" data-bs-dismiss="modal">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="useSentencePDModal" data-bs-dismiss="modal">
                                                 <i class="fas fa-play-circle"></i> Use Sample
                                             </button>
                                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewExamplePDSentence()">
@@ -487,22 +475,22 @@
                                 </div>
                             </div>
                             
-                            <!-- PD Wave -->
+                            <!-- Wave Sample -->
                             <div class="col-md-4">
-                                <div class="card h-100 border-warning">
-                                    <div class="card-header bg-warning">
-                                        <small class="fw-bold"><i class="fas fa-water"></i> PD Tremor Wave</small>
+                                <div class="card h-100 border-dark">
+                                    <div class="card-header bg-dark text-white">
+                                        <small class="fw-bold"><i class="fas fa-water"></i> Wave Pattern Sample</small>
                                     </div>
                                     <div class="card-body text-center p-2">
                                         <img src="{{ url_for('static', filename='examples/example_wave_pd.jpg') }}" 
                                              class="img-fluid rounded border mb-2" 
-                                             alt="PD tremor"
+                                             alt="Wave pattern sample"
                                              style="max-height: 140px; cursor: pointer;"
                                              onclick="viewExamplePDWave()">
-                                        <p class="small text-muted mb-2">Visible tremor & fatigue</p>
+                                        <p class="small text-muted mb-2">Wave drawing pattern</p>
                                         
                                         <div class="d-grid gap-1">
-                                            <button type="button" class="btn btn-warning btn-sm" id="useWavePDModal" data-bs-dismiss="modal">
+                                            <button type="button" class="btn btn-dark btn-sm" id="useWavePDModal" data-bs-dismiss="modal">
                                                 <i class="fas fa-play-circle"></i> Use Sample
                                             </button>
                                             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="viewExamplePDWave()">
@@ -552,23 +540,35 @@
                     <!-- Gait Samples Tab -->
                     <div class="tab-pane fade" id="gaitSamples">
                         <h6 class="mb-3"><i class="fas fa-walking"></i> Gait Analysis Examples</h6>
+                        <p class="text-muted small mb-4">Real gait data from clinical walking assessments. Load the sample to test the AI system.</p>
                         
                         <div class="row g-3 mb-4">
-                            <!-- Gait Walking Example -->
+                            <!-- Gait Sample -->
                             <div class="col-md-12">
-                                <div class="card h-100">
-                                    <div class="card-header bg-success text-white">
-                                        <small class="fw-bold"><i class="fas fa-video"></i> Walking Gait Example</small>
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-walking"></i> Walking Gait Sample</h6>
                                     </div>
                                     <div class="card-body text-center p-3">
-                                        <video controls class="w-100 rounded border mb-2" style="max-height: 300px;">
-                                            <source src="{{ url_for('static', filename='examples/example_gait.mp4') }}" type="video/mp4">
-                                        </video>
-                                        <p class="small text-muted mb-2">Standard gait assessment view</p>
+                                        <div class="mb-3">
+                                            <i class="fas fa-shoe-prints fa-4x text-primary mb-3"></i>
+                                            <p class="small mb-3">Pre-extracted gait features from a standard 10-meter walking assessment.</p>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <strong>Data Includes:</strong>
+                                            <ul class="small text-start mb-0">
+                                                <li>Step frequency and stride length measurements</li>
+                                                <li>Balance and sway patterns</li>
+                                                <li>Movement smoothness metrics</li>
+                                                <li>Arm swing amplitude</li>
+                                                <li>Total: 10 quantified gait features</li>
+                                            </ul>
+                                        </div>
                                         
                                         <div class="d-grid gap-2">
-                                            <button type="button" class="btn btn-success" id="useGaitExampleModal" data-bs-dismiss="modal">
-                                                <i class="fas fa-play-circle"></i> Use This Example
+                                            <button type="button" class="btn btn-primary btn-lg" id="useGaitExampleModal" data-bs-dismiss="modal">
+                                                <i class="fas fa-play-circle"></i> Load Gait Sample
                                             </button>
                                         </div>
                                     </div>

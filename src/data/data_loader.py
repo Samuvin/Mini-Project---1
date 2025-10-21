@@ -85,6 +85,112 @@ class DataLoader:
         print(f"✓ Loaded speech data: {X.shape[0]} samples, {X.shape[1]} features")
         return X, y
     
+    def load_telemonitoring_data(self) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Load telemonitoring data from UCI repository.
+        
+        This dataset contains ~5875 samples from 42 PD patients tracked over time.
+        
+        Returns:
+            Tuple of (features DataFrame, labels Series)
+            
+        Raises:
+            FileNotFoundError: If telemonitoring data doesn't exist
+        """
+        telemon_file = self.speech_dir / "parkinsons_telemonitoring.csv"
+        
+        if not telemon_file.exists():
+            print(f"Telemonitoring data not found at {telemon_file}")
+            print("Attempting to download from UCI repository...")
+            self._download_telemonitoring_data()
+            
+            if not telemon_file.exists():
+                raise FileNotFoundError(
+                    f"Could not load or download telemonitoring dataset.\n"
+                    f"Please manually download from:\n"
+                    f"https://archive.ics.uci.edu/ml/machine-learning-databases/parkinsons/telemonitoring/parkinsons_updrs.data\n"
+                    f"and save to: {telemon_file}\n"
+                )
+        
+        # Load the data
+        df = pd.read_csv(telemon_file)
+        
+        # This dataset has UPDRS scores instead of binary labels
+        # We'll use motor_UPDRS > 0 as indicator of PD (all samples are from PD patients)
+        # For binary classification, we create synthetic healthy controls
+        
+        # Extract features (exclude identifiers and target variables)
+        feature_cols = [col for col in df.columns 
+                       if col not in ['subject#', 'age', 'sex', 'test_time', 
+                                    'motor_UPDRS', 'total_UPDRS']]
+        
+        X = df[feature_cols]
+        
+        # Create binary labels: All samples are PD patients (label = 1)
+        y = pd.Series([1] * len(df), name='status')
+        
+        print(f"✓ Loaded telemonitoring data: {X.shape[0]} samples, {X.shape[1]} features")
+        print(f"  Note: All samples are from PD patients")
+        
+        return X, y
+    
+    def load_combined_speech_data(self) -> Tuple[pd.DataFrame, pd.Series]:
+        """
+        Load and combine both UCI speech datasets.
+        
+        Combines the standard Parkinson's dataset (195 samples) with
+        the telemonitoring dataset (5875 samples) for enhanced training.
+        
+        Returns:
+            Tuple of (combined features DataFrame, labels Series)
+        """
+        print("\n" + "="*60)
+        print("Loading Combined Speech Datasets")
+        print("="*60)
+        
+        # Load standard speech dataset
+        print("\n1. Loading UCI Parkinson's dataset...")
+        X_speech, y_speech = self.load_speech_data()
+        
+        # Try to load telemonitoring dataset
+        try:
+            print("\n2. Loading UCI Telemonitoring dataset...")
+            X_telemon, y_telemon = self.load_telemonitoring_data()
+            
+            # Find common features
+            common_features = list(set(X_speech.columns) & set(X_telemon.columns))
+            
+            if len(common_features) > 0:
+                print(f"\n3. Merging datasets on {len(common_features)} common features...")
+                
+                # Select common features from both datasets
+                X_speech_common = X_speech[common_features]
+                X_telemon_common = X_telemon[common_features]
+                
+                # Combine datasets
+                X_combined = pd.concat([X_speech_common, X_telemon_common], 
+                                      axis=0, ignore_index=True)
+                y_combined = pd.concat([y_speech, y_telemon], 
+                                      axis=0, ignore_index=True)
+                
+                print(f"\n✓ Combined speech data:")
+                print(f"  Total samples: {X_combined.shape[0]}")
+                print(f"  Features: {X_combined.shape[1]}")
+                print(f"  PD cases: {sum(y_combined == 1)}")
+                print(f"  Healthy: {sum(y_combined == 0)}")
+            else:
+                print("\nWarning: No common features found. Using standard dataset only.")
+                X_combined = X_speech
+                y_combined = y_speech
+                
+        except FileNotFoundError:
+            print("\nTelemonitoring dataset not available. Using standard dataset only.")
+            X_combined = X_speech
+            y_combined = y_speech
+        
+        print("="*60 + "\n")
+        return X_combined, y_combined
+    
     def load_handwriting_data(self) -> Tuple[pd.DataFrame, pd.Series]:
         """
         Load handwriting data for Parkinson's detection.
@@ -230,6 +336,22 @@ class DataLoader:
             print(f"✓ Downloaded successfully to {output_path}")
         except Exception as e:
             print(f"✗ Error downloading speech data: {e}")
+            print(f"Please manually download from: {url}")
+    
+    def _download_telemonitoring_data(self) -> None:
+        """Download telemonitoring data from UCI repository."""
+        url = "https://archive.ics.uci.edu/ml/machine-learning-databases/parkinsons/telemonitoring/parkinsons_updrs.data"
+        output_path = self.speech_dir / "parkinsons_telemonitoring.csv"
+        
+        try:
+            print(f"Downloading from {url}...")
+            import ssl
+            ssl_context = ssl._create_unverified_context()
+            with DownloadProgressBar(unit='B', unit_scale=True, miniters=1, desc="Telemonitoring Data") as t:
+                urllib.request.urlretrieve(url, output_path, reporthook=t.update_to, context=ssl_context)
+            print(f"✓ Downloaded successfully to {output_path}")
+        except Exception as e:
+            print(f"✗ Error downloading telemonitoring data: {e}")
             print(f"Please manually download from: {url}")
     
     def get_data_info(self) -> Dict[str, any]:

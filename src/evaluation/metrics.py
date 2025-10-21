@@ -2,7 +2,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import (
@@ -10,6 +10,7 @@ from sklearn.metrics import (
     roc_auc_score, confusion_matrix, classification_report,
     roc_curve, auc, precision_recall_curve
 )
+from sklearn.model_selection import cross_val_score, StratifiedKFold, RepeatedStratifiedKFold
 from pathlib import Path
 
 from ..utils.config import Config
@@ -424,6 +425,147 @@ class ModelEvaluator:
             'metrics': metrics,
             'classification_report': report
         }
+    
+    def nested_cross_validation(
+        self,
+        estimator: any,
+        X: np.ndarray,
+        y: np.ndarray,
+        inner_cv: int = 5,
+        outer_cv: int = 5,
+        scoring: str = 'roc_auc',
+        n_jobs: int = -1
+    ) -> Tuple[np.ndarray, Dict[str, float]]:
+        """
+        Perform nested cross-validation for unbiased performance estimation.
+        
+        Outer loop: Performance estimation
+        Inner loop: Hyperparameter tuning (handled by estimator's fit method if it uses GridSearchCV)
+        
+        Args:
+            estimator: Model estimator (can be GridSearchCV object)
+            X: Features
+            y: Labels
+            inner_cv: Number of inner CV folds (for hyperparameter tuning)
+            outer_cv: Number of outer CV folds (for performance estimation)
+            scoring: Scoring metric
+            n_jobs: Number of parallel jobs
+            
+        Returns:
+            Tuple of (outer_scores, statistics_dict)
+        """
+        print("\n" + "="*60)
+        print("Performing Nested Cross-Validation")
+        print("="*60)
+        print(f"Outer CV folds: {outer_cv}")
+        print(f"Inner CV folds: {inner_cv}")
+        print(f"Scoring metric: {scoring}")
+        print()
+        
+        # Outer cross-validation for performance estimation
+        outer_cv_splitter = StratifiedKFold(n_splits=outer_cv, shuffle=True, random_state=42)
+        
+        # Perform nested CV
+        outer_scores = cross_val_score(
+            estimator=estimator,
+            X=X,
+            y=y,
+            cv=outer_cv_splitter,
+            scoring=scoring,
+            n_jobs=n_jobs,
+            verbose=1
+        )
+        
+        # Calculate statistics
+        stats = {
+            'mean': np.mean(outer_scores),
+            'std': np.std(outer_scores),
+            'min': np.min(outer_scores),
+            'max': np.max(outer_scores),
+            'median': np.median(outer_scores),
+            'scores': outer_scores
+        }
+        
+        print(f"\nNested CV Results:")
+        print(f"  Mean {scoring}: {stats['mean']:.4f} (+/- {stats['std']:.4f})")
+        print(f"  Min:  {stats['min']:.4f}")
+        print(f"  Max:  {stats['max']:.4f}")
+        print(f"  Fold scores: {[f'{s:.4f}' for s in outer_scores]}")
+        print("="*60 + "\n")
+        
+        return outer_scores, stats
+    
+    def repeated_stratified_cv(
+        self,
+        estimator: any,
+        X: np.ndarray,
+        y: np.ndarray,
+        n_splits: int = 5,
+        n_repeats: int = 3,
+        scoring: str = 'roc_auc',
+        n_jobs: int = -1
+    ) -> Tuple[np.ndarray, Dict[str, float]]:
+        """
+        Perform repeated stratified cross-validation for robust performance estimation.
+        
+        Args:
+            estimator: Model estimator
+            X: Features
+            y: Labels
+            n_splits: Number of folds per repeat
+            n_repeats: Number of times to repeat CV
+            scoring: Scoring metric
+            n_jobs: Number of parallel jobs
+            
+        Returns:
+            Tuple of (all_scores, statistics_dict)
+        """
+        print("\n" + "="*60)
+        print("Performing Repeated Stratified Cross-Validation")
+        print("="*60)
+        print(f"Folds: {n_splits}")
+        print(f"Repeats: {n_repeats}")
+        print(f"Total evaluations: {n_splits * n_repeats}")
+        print(f"Scoring metric: {scoring}")
+        print()
+        
+        # Create repeated stratified CV splitter
+        cv_splitter = RepeatedStratifiedKFold(
+            n_splits=n_splits,
+            n_repeats=n_repeats,
+            random_state=42
+        )
+        
+        # Perform repeated CV
+        scores = cross_val_score(
+            estimator=estimator,
+            X=X,
+            y=y,
+            cv=cv_splitter,
+            scoring=scoring,
+            n_jobs=n_jobs,
+            verbose=1
+        )
+        
+        # Calculate statistics
+        stats = {
+            'mean': np.mean(scores),
+            'std': np.std(scores),
+            'min': np.min(scores),
+            'max': np.max(scores),
+            'median': np.median(scores),
+            'cv_coefficient': np.std(scores) / np.mean(scores) if np.mean(scores) != 0 else 0,
+            'scores': scores
+        }
+        
+        print(f"\nRepeated CV Results:")
+        print(f"  Mean {scoring}: {stats['mean']:.4f} (+/- {stats['std']:.4f})")
+        print(f"  Min:  {stats['min']:.4f}")
+        print(f"  Max:  {stats['max']:.4f}")
+        print(f"  CV Coefficient: {stats['cv_coefficient']:.4f}")
+        print("="*60 + "\n")
+        
+        return scores, stats
 
 
 if __name__ == "__main__":

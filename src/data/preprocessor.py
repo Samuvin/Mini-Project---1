@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
 
 from ..utils.config import Config, get_processed_data_dir, ensure_dir_exists
+from .augmentation import DataAugmentor
 
 
 class DataPreprocessor:
@@ -24,6 +25,7 @@ class DataPreprocessor:
         self.config = config or Config()
         self.scaler = StandardScaler()
         self.smote = None
+        self.augmentor = DataAugmentor(config)
         self.processed_dir = get_processed_data_dir()
         ensure_dir_exists(self.processed_dir)
     
@@ -241,16 +243,18 @@ class DataPreprocessor:
         y: pd.Series,
         remove_outliers: bool = False,
         balance_classes: bool = True,
+        apply_augmentation: bool = True,
         save: bool = True
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
-        Complete preprocessing pipeline.
+        Complete preprocessing pipeline with augmentation support.
         
         Args:
             X: Input features DataFrame
             y: Target labels Series
             remove_outliers: Whether to remove outliers
             balance_classes: Whether to balance classes using SMOTE
+            apply_augmentation: Whether to apply data augmentation
             save: Whether to save preprocessed data
             
         Returns:
@@ -285,11 +289,18 @@ class DataPreprocessor:
         else:
             y_train = y_train.values
         
+        # Step 6: Apply data augmentation (only on training set)
+        if apply_augmentation and self.config.get('augmentation.enabled', False):
+            aug_methods = ['noise', 'smote', 'mixup']
+            X_train_norm, y_train = self.augmentor.augment_training_data(
+                X_train_norm, y_train, methods=aug_methods
+            )
+        
         # Convert to numpy arrays
         y_val = y_val.values
         y_test = y_test.values
         
-        # Step 6: Save preprocessed data and scaler
+        # Step 7: Save preprocessed data and scaler
         if save:
             self.save_preprocessed_data(
                 X_train_norm, X_val_norm, X_test_norm,

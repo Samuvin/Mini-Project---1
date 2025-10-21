@@ -126,8 +126,8 @@ def create_sample_handwriting_data():
     # Based on research: Parkinson's patients show reduced velocity, increased tremor
     np.random.seed(42)
     
-    n_healthy = 50
-    n_parkinsons = 150
+    n_healthy = 100
+    n_parkinsons = 100
     
     data = []
     
@@ -198,8 +198,8 @@ def create_sample_gait_data():
     # Based on research: Parkinson's patients show slower gait, higher variability
     np.random.seed(42)
     
-    n_healthy = 50
-    n_parkinsons = 150
+    n_healthy = 100
+    n_parkinsons = 100
     
     data = []
     
@@ -254,8 +254,8 @@ def main():
     print("PARKINSON'S DISEASE DATASET DOWNLOADER")
     print("="*70)
     print("\nThis script will download real datasets from online sources:")
-    print("1. UCI Parkinson's Dataset (Speech features)")
-    print("2. UCI Parkinson's Telemonitoring Dataset")
+    print("1. UCI Parkinson's Dataset (Speech features) - 195 samples")
+    print("2. UCI Parkinson's Telemonitoring Dataset - 5,875 samples")
     print("3. Sample Handwriting Dataset (research-based)")
     print("4. Sample Gait Dataset (research-based)")
     print("\n" + "="*70)
@@ -279,11 +279,14 @@ def main():
     
     if all_success:
         print("\n✓ All datasets downloaded successfully!")
-        print("\nYou can now train the model with:")
-        print("  python train_production.py")
+        print("\nYou can now train the models with:")
+        print("  python train_production.py  (Production pipeline with all models)")
+        print("  python train.py            (Legacy pipeline)")
     else:
         print("\n⚠ Some datasets failed to download.")
-        print("The system will use fallback synthetic data if needed.")
+        print("The system will try to use available datasets.")
+        print("\nTo train with available data:")
+        print("  python train_production.py")
     
     print("\n" + "="*70)
     

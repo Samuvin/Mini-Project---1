@@ -35,9 +35,8 @@ function checkAPIHealth() {
         type: 'GET',
         success: function(response) {
             console.log('API Health Status:', response);
-            if (response.status === 'healthy' && response.model_loaded) {
-                showNotification('System ready', 'success');
-            } else if (response.status === 'healthy' && !response.model_loaded) {
+            // Only show warning if model is not loaded
+            if (response.status === 'healthy' && !response.model_loaded) {
                 showNotification('Model not loaded. Please train a model first.', 'warning');
             }
         },
