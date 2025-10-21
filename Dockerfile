@@ -4,10 +4,13 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including build tools for praat-parselmouth)
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
     gcc \
     g++ \
+    make \
     libsndfile1 \
     ffmpeg \
     libavcodec-extra \

@@ -32,16 +32,11 @@ def main():
     print("-" * 80)
     loader = DataLoader(config)
     
-    try:
-        X, y = loader.load_all_modalities()
-        print(f"\n✓ Multimodal data loaded successfully!")
-        print(f"  Total: {X.shape[0]} samples, {X.shape[1]} features\n")
-    except FileNotFoundError as e:
-        print(f"\n✗ Error loading datasets:")
-        print(f"  {e}\n")
-        print("Falling back to speech-only mode...")
-        X, y = loader.load_speech_data()
-        print(f"\n✓ Speech data loaded: {X.shape[0]} samples, {X.shape[1]} features\n")
+    # Load ONLY speech data for training the speech model (22 features)
+    # Handwriting and gait models are trained separately with their own scripts
+    X, y = loader.load_speech_data()
+    print(f"\n✓ Speech data loaded: {X.shape[0]} samples, {X.shape[1]} features")
+    print(f"  Training speech model for multi-model ensemble\n")
     
     # Step 2: Preprocess Data
     print("Step 2: Preprocessing data...")
