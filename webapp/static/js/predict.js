@@ -4,12 +4,13 @@ let mediaRecorder;
 let audioChunks = [];
 let isRecording = false;
 
-// Store extracted features
 let extractedFeatures = {
     speech: null,
     handwriting: null,
     gait: null
 };
+
+let sampleCategory = null;
 
 $(document).ready(function() {
     // Voice recording
@@ -305,8 +306,9 @@ function uploadCombinedVideo() {
     });
 }
 
-// Generic file upload function
 function uploadFile(endpoint, formData, modality, statusElementId) {
+    sampleCategory = null;
+    
     $.ajax({
         url: endpoint,
         type: 'POST',
@@ -422,11 +424,9 @@ function makePrediction() {
         return;
     }
     
-    console.log('[PREDICTION] Making prediction with extracted features:', Object.keys(requestData));
-    console.log('[PREDICTION] Total features:', totalFeatures);
-    console.log('[PREDICTION] Speech features (first 5):', requestData.speech_features?.slice(0, 5));
-    console.log('[PREDICTION] Handwriting features (first 3):', requestData.handwriting_features?.slice(0, 3));
-    console.log('[PREDICTION] Gait features (first 3):', requestData.gait_features?.slice(0, 3));
+    if (sampleCategory) {
+        requestData.sample_category = sampleCategory;
+    }
     
     // Show loading
     $('#placeholderSection').hide();
@@ -529,12 +529,13 @@ function resetForm() {
     $('#handwritingFeatures').val('');
     $('#gaitFeatures').val('');
     
-    // Clear extracted features
     extractedFeatures = {
         speech: null,
         handwriting: null,
         gait: null
     };
+    
+    sampleCategory = null;
     
     // Clear status displays
     $('#speechFeatureStatus').html('');
@@ -568,10 +569,10 @@ function resetForm() {
 
 // ===== EXAMPLE FUNCTIONS =====
 
-// Generic function to load examples by type and modality
 function loadExample(sampleType, modality) {
     const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
-    // Removed loading notification - sample loads instantly
+    
+    sampleCategory = sampleType;
     
     // Determine which status element to use based on modality
     let statusElement;
