@@ -10,7 +10,7 @@ let extractedFeatures = {
     gait: null
 };
 
-let sampleCategory = null;
+let referenceCategory = null;
 
 $(document).ready(function() {
     // Voice recording
@@ -307,7 +307,7 @@ function uploadCombinedVideo() {
 }
 
 function uploadFile(endpoint, formData, modality, statusElementId) {
-    sampleCategory = null;
+    referenceCategory = null;
     
     $.ajax({
         url: endpoint,
@@ -424,8 +424,8 @@ function makePrediction() {
         return;
     }
     
-    if (sampleCategory) {
-        requestData.sample_category = sampleCategory;
+    if (referenceCategory) {
+        requestData.sample_category = referenceCategory;
     }
     
     // Show loading
@@ -535,7 +535,7 @@ function resetForm() {
         gait: null
     };
     
-    sampleCategory = null;
+    referenceCategory = null;
     
     // Clear status displays
     $('#speechFeatureStatus').html('');
@@ -572,7 +572,7 @@ function resetForm() {
 function loadExample(sampleType, modality) {
     const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
     
-    sampleCategory = sampleType;
+    referenceCategory = sampleType;
     
     // Determine which status element to use based on modality
     let statusElement;
