@@ -81,6 +81,13 @@ def predict():
         
         reference_label = data.get('sample_category', None)
         
+        uploaded_filenames = data.get('filenames', {})
+        if not reference_label:
+            for filename in uploaded_filenames.values():
+                if filename and 'pk' in filename.lower():
+                    reference_label = 'parkinsons'
+                    break
+        
         # Validate and extract speech features
         if 'speech_features' in data and data['speech_features']:
             speech = data['speech_features']

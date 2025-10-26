@@ -428,6 +428,12 @@ function makePrediction() {
         requestData.sample_category = referenceCategory;
     }
     
+    requestData.filenames = {
+        speech: $('#audioFileInput').val() ? $('#audioFileInput')[0].files[0]?.name : null,
+        handwriting: $('#handwritingFileInput').val() ? $('#handwritingFileInput')[0].files[0]?.name : null,
+        gait: $('#gaitFileInput').val() ? $('#gaitFileInput')[0].files[0]?.name : null
+    };
+    
     // Show loading
     $('#placeholderSection').hide();
     $('#resultsSection').hide();
