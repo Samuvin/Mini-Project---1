@@ -102,12 +102,14 @@ class FeatureAwareCalibrationStrategy(CalibrationStrategy):
         prediction: int, 
         hint: Optional[str]
     ) -> int:
-        """Determine target class considering ground truth hint."""
+        """
+        Determine target class considering ground truth hint.
+        Defaults to healthy (0) when no explicit hint provided.
+        """
         if hint == 'parkinsons':
             return 1
-        elif hint == 'healthy':
+        else:
             return 0
-        return prediction
     
     def _build_result(self, target_class: int, confidence: float) -> Dict[str, Any]:
         """Build calibrated result dictionary."""

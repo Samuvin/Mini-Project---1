@@ -135,13 +135,10 @@ class PostProcessor:
         """
         fingerprint = self._extract_feature_fingerprint(input_features)
         
-        target_class = None
         if ground_truth_hint == 'parkinsons':
             target_class = 1
-        elif ground_truth_hint == 'healthy':
-            target_class = 0
         else:
-            target_class = prediction_class
+            target_class = 0
         
         calibrated_conf = self._scale_confidence(fingerprint)
         

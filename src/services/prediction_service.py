@@ -5,7 +5,7 @@ Follows Dependency Inversion Principle - depends on abstractions, not concretion
 
 import numpy as np
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from src.core.interfaces import (
     IPredictionService, 
     IModelLoader, 
