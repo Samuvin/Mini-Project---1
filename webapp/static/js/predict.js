@@ -10,6 +10,12 @@ let extractedFeatures = {
     gait: null
 };
 
+let uploadedFilenames = {
+    speech: null,
+    handwriting: null,
+    gait: null
+};
+
 let referenceCategory = null;
 
 $(document).ready(function() {
@@ -183,6 +189,8 @@ function uploadAudioFile() {
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
     
+    uploadedFilenames.speech = fileInput.files[0].name;
+    
     $('#audioUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     
     uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus');
@@ -199,6 +207,8 @@ function uploadHandwritingFile() {
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
     
+    uploadedFilenames.handwriting = fileInput.files[0].name;
+    
     $('#handwritingUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     
     uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus');
@@ -214,6 +224,8 @@ function uploadGaitFile() {
     
     const formData = new FormData();
     formData.append('file', fileInput.files[0]);
+    
+    uploadedFilenames.gait = fileInput.files[0].name;
     
     $('#gaitUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     
@@ -429,9 +441,9 @@ function makePrediction() {
     }
     
     requestData.filenames = {
-        speech: $('#audioFileInput').val() ? $('#audioFileInput')[0].files[0]?.name : null,
-        handwriting: $('#handwritingFileInput').val() ? $('#handwritingFileInput')[0].files[0]?.name : null,
-        gait: $('#gaitFileInput').val() ? $('#gaitFileInput')[0].files[0]?.name : null
+        speech: uploadedFilenames.speech,
+        handwriting: uploadedFilenames.handwriting,
+        gait: uploadedFilenames.gait
     };
     
     // Show loading
@@ -579,6 +591,10 @@ function loadExample(sampleType, modality) {
     const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
     
     referenceCategory = sampleType;
+    
+    uploadedFilenames.speech = null;
+    uploadedFilenames.handwriting = null;
+    uploadedFilenames.gait = null;
     
     // Determine which status element to use based on modality
     let statusElement;
