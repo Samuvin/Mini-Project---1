@@ -115,6 +115,33 @@ $(document).ready(function() {
         previewHandwritingImage(this);
     });
     
+    // Track file selections
+    $('#audioFileInput').change(function() {
+        if (this.files && this.files[0]) {
+            uploadedFilenames.speech = this.files[0].name;
+        }
+    });
+    
+    $('#handwritingFileInput').change(function() {
+        if (this.files && this.files[0]) {
+            uploadedFilenames.handwriting = this.files[0].name;
+        }
+    });
+    
+    $('#gaitFileInput').change(function() {
+        if (this.files && this.files[0]) {
+            uploadedFilenames.gait = this.files[0].name;
+        }
+    });
+    
+    $('#combinedVideoInput').change(function() {
+        if (this.files && this.files[0]) {
+            uploadedFilenames.speech = this.files[0].name;
+            uploadedFilenames.handwriting = this.files[0].name;
+            uploadedFilenames.gait = this.files[0].name;
+        }
+    });
+    
     // Predict button
     $('#predictBtn').click(function() {
         makePrediction();
@@ -263,6 +290,12 @@ function uploadCombinedVideo() {
     formData.append('extract_voice', extractVoice);
     formData.append('extract_handwriting', extractHandwriting);
     formData.append('extract_gait', extractGait);
+    
+    // Store filename for all selected modalities
+    const videoFilename = fileInput.files[0].name;
+    if (extractVoice) uploadedFilenames.speech = videoFilename;
+    if (extractHandwriting) uploadedFilenames.handwriting = videoFilename;
+    if (extractGait) uploadedFilenames.gait = videoFilename;
     
     $('#combinedUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Processing video and extracting features...</div>');
     
@@ -548,6 +581,12 @@ function resetForm() {
     $('#gaitFeatures').val('');
     
     extractedFeatures = {
+        speech: null,
+        handwriting: null,
+        gait: null
+    };
+    
+    uploadedFilenames = {
         speech: null,
         handwriting: null,
         gait: null
