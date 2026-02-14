@@ -13,8 +13,9 @@ backlog = 2048
 workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = 'sync'
 worker_connections = 1000
-timeout = 120
+timeout = 180  # Increased timeout for audio processing (prevents worker timeout during feature extraction)
 keepalive = 2
+graceful_timeout = 30  # Time to wait for workers to finish before force kill
 
 # Restart workers after this many requests (helps prevent memory leaks)
 max_requests = 1000

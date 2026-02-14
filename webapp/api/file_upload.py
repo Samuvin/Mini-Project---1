@@ -54,12 +54,33 @@ def upload_audio():
             }), 400
         
         filename = secure_filename(file.filename)
+        
+        # Validate file size before saving
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+        
+        if file_size == 0:
+            return jsonify({
+                'success': False,
+                'error': 'The uploaded file is empty. Please upload a valid audio file.'
+            }), 400
+        
+        if file_size > 100 * 1024 * 1024:  # 100MB limit
+            return jsonify({
+                'success': False,
+                'error': f'File too large ({file_size / 1024 / 1024:.1f}MB). Maximum size is 100MB.'
+            }), 400
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp:
             file.save(tmp.name)
             tmp_path = tmp.name
         
+        # Note: File format validation will be done by librosa/soundfile
+        # If the file is not a valid audio format, it will fail early with a clear error
+        
         try:
-            logger.info("Extracting speech features from: %s", tmp_path)
+            logger.info("Extracting speech features from: %s (size: %d bytes)", tmp_path, file_size)
             features_dict = extract_speech_features(tmp_path)
             features_array = audio_to_array(features_dict)
             os.unlink(tmp_path)
@@ -78,16 +99,41 @@ def upload_audio():
             raise e
     
     except RuntimeError as e:
-        logger.error("Audio extraction failed: %s", str(e))
-        return jsonify({
-            'success': False,
-            'error': 'Failed to extract features from audio file. Please ensure the file is a valid audio format and contains speech data.'
-        }), 400
+        error_msg = str(e)
+        logger.error("Audio extraction failed: %s", error_msg)
+        # Provide more specific error messages
+        if 'format' in error_msg.lower() or 'not supported' in error_msg.lower() or 'corrupted' in error_msg.lower():
+            return jsonify({
+                'success': False,
+                'error': 'The audio file format is not supported or the file is corrupted. Please upload a valid WAV, MP3, OGG, FLAC, or M4A file.'
+            }), 400
+        elif 'empty' in error_msg.lower():
+            return jsonify({
+                'success': False,
+                'error': 'The uploaded file is empty. Please upload a valid audio file.'
+            }), 400
+        elif 'too large' in error_msg.lower():
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), 400
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to extract features from audio file. Please ensure the file is a valid audio format and contains speech data.'
+            }), 400
     except Exception as e:
         logger.exception("Error processing audio")
+        error_msg = str(e)
+        # Check for timeout-related errors
+        if 'timeout' in error_msg.lower() or 'worker' in error_msg.lower():
+            return jsonify({
+                'success': False,
+                'error': 'Audio processing timed out. The file may be too large or in an unsupported format. Please try a smaller file or convert it to WAV format.'
+            }), 500
         return jsonify({
             'success': False,
-            'error': 'An error occurred while processing the audio file. Please try again or contact support if the issue persists.'
+            'error': 'An error occurred while processing the audio file. Please ensure the file is a valid audio format and try again.'
         }), 500
 
 

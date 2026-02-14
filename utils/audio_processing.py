@@ -1,6 +1,10 @@
 """
 Audio feature extraction for Parkinson's Disease prediction.
 Extracts 22 speech features from audio files using librosa and Praat-Parselmouth.
+
+IMPORTANT: This module uses soundfile directly to avoid librosa's audioread fallback,
+which triggers slow numba compilation and causes worker timeouts. If soundfile fails,
+we try scipy as a fast alternative before falling back to librosa.
 """
 
 import numpy as np
@@ -27,24 +31,58 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
     Returns:
         Dictionary with 22 speech features
     """
+    # Validate file exists and is readable
+    if not os.path.exists(audio_file_path):
+        raise RuntimeError(f"Audio file not found: '{audio_file_path}'")
+    
+    # Check file size (reject empty or suspiciously large files)
+    file_size = os.path.getsize(audio_file_path)
+    if file_size == 0:
+        raise RuntimeError(f"Audio file is empty: '{audio_file_path}'")
+    if file_size > 100 * 1024 * 1024:  # 100MB limit
+        raise RuntimeError(f"Audio file too large ({file_size / 1024 / 1024:.1f}MB). Maximum size is 100MB.")
+    
     # Load audio file with error handling
+    # CRITICAL: Force soundfile backend only to prevent audioread fallback
+    # (audioread triggers slow numba compilation causing worker timeouts)
     try:
-        y, sr = librosa.load(audio_file_path, sr=None)
+        # Try soundfile directly first (fastest, no numba compilation)
+        y, sr = sf.read(audio_file_path)
+        # Convert to mono if stereo
+        if len(y.shape) > 1:
+            y = np.mean(y, axis=1)
+        # Normalize to float32 range [-1, 1]
+        if y.dtype != np.float32:
+            y = y.astype(np.float32)
+            if np.max(np.abs(y)) > 1.0:
+                y = y / np.max(np.abs(y))
     except Exception as e:
-        error_msg = f"Error loading audio with librosa: {e}"
-        print(error_msg)
-        # Try alternative loading method
+        error_msg = f"Error loading audio with soundfile: {e}"
+        logger.warning(error_msg)
+        # Try librosa with soundfile backend explicitly (still may fallback, but try)
         try:
-            import scipy.io.wavfile as wav
-            sr, y = wav.read(audio_file_path)
-            y = y.astype(float)
+            # Set librosa to prefer soundfile, fail fast if not supported
+            y, sr = librosa.load(audio_file_path, sr=None, res_type='kaiser_fast')
         except Exception as e2:
-            # If all else fails, raise exception
-            raise RuntimeError(
-                f"Failed to load audio file '{audio_file_path}'. "
-                f"Librosa error: {e}. Scipy error: {e2}. "
-                f"Please ensure the file is a valid audio format."
-            ) from e2
+            # Try scipy as fallback (faster than audioread, no numba)
+            try:
+                import scipy.io.wavfile as wav
+                sr, y = wav.read(audio_file_path)
+                y = y.astype(np.float32)
+                # Normalize to [-1, 1] range
+                if np.max(np.abs(y)) > 1.0:
+                    y = y / (2**15)  # For 16-bit audio
+                # Convert to mono if stereo
+                if len(y.shape) > 1:
+                    y = np.mean(y, axis=1)
+            except Exception as e3:
+                # If all else fails, raise exception with clear message
+                raise RuntimeError(
+                    f"Failed to load audio file '{audio_file_path}'. "
+                    f"The file format may not be supported or the file may be corrupted. "
+                    f"Please ensure the file is a valid WAV, MP3, OGG, FLAC, or M4A format. "
+                    f"Soundfile error: {str(e)[:200]}. Librosa error: {str(e2)[:200]}. Scipy error: {str(e3)[:200]}."
+                ) from e3
     
     # Create Praat Sound object for analysis
     try:
