@@ -307,6 +307,9 @@
                 </div>
                 <div class="card-body">
                     <div id="resultsSection" style="display: none;">
+                        <!-- Model type badge -->
+                        <div class="mb-3" id="modelTypeBadgeContainer"></div>
+
                         <div class="alert" id="predictionAlert" role="alert">
                             <h4 class="alert-heading" id="predictionLabel"></h4>
                             <p class="mb-0" id="predictionText"></p>
@@ -342,7 +345,34 @@
                             </table>
                         </div>
 
-                        <div class="alert alert-warning" role="alert">
+                        <!-- DL Explainability: Attention Weights -->
+                        <div id="dlAttentionSection" style="display:none;">
+                            <div class="dl-section-toggle" onclick="toggleDLSection('attentionContent', this)">
+                                <h6><i class="fas fa-brain" style="color:var(--accent-start);"></i> Modality Attention Weights</h6>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </div>
+                            <div id="attentionContent" class="attention-chart"></div>
+                        </div>
+
+                        <!-- DL Explainability: Feature Importance (Grad-CAM) -->
+                        <div id="dlFeatureImportanceSection" style="display:none;">
+                            <div class="dl-section-toggle" onclick="toggleDLSection('featureImportanceContent', this)">
+                                <h6><i class="fas fa-chart-bar" style="color:#75d9a0;"></i> Feature Importance (Grad-CAM)</h6>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </div>
+                            <div id="featureImportanceContent" class="feature-importance-section"></div>
+                        </div>
+
+                        <!-- DL Explainability: SE Channel Weights -->
+                        <div id="dlSEWeightsSection" style="display:none;">
+                            <div class="dl-section-toggle" onclick="toggleDLSection('seWeightsContent', this)">
+                                <h6><i class="fas fa-sliders-h" style="color:#ffc107;"></i> SE Channel Weights</h6>
+                                <i class="fas fa-chevron-down toggle-icon"></i>
+                            </div>
+                            <div id="seWeightsContent"></div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3" role="alert">
                             <small>
                                 <strong><i class="fas fa-exclamation-triangle"></i> Disclaimer:</strong>
                                 For research/educational purposes only. Always consult healthcare professionals.
@@ -393,5 +423,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/predict.js') }}?v=14.0"></script>
+<script src="{{ url_for('static', filename='js/predict.js') }}?v=15.0"></script>
 {% endblock %}

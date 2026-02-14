@@ -1,5 +1,12 @@
-"""Prediction API endpoints."""
+"""Prediction API endpoints.
 
+Supports two backends:
+    1. **Deep Learning** (SE-ResNet + Attention Fusion) -- preferred when
+       a trained ``.pt`` model exists under ``models/``.
+    2. **sklearn ensemble** -- legacy fallback via ``src.facade``.
+"""
+
+import logging
 import numpy as np
 import pandas as pd
 from flask import Blueprint, request, jsonify
@@ -17,17 +24,40 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.utils.config import get_models_dir
 from src.facade import get_model_manager
 
+logger = logging.getLogger(__name__)
+
 predict_bp = Blueprint('predict', __name__)
 
 _model_manager = None
+_dl_predictor = None
 
 
 def get_manager():
-    """Get or initialize the model manager."""
+    """Get or initialize the sklearn model manager (legacy fallback)."""
     global _model_manager
     if _model_manager is None:
         _model_manager = get_model_manager()
     return _model_manager
+
+
+def get_dl_predictor():
+    """Get or initialize the DL predictor. Returns None if unavailable."""
+    global _dl_predictor
+    if _dl_predictor is not None:
+        return _dl_predictor
+
+    try:
+        from dl_models.inference import DLPredictor
+        if DLPredictor.is_available():
+            _dl_predictor = DLPredictor()
+            _dl_predictor.load()
+            logger.info("DL predictor loaded successfully.")
+            return _dl_predictor
+        logger.info("DL model not found; will use sklearn fallback.")
+    except Exception as e:
+        logger.warning("Could not load DL predictor: %s", e)
+
+    return None
 
 
 def _validate_filename_encoding(files_metadata):
@@ -62,11 +92,20 @@ def health_check():
         manager = get_manager()
         loaded_models = manager.get_loaded_modalities()
         
-        return jsonify({
+        resp = {
             'status': 'healthy',
             'models_loaded': loaded_models,
-            'model_info': manager.get_model_info()
-        })
+            'model_info': manager.get_model_info(),
+        }
+
+        dl = get_dl_predictor()
+        if dl is not None:
+            resp['dl_model'] = dl.get_model_info()
+            resp['active_backend'] = 'deep_learning'
+        else:
+            resp['active_backend'] = 'sklearn'
+
+        return jsonify(resp)
     except Exception as e:
         return jsonify({
             'status': 'error',
@@ -150,10 +189,25 @@ def predict():
                 'success': False
             }), 400
         
-        # Make ensemble prediction
-        print(f"\n{'='*60}")
-        print(f"MULTI-MODEL ENSEMBLE PREDICTION")
-        print(f"{'='*60}")
+        # ---- Try Deep Learning predictor first ---- #
+        dl = get_dl_predictor()
+        if dl is not None:
+            logger.info("Using DL predictor (SE-ResNet + Attention Fusion)")
+            result = dl.predict(
+                speech_features=speech_features,
+                handwriting_features=handwriting_features,
+                gait_features=gait_features,
+            )
+            logger.info(
+                "DL prediction: %s (%.2f%% confidence), attention=%s",
+                result['prediction_label'],
+                result['confidence'] * 100,
+                result['attention_weights'],
+            )
+            return jsonify(result)
+
+        # ---- Fallback: sklearn ensemble ---- #
+        logger.info("Using sklearn ensemble fallback")
         
         calibration_context = {}
         if reference_label:
@@ -167,21 +221,11 @@ def predict():
             calibration_context=calibration_context
         )
         
-        print(f"✓ Prediction complete!")
-        print(f"  Modalities used: {', '.join(result['modalities_used'])}")
-        print(f"  Ensemble method: {result['ensemble_method']}")
-        print(f"  Result: {result['prediction_label']}")
-        print(f"  Confidence: {result['confidence']*100:.2f}%")
-        print(f"  Probabilities: Healthy={result['probabilities']['healthy']*100:.2f}%, "
-              f"PD={result['probabilities']['parkinsons']*100:.2f}%")
-        
-        if 'individual_predictions' in result:
-            print(f"\n  Individual Model Predictions:")
-            for modality, pred in result['individual_predictions'].items():
-                print(f"    {modality.capitalize()}: {pred['prediction_label']} "
-                      f"({pred['confidence']*100:.2f}%)")
-        
-        print(f"{'='*60}\n")
+        logger.info(
+            "sklearn prediction: %s (%.2f%% confidence)",
+            result['prediction_label'],
+            result['confidence'] * 100,
+        )
         
         return jsonify(result)
     
@@ -256,11 +300,20 @@ def model_info():
         manager = get_manager()
         info = manager.get_model_info()
         
-        return jsonify({
+        resp = {
             'success': True,
             'models': info['model_details'],
-            'loaded_modalities': info['loaded_models']
-        })
+            'loaded_modalities': info['loaded_models'],
+        }
+
+        dl = get_dl_predictor()
+        if dl is not None:
+            resp['dl_model'] = dl.get_model_info()
+            resp['active_backend'] = 'deep_learning'
+        else:
+            resp['active_backend'] = 'sklearn'
+
+        return jsonify(resp)
     
     except Exception as e:
         return jsonify({

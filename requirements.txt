@@ -49,6 +49,11 @@ PyJWT>=2.8.0
 bcrypt>=4.1.0
 certifi>=2023.0.0
 
+# Deep Learning
+torch>=2.1.0
+torchvision>=0.16.0
+torchinfo>=1.8.0
+
 # Utilities
 tqdm>=4.65.0
 python-dotenv>=1.0.0

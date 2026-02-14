@@ -8,11 +8,11 @@
     <!-- Hero Section -->
     <div class="row align-items-center mb-5" style="min-height:50vh;">
         <div class="col-lg-6 mb-4 mb-lg-0 fade-in-up">
-            <span class="badge-glass mb-3" style="display:inline-block;"><i class="fas fa-flask" style="margin-right:4px;"></i> ML-Powered Medical Analysis</span>
+            <span class="badge-glass mb-3" style="display:inline-block;"><i class="fas fa-brain" style="margin-right:4px;"></i> Deep Learning &mdash; SE-ResNet + Attention Fusion</span>
             <h1 class="section-title" style="font-size:2.8rem;line-height:1.15;">Early Detection of<br><span class="text-gradient">Parkinson's Disease</span></h1>
             <p class="section-subtitle mt-3 mb-4">
-                Advanced machine learning system using multimodal data analysis &mdash; speech, handwriting, and gait patterns &mdash;
-                for accurate and reliable early detection.
+                Multimodal deep learning system using SE-ResNet 1D CNNs with attention-based fusion &mdash; analyzing speech, handwriting, and gait patterns &mdash;
+                for accurate and explainable early detection.
             </p>
             <div class="d-flex flex-wrap gap-3">
                 <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg">
@@ -96,22 +96,22 @@
     <!-- Technology Section -->
     <div class="text-center mb-4 fade-in-up">
         <h2 class="section-title">Technology Stack</h2>
-        <p class="section-subtitle">Built on proven ML techniques and real clinical data</p>
+        <p class="section-subtitle">Built on deep learning with dual attention and real clinical data</p>
     </div>
 
     <div class="row g-4 mb-5">
         <div class="col-md-6 fade-in-up fade-in-up-d1">
             <div class="card h-100">
                 <div class="card-body p-4">
-                    <h5><i class="fas fa-code" style="color:var(--accent-start);"></i> Machine Learning</h5>
+                    <h5><i class="fas fa-brain" style="color:var(--accent-start);"></i> Deep Learning Architecture</h5>
                     <ul class="mt-3">
-                        <li><strong>Approach:</strong> Multimodal data fusion (early fusion)</li>
+                        <li><strong>Algorithm:</strong> SE-ResNet 1D CNN (He et al. 2016 + Hu et al. 2018)</li>
+                        <li><strong>Encoders:</strong> 3 per-modality SE-ResNet1D networks</li>
+                        <li><strong>Fusion:</strong> Attention-based modality weighting</li>
+                        <li><strong>Dual Attention:</strong> SE feature-level + modality-level</li>
+                        <li><strong>Explainability:</strong> Grad-CAM + SE weights + attention visualization</li>
+                        <li><strong>Framework:</strong> PyTorch with SMOTE class balancing</li>
                         <li><strong>Datasets:</strong> UCI Parkinson's, PaHaW, PhysioNet Gait</li>
-                        <li><strong>Features:</strong> ~42 combined features (speech + handwriting + gait)</li>
-                        <li><strong>Primary Model:</strong> Support Vector Machine (SVM)</li>
-                        <li><strong>Kernels:</strong> Linear, RBF, Polynomial, Sigmoid</li>
-                        <li><strong>Optimization:</strong> GridSearchCV with cross-validation</li>
-                        <li><strong>Class Balancing:</strong> SMOTE for robust training</li>
                     </ul>
                 </div>
             </div>
@@ -119,13 +119,13 @@
         <div class="col-md-6 fade-in-up fade-in-up-d2">
             <div class="card h-100">
                 <div class="card-body p-4">
-                    <h5><i class="fas fa-chart-bar" style="color:#75d9a0;"></i> Performance Metrics</h5>
+                    <h5><i class="fas fa-chart-bar" style="color:#75d9a0;"></i> Key Capabilities</h5>
                     <ul class="mt-3">
-                        <li><strong>Accuracy:</strong> 90-93% on test set</li>
-                        <li><strong>Precision:</strong> High true positive rate</li>
-                        <li><strong>Recall:</strong> Minimized false negatives</li>
-                        <li><strong>ROC-AUC:</strong> ~0.95 for optimized SVM</li>
-                        <li><strong>Validation:</strong> 5-fold cross-validation</li>
+                        <li><strong>42 Features:</strong> Speech (22) + Handwriting (10) + Gait (10)</li>
+                        <li><strong>Residual Learning:</strong> Skip connections prevent vanishing gradients</li>
+                        <li><strong>Channel Attention:</strong> SE blocks learn feature importance</li>
+                        <li><strong>Modality Attention:</strong> Learns which input matters most per patient</li>
+                        <li><strong>Grad-CAM:</strong> Visual explanation of which features drove the prediction</li>
                         <li><strong>Data:</strong> Real patient datasets only (no synthetic data)</li>
                     </ul>
                 </div>
@@ -139,7 +139,7 @@
             <div class="card-body text-center py-5">
                 <h3 style="color:#fff;">Ready to Get Started?</h3>
                 <p class="mt-2 mb-4" style="color:rgba(255,255,255,.6);">
-                    Upload your data and get instant predictions using our advanced ML models.
+                    Upload your data and get instant predictions with explainable AI insights from our deep learning model.
                 </p>
                 <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg">
                     <i class="fas fa-play-circle"></i> Start Now

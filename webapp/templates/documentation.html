@@ -17,7 +17,9 @@
                     <h3>API Overview</h3>
                     <p>
                         The Parkinson's Disease Detection API provides endpoints for making predictions
-                        using trained machine learning models. All endpoints return JSON responses.
+                        using the trained SE-ResNet deep learning model with attention-based multimodal fusion.
+                        When the DL model is available, predictions include explainability data (attention weights,
+                        Grad-CAM feature importance, SE channel weights). All endpoints return JSON responses.
                     </p>
                     <p class="mb-0"><strong>Base URL:</strong> <code>http://localhost:5000/api</code></p>
                 </div>
@@ -39,7 +41,14 @@
                 <h6>Response:</h6>
                 <pre><code>{
   "status": "healthy",
-  "model_loaded": true
+  "active_backend": "deep_learning",
+  "models_loaded": ["speech", "handwriting", "gait"],
+  "dl_model": {
+    "model_type": "SE-ResNet1D + Attention Fusion",
+    "framework": "PyTorch",
+    "available": true,
+    "test_roc_auc": 0.95
+  }
 }</code></pre>
             </div>
         </div>
@@ -50,29 +59,43 @@
                 <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">POST</span> /api/predict</h5>
             </div>
             <div class="card-body p-4">
-                <p><strong>Description:</strong> Make a prediction for a single sample.</p>
+                <p><strong>Description:</strong> Make a prediction for a single sample. At least one modality must be provided. The DL model is used when available; otherwise falls back to sklearn.</p>
 
-                <h6>Request (Combined Features):</h6>
+                <h6>Request:</h6>
                 <pre><code>{
-  "features": [0.5, 1.2, -0.3, 0.8, ...]
+  "speech_features": [22 float values],
+  "handwriting_features": [10 float values],
+  "gait_features": [10 float values]
 }</code></pre>
+                <p><small style="color:var(--text-muted);">All three modalities are optional. Provide at least one. Missing modalities are zero-filled internally.</small></p>
 
-                <h6>Request (Multimodal):</h6>
-                <pre><code>{
-  "speech_features": [0.5, 1.2, -0.3, ...],
-  "handwriting_features": [0.8, 0.6, ...],
-  "gait_features": [1.1, 0.9, ...]
-}</code></pre>
-
-                <h6>Response:</h6>
+                <h6>Response (Deep Learning):</h6>
                 <pre><code>{
   "success": true,
   "prediction": 1,
-  "prediction_label": "Parkinson's Disease",
+  "prediction_label": "parkinsons",
   "confidence": 0.89,
-  "probabilities": {
-    "healthy": 0.11,
-    "parkinsons": 0.89
+  "probabilities": { "healthy": 0.11, "parkinsons": 0.89 },
+  "model_type": "deep_learning",
+  "ensemble_method": "SE-ResNet + Attention Fusion",
+  "modalities_used": ["speech", "handwriting", "gait"],
+  "attention_weights": {
+    "speech": 0.45, "handwriting": 0.30, "gait": 0.25
+  },
+  "feature_importance": {
+    "speech": [0.08, 0.12, ...],
+    "handwriting": [0.15, 0.09, ...],
+    "gait": [0.11, 0.07, ...]
+  },
+  "se_weights": {
+    "speech": [0.6, 0.8, ...],
+    "handwriting": [0.5, 0.9, ...],
+    "gait": [0.7, 0.4, ...]
+  },
+  "feature_names": {
+    "speech": ["MDVP:Fo(Hz)", "MDVP:Fhi(Hz)", ...],
+    "handwriting": ["mean_pressure", ...],
+    "gait": ["stride_interval", ...]
   }
 }</code></pre>
             </div>
@@ -118,13 +141,23 @@
                 <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">GET</span> /api/model_info</h5>
             </div>
             <div class="card-body p-4">
-                <p><strong>Description:</strong> Get information about the loaded model.</p>
+                <p><strong>Description:</strong> Get information about the loaded models (DL and sklearn).</p>
                 <h6>Response:</h6>
                 <pre><code>{
   "success": true,
-  "model_type": "SVC",
-  "kernel": "rbf",
-  "n_features": 42
+  "active_backend": "deep_learning",
+  "dl_model": {
+    "model_type": "SE-ResNet1D + Attention Fusion",
+    "framework": "PyTorch",
+    "available": true,
+    "test_accuracy": 0.93,
+    "test_f1": 0.95,
+    "test_roc_auc": 0.97,
+    "total_params": 195000,
+    "epochs_trained": 85
+  },
+  "models": { ... },
+  "loaded_modalities": ["speech", "handwriting", "gait"]
 }</code></pre>
             </div>
         </div>
@@ -142,13 +175,20 @@
                 <pre><code>import requests
 
 url = "http://localhost:5000/api/predict"
-data = { "features": [0.5, 1.2, -0.3, 0.8, ...] }
+data = {
+    "speech_features": [119.99, 157.30, 74.99, ...],      # 22 values
+    "handwriting_features": [0.45, 0.18, 2.2, ...],       # 10 values
+    "gait_features": [1.15, 0.08, 0.38, ...]              # 10 values
+}
 
 response = requests.post(url, json=data)
 result = response.json()
 
 print(f"Prediction: {result['prediction_label']}")
-print(f"Confidence: {result['confidence']:.2%}")</code></pre>
+print(f"Confidence: {result['confidence']:.2%}")
+print(f"Model: {result.get('model_type', 'sklearn')}")
+if 'attention_weights' in result:
+    print(f"Attention: {result['attention_weights']}")</code></pre>
             </div>
         </div>
 
@@ -159,7 +199,11 @@ print(f"Confidence: {result['confidence']:.2%}")</code></pre>
             <div class="card-body p-4">
                 <pre><code>curl -X POST http://localhost:5000/api/predict \
   -H "Content-Type: application/json" \
-  -d '{ "features": [0.5, 1.2, -0.3, 0.8, ...] }'</code></pre>
+  -d '{
+    "speech_features": [119.99, 157.30, 74.99, 0.00784, ...],
+    "handwriting_features": [0.45, 0.18, 2.2, ...],
+    "gait_features": [1.15, 0.08, 0.38, ...]
+  }'</code></pre>
             </div>
         </div>
 
@@ -172,13 +216,19 @@ print(f"Confidence: {result['confidence']:.2%}")</code></pre>
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    features: [0.5, 1.2, -0.3, 0.8, ...]
+    speech_features: [119.99, 157.30, 74.99, ...],
+    handwriting_features: [0.45, 0.18, 2.2, ...],
+    gait_features: [1.15, 0.08, 0.38, ...]
   }),
 })
 .then(res => res.json())
 .then(data => {
   console.log('Prediction:', data.prediction_label);
   console.log('Confidence:', data.confidence);
+  console.log('Model:', data.model_type);
+  if (data.attention_weights) {
+    console.log('Attention:', data.attention_weights);
+  }
 });</code></pre>
             </div>
         </div>

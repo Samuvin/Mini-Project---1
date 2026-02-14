@@ -6,14 +6,165 @@
 <div class="container">
     <div class="mb-4 fade-in-up">
         <h1 class="section-title"><i class="fas fa-chart-bar" style="color:var(--accent-start);"></i> Model Performance</h1>
-        <p class="section-subtitle">How well our models detect Parkinson's Disease</p>
+        <p class="section-subtitle">Deep learning and baseline model performance on unseen test data</p>
     </div>
 
     <div class="alert alert-info mb-4 fade-in-up">
         <i class="fas fa-info-circle"></i> These visualizations show model performance on multimodal data (speech, handwriting, and gait), evaluated on unseen test data.
     </div>
 
-    <!-- Performance Summary (stat cards) -->
+    {% if dl_metrics %}
+    <!-- ===== Deep Learning Model (SE-ResNet) ===== -->
+    <div class="mb-2 fade-in-up">
+        <span class="model-type-badge dl"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion (Deep Learning)</span>
+    </div>
+
+    <!-- DL Performance Summary -->
+    <div class="row g-3 mb-4 fade-in-up fade-in-up-d1">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#75d9a0;">{{ "%.1f"|format(dl_metrics.test_accuracy * 100) }}%</div>
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-sub">Overall correctness</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#80e5f5;">{{ "%.1f"|format(dl_metrics.test_precision * 100) }}%</div>
+                <div class="stat-label">Precision</div>
+                <div class="stat-sub">True positive rate</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#ffc107;">{{ "%.1f"|format(dl_metrics.test_recall * 100) }}%</div>
+                <div class="stat-label">Recall</div>
+                <div class="stat-sub">Detected cases</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--accent-start);">{{ "%.1f"|format(dl_metrics.test_roc_auc * 100) }}%</div>
+                <div class="stat-label">ROC-AUC</div>
+                <div class="stat-sub">Classification quality</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DL Training Curves + ROC + CM -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4 fade-in-up fade-in-up-d1">
+            <div class="card h-100">
+                <div class="card-header bg-primary">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-chart-area" style="color:var(--accent-start);margin-right:6px;"></i> Training Curves</h5>
+                </div>
+                <div class="card-body">
+                    <img src="{{ url_for('model_images', filename='dl_training_curves.png') }}"
+                         class="img-fluid rounded" alt="DL Training Curves"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3ETrain the DL model first.%3C/text%3E%3C/svg%3E'">
+                    <div class="mt-2">
+                        <small style="color:var(--text-muted);">Epochs: {{ dl_metrics.epochs_trained }} | Best Val Loss: {{ "%.4f"|format(dl_metrics.best_val_loss) }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 fade-in-up fade-in-up-d2">
+            <div class="card h-100">
+                <div class="card-header bg-success">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-chart-line" style="color:#75d9a0;margin-right:6px;"></i> ROC Curve</h5>
+                </div>
+                <div class="card-body">
+                    <img src="{{ url_for('model_images', filename='dl_roc_curve.png') }}"
+                         class="img-fluid rounded" alt="DL ROC Curve"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3ETrain the DL model first.%3C/text%3E%3C/svg%3E'">
+                    <div class="mt-2 alert alert-success py-2">
+                        <small><i class="fas fa-check-circle"></i> <strong>AUC = {{ "%.3f"|format(dl_metrics.test_roc_auc) }}</strong></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 fade-in-up fade-in-up-d3">
+            <div class="card h-100">
+                <div class="card-header bg-info">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-table" style="color:#80e5f5;margin-right:6px;"></i> Confusion Matrix</h5>
+                </div>
+                <div class="card-body">
+                    <img src="{{ url_for('model_images', filename='dl_confusion_matrix.png') }}"
+                         class="img-fluid rounded" alt="DL Confusion Matrix"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3ETrain the DL model first.%3C/text%3E%3C/svg%3E'">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DL Architecture Details -->
+    <div class="row mb-4 fade-in-up fade-in-up-d2">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-brain" style="color:var(--accent-start);margin-right:6px;"></i> Deep Learning Architecture</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <strong>SE-ResNet1D</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Per-modality encoder</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <strong>Attention Fusion</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Modality-level weights</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <strong>{{ "{:,}".format(dl_metrics.total_params) }}</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Total parameters</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <strong>Grad-CAM + SE</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Explainability</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Training Configuration</h6>
+                            <ul class="small">
+                                <li><strong>Framework:</strong> PyTorch</li>
+                                <li><strong>Optimizer:</strong> Adam (lr={{ dl_metrics.hyperparameters.learning_rate }})</li>
+                                <li><strong>Scheduler:</strong> ReduceLROnPlateau</li>
+                                <li><strong>Augmentation:</strong> Noise injection + feature dropout</li>
+                                <li><strong>Class Balance:</strong> SMOTE</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Architecture Details</h6>
+                            <ul class="small">
+                                <li><strong>Encoders:</strong> 3x SE-ResNet1D (speech, handwriting, gait)</li>
+                                <li><strong>Embedding:</strong> {{ dl_metrics.hyperparameters.embed_dim }}d per modality</li>
+                                <li><strong>SE Reduction:</strong> {{ dl_metrics.hyperparameters.se_reduction }}x</li>
+                                <li><strong>Dropout:</strong> {{ dl_metrics.hyperparameters.dropout }}</li>
+                                <li><strong>Classifier:</strong> FC 64 &rarr; 32 &rarr; 1 + Sigmoid</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider my-4">
+    <div class="mb-3 fade-in-up">
+        <span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> sklearn Baseline (Legacy)</span>
+    </div>
+    {% endif %}
+
+    <!-- Performance Summary (stat cards) - sklearn -->
     <div class="row g-3 mb-4 fade-in-up fade-in-up-d1">
         <div class="col-6 col-md-3">
             <div class="stat-card">
@@ -69,12 +220,9 @@
                         <p class="small">Shows the trade-off between True Positive Rate and False Positive Rate.</p>
                         <ul class="small">
                             <li><strong>Perfect:</strong> Top-left corner (AUC = 1.0)</li>
-                            <li><strong>Our Model:</strong> AUC = 0.95 (Excellent!)</li>
+                            <li><strong>SVM Baseline:</strong> AUC = 0.95</li>
                             <li><strong>Random:</strong> Diagonal line (AUC = 0.5)</li>
                         </ul>
-                        <div class="alert alert-success py-2">
-                            <small><i class="fas fa-check-circle"></i> <strong>95% ROC-AUC</strong> &mdash; our model correctly distinguishes PD from healthy 95% of the time.</small>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -97,7 +245,7 @@
                             <li><strong>Faster:</strong> Quick training, less accurate</li>
                         </ul>
                         <div class="alert alert-info py-2">
-                            <small><i class="fas fa-info-circle"></i> <strong>Why SVM is Better:</strong> RBF kernel captures complex, non-linear patterns LR might miss.</small>
+                            <small><i class="fas fa-info-circle"></i> <strong>Why Deep Learning is Better:</strong> SE-ResNet learns non-linear feature interactions and modality importance that linear models cannot capture.</small>
                         </div>
                     </div>
                 </div>
@@ -160,7 +308,7 @@
                         <h6><i class="fas fa-info-circle" style="color:#80e5f5;"></i> Baseline Performance</h6>
                         <p class="small">
                             LR typically achieves 82-85% accuracy, serving as a reference for
-                            the improvement achieved with the optimized SVM model.
+                            the improvement achieved with the deep learning model.
                         </p>
                         <div class="alert alert-info py-2">
                             <small><i class="fas fa-info-circle"></i>
@@ -184,10 +332,10 @@
                         <div class="col-md-6">
                             <h6><i class="fas fa-check-circle" style="color:#75d9a0;"></i> What Makes a Good Model?</h6>
                             <ul>
-                                <li><strong>High Accuracy (90%):</strong> Gets most predictions right</li>
-                                <li><strong>High ROC-AUC (95%):</strong> Excellent discrimination</li>
-                                <li><strong>High Recall (87%):</strong> Catches most PD cases</li>
-                                <li><strong>High Precision (100%):</strong> No false alarms</li>
+                                <li><strong>High Accuracy:</strong> Gets most predictions right</li>
+                                <li><strong>High ROC-AUC:</strong> Excellent discrimination ability</li>
+                                <li><strong>High Recall:</strong> Catches most PD cases</li>
+                                <li><strong>High Precision:</strong> Minimizes false alarms</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
@@ -195,7 +343,7 @@
                             <ul>
                                 <li><strong>False Negatives:</strong> Missing PD cases (critical)</li>
                                 <li><strong>False Positives:</strong> Unnecessary worry</li>
-                                <li><strong>Our Goal:</strong> Balance both, maximize accuracy</li>
+                                <li><strong>Our Goal:</strong> Balance both, maximize detection</li>
                                 <li><strong>Clinical Use:</strong> High recall = catch all cases</li>
                             </ul>
                         </div>
@@ -203,25 +351,49 @@
 
                     <hr class="divider my-3">
 
-                    <h6><i class="fas fa-brain" style="color:var(--accent-start);"></i> Model Architecture</h6>
+                    <h6><i class="fas fa-brain" style="color:var(--accent-start);"></i> Deep Learning Architecture</h6>
                     <div class="row g-3 mt-1">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="stat-card">
-                                <strong>Multimodal Fusion</strong>
-                                <p class="small mb-0" style="color:var(--text-muted);">42 features (speech + handwriting + gait)</p>
+                                <strong>SE-ResNet1D</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">3 per-modality encoders</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="stat-card">
-                                <strong>SVM with RBF Kernel</strong>
-                                <p class="small mb-0" style="color:var(--text-muted);">C=1.0, gamma=scale</p>
+                                <strong>Attention Fusion</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Modality-level weighting</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="stat-card">
-                                <strong>Cross-Validation</strong>
-                                <p class="small mb-0" style="color:var(--text-muted);">3-fold CV, robust results</p>
+                                <strong>42 Features</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Speech + Handwriting + Gait</p>
                             </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <strong>Grad-CAM + SE</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">Explainable AI output</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="divider my-3">
+
+                    <h6><i class="fas fa-eye" style="color:#0dcaf0;"></i> Understanding DL Explainability</h6>
+                    <div class="row mt-2">
+                        <div class="col-md-4">
+                            <p class="small"><strong>Attention Weights</strong><br>
+                            Show how much each modality (speech, handwriting, gait) contributed to the prediction. Higher weight = more influential.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="small"><strong>Feature Importance (Grad-CAM)</strong><br>
+                            Highlights which specific features within each modality drove the prediction. Based on gradient-weighted class activation mapping.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="small"><strong>SE Channel Weights</strong><br>
+                            The squeeze-and-excitation blocks learn which internal CNN channels are most important. Visualized as a bar chart per modality.</p>
                         </div>
                     </div>
                 </div>
@@ -241,24 +413,33 @@
                         <div class="col-md-6">
                             <h6>Training Configuration</h6>
                             <ul class="small">
-                                <li><strong>Dataset:</strong> 195 samples (147 PD, 48 healthy)</li>
+                                <li><strong>Dataset:</strong> 195 samples (147 PD, 48 healthy) + SMOTE balancing</li>
                                 <li><strong>Split:</strong> 70/15/15 train/val/test</li>
-                                <li><strong>Features:</strong> 42 multimodal</li>
-                                <li><strong>Preprocessing:</strong> StandardScaler</li>
-                                <li><strong>Optimization:</strong> GridSearchCV, 3-fold</li>
+                                <li><strong>Features:</strong> 42 multimodal (speech 22 + handwriting 10 + gait 10)</li>
+                                <li><strong>Preprocessing:</strong> StandardScaler per modality</li>
+                                <li><strong>Augmentation:</strong> Gaussian noise + feature dropout</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h6>Model Parameters</h6>
                             <ul class="small">
-                                <li><strong>Algorithm:</strong> SVM (SVC)</li>
-                                <li><strong>Kernel:</strong> RBF</li>
-                                <li><strong>C:</strong> 1.0</li>
-                                <li><strong>Gamma:</strong> scale</li>
-                                <li><strong>Class Weight:</strong> Balanced</li>
+                                <li><strong>Algorithm:</strong> SE-ResNet 1D CNN (He et al. 2016 + Hu et al. 2018)</li>
+                                <li><strong>Framework:</strong> PyTorch</li>
+                                <li><strong>Optimizer:</strong> Adam + ReduceLROnPlateau</li>
+                                <li><strong>Embedding:</strong> 64-d per modality</li>
+                                <li><strong>Early Stopping:</strong> Patience-based on validation loss</li>
                             </ul>
                         </div>
                     </div>
+
+                    <hr class="divider my-3">
+
+                    <h6>References</h6>
+                    <ul class="small mb-0">
+                        <li>He, K., Zhang, X., Ren, S. and Sun, J., "Deep Residual Learning for Image Recognition," CVPR, 2016.</li>
+                        <li>Hu, J., Shen, L. and Sun, G., "Squeeze-and-Excitation Networks," CVPR, 2018.</li>
+                        <li>Selvaraju, R. R. et al., "Grad-CAM: Visual Explanations from Deep Networks," ICCV, 2017.</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -268,11 +449,13 @@
     <div class="fade-in-up">
         <div class="alert alert-primary">
             <h5><i class="fas fa-terminal"></i> Want to Retrain?</h5>
-            <p>Run the complete training pipeline:</p>
+            <p>Run the training pipelines:</p>
             <pre><code>source venv/bin/activate
-python train.py       # Full training (~15 min)
-python quick_train.py # Quick training (~2 min)</code></pre>
-            <p class="mb-0">This generates all visualizations and performance comparisons.</p>
+python train_dl.py              # Deep Learning SE-ResNet (~5 min)
+python train_dl.py --epochs 200 # More epochs for better results
+python train.py                 # sklearn baseline (~15 min)
+python quick_train.py           # Quick sklearn training (~2 min)</code></pre>
+            <p class="mb-0">This generates all visualizations, performance comparisons, and model artifacts.</p>
         </div>
     </div>
 </div>

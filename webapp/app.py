@@ -131,7 +131,7 @@ def create_app(config_path=None):
         # Get models directory
         models_dir = Path(app.root_path).parent / 'models'
         
-        # Load metrics from JSON file
+        # Load sklearn metrics from JSON file
         metrics_file = models_dir / 'model_metrics.json'
         if metrics_file.exists():
             with open(metrics_file, 'r') as f:
@@ -149,16 +149,27 @@ def create_app(config_path=None):
                 }
             }
         
+        # Load DL metrics if available
+        dl_metrics = None
+        dl_metrics_file = models_dir / 'dl_model_metrics.json'
+        if dl_metrics_file.exists():
+            with open(dl_metrics_file, 'r') as f:
+                dl_metrics = json.load(f)
+        
         # Check available files
         available_files = {
             'svm_roc': (models_dir / 'svm_roc_curve.png').exists(),
             'lr_roc': (models_dir / 'lr_roc_curve.png').exists(),
             'svm_cm': (models_dir / 'svm_confusion_matrix.png').exists(),
             'lr_cm': (models_dir / 'lr_confusion_matrix.png').exists(),
+            'dl_roc': (models_dir / 'dl_roc_curve.png').exists(),
+            'dl_cm': (models_dir / 'dl_confusion_matrix.png').exists(),
+            'dl_curves': (models_dir / 'dl_training_curves.png').exists(),
         }
         
         return render_template('performance.html', 
                              metrics=metrics, 
+                             dl_metrics=dl_metrics,
                              files=available_files)
     
     @app.route('/model_images/<path:filename>')

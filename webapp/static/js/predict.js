@@ -523,12 +523,37 @@ function makePrediction() {
     });
 }
 
+// Toggle DL section expand/collapse
+function toggleDLSection(contentId, toggleEl) {
+    var $content = $('#' + contentId);
+    var $toggle = $(toggleEl);
+    if ($content.is(':visible')) {
+        $content.slideUp(200);
+        $toggle.addClass('collapsed');
+    } else {
+        $content.slideDown(200);
+        $toggle.removeClass('collapsed');
+    }
+}
+
 // Display results
 function displayResults(response, modalitiesUsed, totalFeatures) {
     $('#loadingSection').hide();
     
     const prediction = response.prediction;
     const confidence = response.confidence;
+    const isDL = response.model_type === 'deep_learning';
+    
+    // Show model type badge
+    if (isDL) {
+        $('#modelTypeBadgeContainer').html(
+            '<span class="model-type-badge dl"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion</span>'
+        );
+    } else {
+        $('#modelTypeBadgeContainer').html(
+            '<span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> sklearn Ensemble</span>'
+        );
+    }
     
     // Update prediction result
     if (prediction === 1) {
@@ -564,8 +589,134 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
     $('#healthyProb').text((response.probabilities.healthy * 100).toFixed(6) + '%');
     $('#parkinsonsProb').text((response.probabilities.parkinsons * 100).toFixed(6) + '%');
     
+    // DL Explainability sections
+    if (isDL) {
+        renderAttentionWeights(response.attention_weights);
+        renderFeatureImportance(response.feature_importance, response.feature_names);
+        renderSEWeights(response.se_weights);
+    } else {
+        $('#dlAttentionSection').hide();
+        $('#dlFeatureImportanceSection').hide();
+        $('#dlSEWeightsSection').hide();
+    }
+    
     // Show results
     $('#resultsSection').fadeIn('slow');
+}
+
+// ===== DL VISUALIZATION FUNCTIONS =====
+
+// Render modality attention weights as horizontal bars
+function renderAttentionWeights(weights) {
+    if (!weights) { $('#dlAttentionSection').hide(); return; }
+    
+    var modalities = [
+        { key: 'speech',      label: 'Speech',      cls: 'speech',      icon: 'fa-microphone' },
+        { key: 'handwriting', label: 'Handwriting',  cls: 'handwriting', icon: 'fa-pen' },
+        { key: 'gait',        label: 'Gait',         cls: 'gait',        icon: 'fa-walking' }
+    ];
+    
+    var html = '';
+    modalities.forEach(function(m) {
+        var w = weights[m.key] || 0;
+        var pct = (w * 100).toFixed(1);
+        html += '<div class="attention-bar-row">' +
+                  '<div class="attention-bar-label"><i class="fas ' + m.icon + '"></i> ' + m.label + '</div>' +
+                  '<div class="attention-bar-track">' +
+                    '<div class="attention-bar-fill ' + m.cls + '" style="width:' + pct + '%;">' + pct + '%</div>' +
+                  '</div>' +
+                '</div>';
+    });
+    
+    $('#attentionContent').html(html);
+    $('#dlAttentionSection').show();
+}
+
+// Render per-modality feature importance bars (Grad-CAM)
+function renderFeatureImportance(importance, featureNames) {
+    if (!importance) { $('#dlFeatureImportanceSection').hide(); return; }
+    
+    var colorMap = {
+        speech:      'var(--accent-start)',
+        handwriting: '#75d9a0',
+        gait:        '#ffc107'
+    };
+    
+    var html = '';
+    var modalities = ['speech', 'handwriting', 'gait'];
+    
+    modalities.forEach(function(mod) {
+        var scores = importance[mod];
+        var names = (featureNames && featureNames[mod]) ? featureNames[mod] : [];
+        if (!scores || scores.length === 0) return;
+        
+        var color = colorMap[mod] || 'var(--accent-start)';
+        var maxScore = Math.max.apply(null, scores);
+        if (maxScore === 0) maxScore = 1;
+        
+        html += '<div class="fi-modality-title" style="color:' + color + ';">' +
+                '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
+                mod.charAt(0).toUpperCase() + mod.slice(1) + ' Features</div>';
+        
+        // Sort by importance (descending) and take top 8
+        var indexed = scores.map(function(s, i) { return { score: s, idx: i }; });
+        indexed.sort(function(a, b) { return b.score - a.score; });
+        var top = indexed.slice(0, 8);
+        
+        top.forEach(function(item) {
+            var pct = ((item.score / maxScore) * 100).toFixed(0);
+            var name = names[item.idx] || ('Feature ' + item.idx);
+            // Shorten long names
+            if (name.length > 18) name = name.substring(0, 16) + '..';
+            html += '<div class="fi-bar-row">' +
+                      '<div class="fi-bar-name" title="' + (names[item.idx] || '') + '">' + name + '</div>' +
+                      '<div class="fi-bar-track">' +
+                        '<div class="fi-bar-fill" style="width:' + pct + '%;background:' + color + ';opacity:.8;"></div>' +
+                      '</div>' +
+                      '<div class="fi-bar-value">' + (item.score * 100).toFixed(1) + '%</div>' +
+                    '</div>';
+        });
+        
+        html += '<div style="margin-bottom:.8rem;"></div>';
+    });
+    
+    $('#featureImportanceContent').html(html);
+    $('#dlFeatureImportanceSection').show();
+}
+
+// Render SE channel weights as mini bar charts
+function renderSEWeights(seWeights) {
+    if (!seWeights) { $('#dlSEWeightsSection').hide(); return; }
+    
+    var colorMap = {
+        speech:      'var(--accent-start)',
+        handwriting: '#75d9a0',
+        gait:        '#ffc107'
+    };
+    
+    var html = '';
+    ['speech', 'handwriting', 'gait'].forEach(function(mod) {
+        var weights = seWeights[mod];
+        if (!weights || weights.length === 0) return;
+        
+        var maxW = Math.max.apply(null, weights);
+        if (maxW === 0) maxW = 1;
+        var color = colorMap[mod];
+        
+        html += '<div class="fi-modality-title" style="color:' + color + ';">' +
+                '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
+                mod.charAt(0).toUpperCase() + mod.slice(1) + ' (' + weights.length + ' channels)</div>';
+        
+        html += '<div class="se-weights-container">';
+        weights.forEach(function(w) {
+            var h = Math.max(2, (w / maxW) * 28);
+            html += '<div class="se-weight-bar" style="height:' + h.toFixed(0) + 'px;background:' + color + ';opacity:' + (0.3 + 0.7 * w / maxW).toFixed(2) + ';"></div>';
+        });
+        html += '</div><div style="margin-bottom:.8rem;"></div>';
+    });
+    
+    $('#seWeightsContent').html(html);
+    $('#dlSEWeightsSection').show();
 }
 
 // Reset form
@@ -617,6 +768,12 @@ function resetForm() {
     $('#resultsSection').hide();
     $('#loadingSection').hide();
     $('#placeholderSection').show();
+    
+    // Hide DL sections
+    $('#dlAttentionSection').hide();
+    $('#dlFeatureImportanceSection').hide();
+    $('#dlSEWeightsSection').hide();
+    $('#modelTypeBadgeContainer').empty();
     
     // Switch to first tab
     $('#speech-tab').tab('show');
