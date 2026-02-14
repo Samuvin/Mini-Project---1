@@ -16,6 +16,8 @@ import numpy as np
 
 from src.utils.config import Config
 from webapp.api.predict import predict_bp, get_manager
+from webapp.api.auth import auth_bp
+from webapp.middleware.auth import enforce_auth
 
 
 def setup_logging(app):
@@ -60,6 +62,8 @@ def create_app(config_path=None):
     # Application configuration
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB for video uploads
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', '')
+    app.config['MONGODB_URI'] = os.environ.get('MONGODB_URI', '')
     app.config['DEBUG'] = False
     app.config['TESTING'] = False
     
@@ -71,6 +75,7 @@ def create_app(config_path=None):
     
     # Register blueprints
     app.register_blueprint(predict_bp, url_prefix='/api')
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
     
     # Import and register upload blueprint for file uploads
     from webapp.api.file_upload import upload_bp
@@ -79,6 +84,9 @@ def create_app(config_path=None):
     # Import and register combined processing blueprint
     from webapp.api.combined_processing import combined_bp
     app.register_blueprint(combined_bp, url_prefix='/api')
+    
+    # Enforce JWT authentication on all routes except public ones.
+    app.before_request(enforce_auth)
     
     # Load models on startup
     try:
@@ -93,6 +101,11 @@ def create_app(config_path=None):
     def index():
         """Home page."""
         return render_template('index.html')
+    
+    @app.route('/login')
+    def login_page():
+        """Login / Register page."""
+        return render_template('login.html')
     
     @app.route('/predict_page')
     def predict_page():

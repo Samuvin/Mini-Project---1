@@ -4,40 +4,43 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4"><i class="fas fa-chart-line"></i> Parkinson's Disease Prediction</h1>
-    
-    <div class="row">
+    <div class="mb-4 fade-in-up">
+        <h1 class="section-title"><i class="fas fa-chart-line" style="color:var(--accent-start);"></i> Parkinson's Disease Prediction</h1>
+        <p class="section-subtitle">Select a data modality and run the AI analysis</p>
+    </div>
+
+    <div class="row g-4">
         <!-- Input Section with Tabs -->
-        <div class="col-lg-7 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-sliders-h"></i> Select Data Modality</h5>
+        <div class="col-lg-7 mb-4 fade-in-up fade-in-up-d1">
+            <div class="card" style="overflow:visible;">
+                <div class="card-header bg-primary">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-sliders-h" style="color:var(--accent-start);margin-right:6px;"></i> Select Data Modality</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <!-- Tabs Navigation -->
                     <ul class="nav nav-tabs mb-3" id="modalityTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="speech-tab" data-bs-toggle="tab" 
+                            <button class="nav-link active" id="speech-tab" data-bs-toggle="tab"
                                     data-bs-target="#speechTab" type="button" role="tab">
-                                <i class="fas fa-microphone text-primary"></i> Speech/Audio
+                                <i class="fas fa-microphone" style="color:var(--accent-start);"></i> Speech
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="handwriting-tab" data-bs-toggle="tab" 
+                            <button class="nav-link" id="handwriting-tab" data-bs-toggle="tab"
                                     data-bs-target="#handwritingTab" type="button" role="tab">
-                                <i class="fas fa-pen text-success"></i> Handwriting
+                                <i class="fas fa-pen" style="color:#75d9a0;"></i> Handwriting
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="gait-tab" data-bs-toggle="tab" 
+                            <button class="nav-link" id="gait-tab" data-bs-toggle="tab"
                                     data-bs-target="#gaitTab" type="button" role="tab">
-                                <i class="fas fa-walking text-warning"></i> Walking/Gait
+                                <i class="fas fa-walking" style="color:#ffc107;"></i> Gait
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="combined-tab" data-bs-toggle="tab" 
+                            <button class="nav-link" id="combined-tab" data-bs-toggle="tab"
                                     data-bs-target="#combinedTab" type="button" role="tab">
-                                <i class="fas fa-video text-info"></i> Combined Video Analysis
+                                <i class="fas fa-video" style="color:#0dcaf0;"></i> Combined
                             </button>
                         </li>
                     </ul>
@@ -46,274 +49,248 @@
                     <div class="tab-content" id="modalityTabsContent">
                         <!-- Speech/Audio Tab -->
                         <div class="tab-pane fade show active" id="speechTab" role="tabpanel">
-                            <h5 class="mb-3"><i class="fas fa-microphone text-primary"></i> Speech/Audio Analysis</h5>
-                            
-                            <!-- Example Data Section -->
-                            <div class="card bg-light mb-3 border-primary">
+                            <h5 class="mb-3"><i class="fas fa-microphone" style="color:var(--accent-start);"></i> Speech/Audio Analysis</h5>
+
+                            <!-- Example Data -->
+                            <div class="card mb-3" style="border-color:rgba(102,126,234,.25);">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-flask"></i> Try Example Voice Data</h6>
-                                    <p class="small text-muted mb-2">Load real patient voice samples</p>
-                                    <div class="btn-group w-100" role="group">
-                                        <button type="button" class="btn btn-success" id="useSpeechHealthy">
+                                    <h6><i class="fas fa-flask" style="color:var(--accent-start);"></i> Try Example Voice Data</h6>
+                                    <p class="small mb-2">Load real patient voice samples</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-success flex-fill" id="useSpeechHealthy">
                                             <i class="fas fa-user-check"></i> Healthy Voice
                                         </button>
-                                        <button type="button" class="btn btn-warning" id="useSpeechPD">
+                                        <button type="button" class="btn btn-warning flex-fill" id="useSpeechPD">
                                             <i class="fas fa-user-injured"></i> PD Voice
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="text-center my-2"><strong>OR</strong></div>
-                            
-                            <!-- Voice Recording Section -->
-                            <div class="card bg-light mb-3">
+
+                            <div class="text-center my-3"><span class="badge-glass">OR</span></div>
+
+                            <!-- Voice Recording -->
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-record-vinyl text-danger"></i> Record Your Voice</h6>
-                                    <p class="small text-muted mb-2">Sustain a steady vowel sound "Ahh" for 5 seconds at comfortable pitch</p>
-                                    
+                                    <h6><i class="fas fa-record-vinyl" style="color:#ff6b7a;"></i> Record Your Voice</h6>
+                                    <p class="small mb-2">Sustain a steady vowel sound "Ahh" for 5 seconds at comfortable pitch</p>
                                     <div class="text-center mb-2">
                                         <button type="button" class="btn btn-danger btn-lg" id="recordBtn">
                                             <i class="fas fa-microphone"></i> <span id="recordBtnText">Start Recording</span>
                                         </button>
                                     </div>
-                                    
                                     <div id="recordingStatus" class="alert alert-warning text-center mt-2" style="display: none;">
-                                        <i class="fas fa-circle text-danger blink"></i> Recording... Speak now!
+                                        <i class="fas fa-circle blink" style="color:#ff6b7a;"></i> Recording... Speak now!
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="text-center my-2"><strong>OR</strong></div>
-                            
-                            <!-- Audio File Upload -->
-                            <div class="card bg-light mb-3">
+
+                            <div class="text-center my-3"><span class="badge-glass">OR</span></div>
+
+                            <!-- Audio Upload -->
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-upload"></i> Upload Audio File</h6>
-                                    <p class="small text-muted mb-2">Upload MP3, WAV, or other audio file (max 50MB)</p>
-                                    
+                                    <h6><i class="fas fa-upload" style="color:var(--accent-start);"></i> Upload Audio File</h6>
+                                    <p class="small mb-2">Upload MP3, WAV, or other audio file (max 50MB)</p>
                                     <input type="file" class="form-control" id="audioFileInput" accept="audio/*">
-                                    
                                     <button type="button" class="btn btn-primary mt-2 w-100" id="uploadAudioBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Extract Features from Audio
                                     </button>
-                                    
                                     <div id="audioUploadStatus" class="mt-2"></div>
                                 </div>
                             </div>
-                            
-                            <!-- Status Display -->
+
                             <div id="speechFeatureStatus"></div>
                         </div>
 
                         <!-- Handwriting Tab -->
                         <div class="tab-pane fade" id="handwritingTab" role="tabpanel">
-                            <h5 class="mb-3"><i class="fas fa-pen text-success"></i> Handwriting Analysis</h5>
-                            
-                            <!-- Example Data Section -->
-                            <div class="card bg-light mb-3 border-success">
+                            <h5 class="mb-3"><i class="fas fa-pen" style="color:#75d9a0;"></i> Handwriting Analysis</h5>
+
+                            <div class="card mb-3" style="border-color:rgba(25,135,84,.25);">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-flask"></i> Try Example Handwriting Data</h6>
-                                    <p class="small text-muted mb-2">Load real patient handwriting samples</p>
-                                    <div class="btn-group w-100" role="group">
-                                        <button type="button" class="btn btn-success" id="useHandwritingHealthy">
+                                    <h6><i class="fas fa-flask" style="color:#75d9a0;"></i> Try Example Handwriting Data</h6>
+                                    <p class="small mb-2">Load real patient handwriting samples</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-success flex-fill" id="useHandwritingHealthy">
                                             <i class="fas fa-user-check"></i> Healthy Writing
                                         </button>
-                                        <button type="button" class="btn btn-warning" id="useHandwritingPD">
+                                        <button type="button" class="btn btn-warning flex-fill" id="useHandwritingPD">
                                             <i class="fas fa-user-injured"></i> PD Writing
                                         </button>
                                     </div>
-                                    <small class="text-muted d-block mt-2"><i class="fas fa-info-circle"></i> Optional: Enhances prediction when combined with speech</small>
+                                    <small class="d-block mt-2" style="color:var(--text-muted);"><i class="fas fa-info-circle"></i> Optional: Enhances prediction when combined with speech</small>
                                 </div>
                             </div>
-                            
-                            <div class="text-center my-2"><strong>OR</strong></div>
-                            
+
+                            <div class="text-center my-3"><span class="badge-glass">OR</span></div>
+
                             <div class="alert alert-secondary">
-                                <i class="fas fa-lightbulb"></i> <strong>Instructions:</strong>
-                                <ul class="mb-0">
+                                <i class="fas fa-lightbulb" style="color:#ffc107;"></i> <strong>Instructions:</strong>
+                                <ul class="mb-0 mt-1">
                                     <li>Draw a spiral on white paper</li>
                                     <li>OR write a sentence</li>
                                     <li>Take a clear photo with good lighting</li>
                                     <li>Upload the image below</li>
                                 </ul>
                             </div>
-                            
-                            <!-- Image Upload -->
-                            <div class="card bg-light mb-3">
+
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-image"></i> Upload Handwriting Image</h6>
-                                    <p class="small text-muted mb-2">JPG, PNG, or other image formats (max 50MB)</p>
-                                    
+                                    <h6><i class="fas fa-image" style="color:#75d9a0;"></i> Upload Handwriting Image</h6>
+                                    <p class="small mb-2">JPG, PNG, or other image formats (max 50MB)</p>
                                     <input type="file" class="form-control" id="handwritingFileInput" accept="image/*">
-                                    
                                     <div id="handwritingPreview" class="mt-2" style="display: none;">
                                         <img id="handwritingImg" class="img-fluid rounded" style="max-height: 200px;">
                                     </div>
-                                    
                                     <button type="button" class="btn btn-success mt-2 w-100" id="uploadHandwritingBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Extract Features from Image
                                     </button>
-                                    
                                     <div id="handwritingUploadStatus" class="mt-2"></div>
                                 </div>
                             </div>
-                            
-                            <!-- Status Display -->
+
                             <div id="handwritingFeatureStatus"></div>
                         </div>
 
                         <!-- Gait Tab -->
                         <div class="tab-pane fade" id="gaitTab" role="tabpanel">
-                            <h5 class="mb-3"><i class="fas fa-walking text-warning"></i> Walking/Gait Analysis</h5>
-                            
-                            <!-- Example Data Section -->
-                            <div class="card bg-light mb-3 border-warning">
+                            <h5 class="mb-3"><i class="fas fa-walking" style="color:#ffc107;"></i> Walking/Gait Analysis</h5>
+
+                            <div class="card mb-3" style="border-color:rgba(255,193,7,.25);">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-flask"></i> Try Example Gait Data</h6>
-                                    <p class="small text-muted mb-2">Load real patient walking samples</p>
-                                    <div class="btn-group w-100" role="group">
-                                        <button type="button" class="btn btn-info" id="useGaitHealthy">
+                                    <h6><i class="fas fa-flask" style="color:#ffc107;"></i> Try Example Gait Data</h6>
+                                    <p class="small mb-2">Load real patient walking samples</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-info flex-fill" id="useGaitHealthy">
                                             <i class="fas fa-user-check"></i> Healthy Gait
                                         </button>
-                                        <button type="button" class="btn btn-warning" id="useGaitPD">
+                                        <button type="button" class="btn btn-warning flex-fill" id="useGaitPD">
                                             <i class="fas fa-user-injured"></i> PD Gait
                                         </button>
                                     </div>
-                                    <small class="text-muted d-block mt-2"><i class="fas fa-info-circle"></i> Optional: Enhances prediction when combined with speech</small>
+                                    <small class="d-block mt-2" style="color:var(--text-muted);"><i class="fas fa-info-circle"></i> Optional: Enhances prediction when combined with speech</small>
                                 </div>
                             </div>
-                            
-                            <div class="text-center my-2"><strong>OR</strong></div>
-                            
-                            <div class="card bg-light mb-3">
+
+                            <div class="text-center my-3"><span class="badge-glass">OR</span></div>
+
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-question-circle"></i> What is Gait?</h6>
-                                    <p class="small mb-2">
+                                    <h6><i class="fas fa-question-circle" style="color:#ffc107;"></i> What is Gait?</h6>
+                                    <p class="small mb-0">
                                         <strong>Gait</strong> means "the way you walk." We analyze your walking pattern to detect changes associated with Parkinson's.
                                     </p>
                                 </div>
                             </div>
-                            
+
                             <div class="alert alert-secondary">
-                                <i class="fas fa-lightbulb"></i> <strong>Instructions:</strong>
-                                <ul class="mb-0">
+                                <i class="fas fa-lightbulb" style="color:#ffc107;"></i> <strong>Instructions:</strong>
+                                <ul class="mb-0 mt-1">
                                     <li>Record a video of yourself walking</li>
                                     <li>Walk naturally for 10-15 seconds</li>
                                     <li>Side view works best</li>
                                     <li>Ensure good lighting</li>
                                 </ul>
                             </div>
-                            
-                            <!-- Video Upload -->
-                            <div class="card bg-light mb-3">
+
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-video"></i> Upload Walking Video</h6>
-                                    <p class="small text-muted mb-2">MP4, MOV, or other video formats (max 50MB)</p>
-                                    
+                                    <h6><i class="fas fa-video" style="color:#ffc107;"></i> Upload Walking Video</h6>
+                                    <p class="small mb-2">MP4, MOV, or other video formats (max 50MB)</p>
                                     <input type="file" class="form-control" id="gaitFileInput" accept="video/*">
-                                    
                                     <button type="button" class="btn btn-warning mt-2 w-100" id="uploadGaitBtn">
                                         <i class="fas fa-cloud-upload-alt"></i> Extract Features from Video
                                     </button>
-                                    
                                     <div id="gaitUploadStatus" class="mt-2"></div>
                                 </div>
                             </div>
-                            
-                            <!-- Status Display -->
+
                             <div id="gaitFeatureStatus"></div>
                         </div>
 
-                        <!-- Combined Video Analysis Tab -->
+                        <!-- Combined Tab -->
                         <div class="tab-pane fade" id="combinedTab" role="tabpanel">
-                            <h5 class="mb-3"><i class="fas fa-video text-info"></i> Combined Video Analysis</h5>
-                            
-                            <!-- Example Data Section -->
-                            <div class="card bg-light mb-3 border-info">
+                            <h5 class="mb-3"><i class="fas fa-video" style="color:#0dcaf0;"></i> Combined Video Analysis</h5>
+
+                            <div class="card mb-3" style="border-color:rgba(13,202,240,.25);">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-flask"></i> Try Example Combined Data</h6>
-                                    <p class="small text-muted mb-2">Load complete patient samples (all 3 modalities)</p>
-                                    <div class="btn-group w-100" role="group">
-                                        <button type="button" class="btn btn-primary" id="useCombinedHealthy">
+                                    <h6><i class="fas fa-flask" style="color:#0dcaf0;"></i> Try Example Combined Data</h6>
+                                    <p class="small mb-2">Load complete patient samples (all 3 modalities)</p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-primary flex-fill" id="useCombinedHealthy">
                                             <i class="fas fa-user-check"></i> Healthy (All)
                                         </button>
-                                        <button type="button" class="btn btn-warning" id="useCombinedPD">
+                                        <button type="button" class="btn btn-warning flex-fill" id="useCombinedPD">
                                             <i class="fas fa-user-injured"></i> PD (All)
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="text-center my-2"><strong>OR</strong></div>
-                            
+
+                            <div class="text-center my-3"><span class="badge-glass">OR</span></div>
+
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle"></i> <strong>Multi-Modal Analysis</strong><br>
-                                Upload a single video that contains multiple assessment tasks. Select which features you want to extract:
-                                <ul class="mb-0 mt-2">
+                                Upload a single video that contains multiple assessment tasks:
+                                <ul class="mb-0 mt-1">
                                     <li><strong>Voice/Speech:</strong> Patient speaking or making sounds</li>
                                     <li><strong>Handwriting:</strong> Patient writing/drawing on paper</li>
                                     <li><strong>Gait:</strong> Patient walking</li>
                                 </ul>
                             </div>
 
-                            <!-- Video Upload -->
-                            <div class="card bg-light mb-3">
+                            <div class="card mb-3">
                                 <div class="card-body">
-                                    <h6><i class="fas fa-video"></i> Upload Combined Assessment Video</h6>
-                                    <p class="small text-muted mb-2">MP4, MOV, AVI, or other video formats (max 50MB)</p>
-                                    
+                                    <h6><i class="fas fa-video" style="color:#0dcaf0;"></i> Upload Combined Assessment Video</h6>
+                                    <p class="small mb-2">MP4, MOV, AVI, or other video formats (max 50MB)</p>
                                     <input type="file" class="form-control mb-3" id="combinedVideoInput" accept="video/*">
-                                    
-                                    <!-- Feature Selection Checkboxes -->
+
                                     <div class="mb-3">
                                         <h6 class="mb-2">Select features to extract:</h6>
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="extractVoiceCheck" checked>
                                             <label class="form-check-label" for="extractVoiceCheck">
-                                                <i class="fas fa-microphone text-primary"></i> Extract Voice/Speech Features (22 features)
+                                                <i class="fas fa-microphone" style="color:var(--accent-start);"></i> Voice/Speech (22 features)
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="extractHandwritingCheck">
                                             <label class="form-check-label" for="extractHandwritingCheck">
-                                                <i class="fas fa-pen text-success"></i> Extract Handwriting Features (10 features)
+                                                <i class="fas fa-pen" style="color:#75d9a0;"></i> Handwriting (10 features)
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="checkbox" id="extractGaitCheck">
                                             <label class="form-check-label" for="extractGaitCheck">
-                                                <i class="fas fa-walking text-warning"></i> Extract Gait/Walking Features (10 features)
+                                                <i class="fas fa-walking" style="color:#ffc107;"></i> Gait/Walking (10 features)
                                             </label>
                                         </div>
                                     </div>
-                                    
+
                                     <button type="button" class="btn btn-info w-100" id="uploadCombinedBtn">
-                                        <i class="fas fa-brain"></i> Process Video & Extract Selected Features
+                                        <i class="fas fa-brain"></i> Process Video & Extract Features
                                     </button>
-                                    
                                     <div id="combinedUploadStatus" class="mt-2"></div>
                                 </div>
                             </div>
-                            
-                            <!-- Extracted Features Display -->
+
                             <div id="combinedFeatureStatus"></div>
                         </div>
                     </div>
-                    
-                    <!-- Action Buttons Below Tabs -->
-                    <div class="border-top pt-3 mt-3">
+
+                    <!-- Action Buttons -->
+                    <div class="divider pt-3 mt-3">
                         <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-primary btn-lg" id="predictBtn" disabled>
+                            <button type="button" class="btn btn-accent btn-lg" id="predictBtn" disabled>
                                 <i class="fas fa-play-circle"></i> Make Prediction
                             </button>
                             <button type="button" class="btn btn-secondary" id="resetBtn">
                                 <i class="fas fa-redo"></i> Reset All
                             </button>
                         </div>
-                        
                         <div class="text-center mt-3">
-                            <small class="text-muted">
+                            <small style="color:var(--text-muted);">
                                 <i class="fas fa-info-circle"></i> Use any combination of data modalities. Multiple modalities enhance prediction accuracy.
                             </small>
                         </div>
@@ -323,26 +300,23 @@
         </div>
 
         <!-- Results Section -->
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm sticky-top" style="top: 20px;">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Prediction Results</h5>
+        <div class="col-lg-5 mb-4 fade-in-up fade-in-up-d2">
+            <div class="card sticky-top" style="top:20px;">
+                <div class="card-header bg-success">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-chart-pie" style="color:#75d9a0;margin-right:6px;"></i> Prediction Results</h5>
                 </div>
                 <div class="card-body">
                     <div id="resultsSection" style="display: none;">
-                        <!-- Prediction Result -->
                         <div class="alert" id="predictionAlert" role="alert">
                             <h4 class="alert-heading" id="predictionLabel"></h4>
                             <p class="mb-0" id="predictionText"></p>
                         </div>
 
-                        <!-- Modalities Used -->
                         <div class="mb-3">
                             <h6>Data Sources Used:</h6>
                             <div id="modalitiesUsed"></div>
                         </div>
 
-                        <!-- Confidence Score -->
                         <div class="mb-4">
                             <h6>Confidence Score:</h6>
                             <div class="progress" style="height: 30px;">
@@ -352,42 +326,46 @@
                             </div>
                         </div>
 
-                        <!-- Probability Distribution -->
                         <div class="mb-4">
                             <h6>Probability Distribution:</h6>
                             <table class="table table-bordered table-sm">
                                 <tbody>
                                     <tr>
-                                        <td><i class="fas fa-check-circle text-success"></i> Healthy</td>
+                                        <td><i class="fas fa-check-circle" style="color:#75d9a0;"></i> Healthy</td>
                                         <td id="healthyProb" class="fw-bold">-</td>
                                     </tr>
                                     <tr>
-                                        <td><i class="fas fa-exclamation-triangle text-warning"></i> Parkinson's</td>
+                                        <td><i class="fas fa-exclamation-triangle" style="color:#ffc107;"></i> Parkinson's</td>
                                         <td id="parkinsonsProb" class="fw-bold">-</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Disclaimer -->
                         <div class="alert alert-warning" role="alert">
                             <small>
-                                <strong><i class="fas fa-exclamation-triangle"></i> Disclaimer:</strong> 
-                                For research/educational purposes only. Always consult healthcare professionals for medical diagnosis.
+                                <strong><i class="fas fa-exclamation-triangle"></i> Disclaimer:</strong>
+                                For research/educational purposes only. Always consult healthcare professionals.
                             </small>
                         </div>
                     </div>
 
+                    <!-- Loading State (new dot loader) -->
                     <div id="loadingSection" style="display: none;" class="text-center py-5">
-                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-                        <h5>Running AI Analysis...</h5>
-                        <p class="text-muted" id="loadingText">Analyzing data...</p>
+                        <div class="loader-dots mb-3">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        </div>
+                        <h5 style="color:var(--text-primary);">Running AI Analysis...</h5>
+                        <p id="loadingText" style="color:var(--text-secondary);">Analyzing data...</p>
                     </div>
 
+                    <!-- Placeholder -->
                     <div id="placeholderSection" class="text-center py-5">
-                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
-                        <p class="text-muted">Results will appear here after prediction</p>
-                        <small class="text-muted">Try an example or upload your own files</small>
+                        <div style="width:64px;height:64px;border-radius:16px;background:rgba(102,126,234,.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+                            <i class="fas fa-chart-line" style="font-size:1.5rem;color:var(--accent-start);margin:0;"></i>
+                        </div>
+                        <p style="color:var(--text-secondary);">Results will appear here after prediction</p>
+                        <small style="color:var(--text-muted);">Try an example or upload your own files</small>
                     </div>
                 </div>
             </div>
@@ -395,18 +373,15 @@
     </div>
 </div>
 
-
 <!-- Example Preview Modal -->
 <div class="modal fade" id="examplePreviewModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="background:var(--bg-surface);border:1px solid var(--glass-border);color:var(--text-primary);">
+            <div class="modal-header" style="border-color:var(--glass-border);">
                 <h5 class="modal-title" id="exampleModalTitle">Example Preview</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body text-center" id="examplePreviewContent">
-                <!-- Dynamic content loaded by JavaScript -->
-            </div>
+            <div class="modal-body text-center" id="examplePreviewContent"></div>
         </div>
     </div>
 </div>
@@ -419,20 +394,4 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/predict.js') }}?v=14.0"></script>
-<style>
-@keyframes blink {
-    0%, 50%, 100% { opacity: 1; }
-    25%, 75% { opacity: 0; }
-}
-.blink {
-    animation: blink 1.5s linear infinite;
-}
-.nav-tabs .nav-link {
-    font-weight: 500;
-}
-.nav-tabs .nav-link.active {
-    font-weight: 600;
-}
-</style>
 {% endblock %}
-

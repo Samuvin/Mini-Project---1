@@ -4,67 +4,68 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4"><i class="fas fa-book"></i> API Documentation</h1>
-    
+    <div class="mb-4 fade-in-up">
+        <h1 class="section-title"><i class="fas fa-book" style="color:var(--accent-start);"></i> API Documentation</h1>
+        <p class="section-subtitle">Complete reference for the PD Detection API</p>
+    </div>
+
     <!-- Overview -->
-    <div class="row mb-4">
+    <div class="row mb-4 fade-in-up fade-in-up-d1">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
+            <div class="card">
+                <div class="card-body p-4">
                     <h3>API Overview</h3>
                     <p>
-                        The Parkinson's Disease Detection API provides endpoints for making predictions 
+                        The Parkinson's Disease Detection API provides endpoints for making predictions
                         using trained machine learning models. All endpoints return JSON responses.
                     </p>
-                    <p><strong>Base URL:</strong> <code>http://localhost:5000/api</code></p>
+                    <p class="mb-0"><strong>Base URL:</strong> <code>http://localhost:5000/api</code></p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Endpoints -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="mb-3">API Endpoints</h3>
-            
-            <!-- Health Check -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">GET /api/health</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> Health check endpoint to verify API status.</p>
-                    
-                    <h6>Response Example:</h6>
-                    <pre class="bg-light p-3"><code>{
+    <div class="mb-4 fade-in-up fade-in-up-d1">
+        <h3 class="mb-3">API Endpoints</h3>
+
+        <!-- Health Check -->
+        <div class="card mb-3">
+            <div class="card-header bg-success">
+                <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">GET</span> /api/health</h5>
+            </div>
+            <div class="card-body p-4">
+                <p><strong>Description:</strong> Health check endpoint to verify API status.</p>
+                <h6>Response:</h6>
+                <pre><code>{
   "status": "healthy",
   "model_loaded": true
 }</code></pre>
-                </div>
             </div>
+        </div>
 
-            <!-- Single Prediction -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">POST /api/predict</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> Make a prediction for a single sample.</p>
-                    
-                    <h6>Request Body (Option 1 - Combined Features):</h6>
-                    <pre class="bg-light p-3"><code>{
+        <!-- Single Prediction -->
+        <div class="card mb-3">
+            <div class="card-header bg-primary">
+                <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">POST</span> /api/predict</h5>
+            </div>
+            <div class="card-body p-4">
+                <p><strong>Description:</strong> Make a prediction for a single sample.</p>
+
+                <h6>Request (Combined Features):</h6>
+                <pre><code>{
   "features": [0.5, 1.2, -0.3, 0.8, ...]
 }</code></pre>
 
-                    <h6>Request Body (Option 2 - Multimodal Features):</h6>
-                    <pre class="bg-light p-3"><code>{
+                <h6>Request (Multimodal):</h6>
+                <pre><code>{
   "speech_features": [0.5, 1.2, -0.3, ...],
   "handwriting_features": [0.8, 0.6, ...],
   "gait_features": [1.1, 0.9, ...]
 }</code></pre>
 
-                    <h6>Response Example:</h6>
-                    <pre class="bg-light p-3"><code>{
+                <h6>Response:</h6>
+                <pre><code>{
   "success": true,
   "prediction": 1,
   "prediction_label": "Parkinson's Disease",
@@ -74,19 +75,19 @@
     "parkinsons": 0.89
   }
 }</code></pre>
-                </div>
             </div>
+        </div>
 
-            <!-- Batch Prediction -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">POST /api/predict_batch</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> Make predictions for multiple samples.</p>
-                    
-                    <h6>Request Body:</h6>
-                    <pre class="bg-light p-3"><code>{
+        <!-- Batch Prediction -->
+        <div class="card mb-3">
+            <div class="card-header bg-info">
+                <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">POST</span> /api/predict_batch</h5>
+            </div>
+            <div class="card-body p-4">
+                <p><strong>Description:</strong> Batch predictions for multiple samples.</p>
+
+                <h6>Request:</h6>
+                <pre><code>{
   "features": [
     [0.5, 1.2, -0.3, ...],
     [0.8, 0.6, 0.1, ...],
@@ -94,8 +95,8 @@
   ]
 }</code></pre>
 
-                    <h6>Response Example:</h6>
-                    <pre class="bg-light p-3"><code>{
+                <h6>Response:</h6>
+                <pre><code>{
   "success": true,
   "total_samples": 2,
   "results": [
@@ -104,141 +105,122 @@
       "prediction": 1,
       "prediction_label": "Parkinson's Disease",
       "confidence": 0.89,
-      "probabilities": {
-        "healthy": 0.11,
-        "parkinsons": 0.89
-      }
-    },
-    ...
+      "probabilities": { "healthy": 0.11, "parkinsons": 0.89 }
+    }
   ]
 }</code></pre>
-                </div>
             </div>
+        </div>
 
-            <!-- Model Info -->
-            <div class="card shadow-sm mb-3">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0">GET /api/model_info</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Description:</strong> Get information about the loaded model.</p>
-                    
-                    <h6>Response Example:</h6>
-                    <pre class="bg-light p-3"><code>{
+        <!-- Model Info -->
+        <div class="card mb-3">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0" style="color:var(--text-primary);"><span class="badge-glass" style="margin-right:8px;">GET</span> /api/model_info</h5>
+            </div>
+            <div class="card-body p-4">
+                <p><strong>Description:</strong> Get information about the loaded model.</p>
+                <h6>Response:</h6>
+                <pre><code>{
   "success": true,
   "model_type": "SVC",
   "kernel": "rbf",
   "n_features": 42
 }</code></pre>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- Usage Examples -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="mb-3">Usage Examples</h3>
-            
-            <div class="card shadow-sm mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">Python Example</h5>
-                </div>
-                <div class="card-body">
-                    <pre class="bg-light p-3"><code>import requests
-import json
+    <div class="mb-4 fade-in-up fade-in-up-d2">
+        <h3 class="mb-3">Usage Examples</h3>
 
-# API endpoint
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fab fa-python" style="color:#ffc107;margin-right:6px;"></i> Python</h5>
+            </div>
+            <div class="card-body p-4">
+                <pre><code>import requests
+
 url = "http://localhost:5000/api/predict"
+data = { "features": [0.5, 1.2, -0.3, 0.8, ...] }
 
-# Prepare data
-data = {
-    "features": [0.5, 1.2, -0.3, 0.8, ...]
-}
-
-# Make request
 response = requests.post(url, json=data)
 result = response.json()
 
-# Print results
 print(f"Prediction: {result['prediction_label']}")
 print(f"Confidence: {result['confidence']:.2%}")</code></pre>
-                </div>
             </div>
+        </div>
 
-            <div class="card shadow-sm mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">cURL Example</h5>
-                </div>
-                <div class="card-body">
-                    <pre class="bg-light p-3"><code>curl -X POST http://localhost:5000/api/predict \
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-terminal" style="color:#75d9a0;margin-right:6px;"></i> cURL</h5>
+            </div>
+            <div class="card-body p-4">
+                <pre><code>curl -X POST http://localhost:5000/api/predict \
   -H "Content-Type: application/json" \
-  -d '{
-    "features": [0.5, 1.2, -0.3, 0.8, ...]
-  }'</code></pre>
-                </div>
+  -d '{ "features": [0.5, 1.2, -0.3, 0.8, ...] }'</code></pre>
             </div>
+        </div>
 
-            <div class="card shadow-sm mb-3">
-                <div class="card-header">
-                    <h5 class="mb-0">JavaScript Example</h5>
-                </div>
-                <div class="card-body">
-                    <pre class="bg-light p-3"><code>fetch('http://localhost:5000/api/predict', {
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fab fa-js-square" style="color:var(--accent-start);margin-right:6px;"></i> JavaScript</h5>
+            </div>
+            <div class="card-body p-4">
+                <pre><code>fetch('http://localhost:5000/api/predict', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     features: [0.5, 1.2, -0.3, 0.8, ...]
   }),
 })
-.then(response => response.json())
+.then(res => res.json())
 .then(data => {
   console.log('Prediction:', data.prediction_label);
   console.log('Confidence:', data.confidence);
 });</code></pre>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- Error Codes -->
-    <div class="row">
-        <div class="col-12">
-            <h3 class="mb-3">Error Codes</h3>
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>200</code></td>
-                                <td>Success - Request completed successfully</td>
-                            </tr>
-                            <tr>
-                                <td><code>400</code></td>
-                                <td>Bad Request - Invalid input data</td>
-                            </tr>
-                            <tr>
-                                <td><code>413</code></td>
-                                <td>Payload Too Large - File size exceeds limit</td>
-                            </tr>
-                            <tr>
-                                <td><code>500</code></td>
-                                <td>Internal Server Error - Model not loaded or processing error</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="fade-in-up fade-in-up-d3">
+        <h3 class="mb-3">Error Codes</h3>
+        <div class="card">
+            <div class="card-body p-4">
+                <table class="table table-bordered mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width:100px;">Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>200</code></td>
+                            <td>Success &mdash; Request completed successfully</td>
+                        </tr>
+                        <tr>
+                            <td><code>400</code></td>
+                            <td>Bad Request &mdash; Invalid input data</td>
+                        </tr>
+                        <tr>
+                            <td><code>401</code></td>
+                            <td>Unauthorized &mdash; Missing or invalid JWT token</td>
+                        </tr>
+                        <tr>
+                            <td><code>413</code></td>
+                            <td>Payload Too Large &mdash; File size exceeds limit</td>
+                        </tr>
+                        <tr>
+                            <td><code>500</code></td>
+                            <td>Server Error &mdash; Model not loaded or processing error</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-

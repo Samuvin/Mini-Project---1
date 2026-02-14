@@ -4,122 +4,100 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="mb-4"><i class="fas fa-chart-bar"></i> Model Performance Metrics</h1>
-    
-    <div class="alert alert-info" role="alert">
-        <i class="fas fa-info-circle"></i> <strong>About These Metrics</strong><br>
-        These visualizations show how well our machine learning models perform at detecting Parkinson's Disease. 
-        The models were trained on multimodal data (speech, handwriting, and gait) and evaluated on unseen test data.
+    <div class="mb-4 fade-in-up">
+        <h1 class="section-title"><i class="fas fa-chart-bar" style="color:var(--accent-start);"></i> Model Performance</h1>
+        <p class="section-subtitle">How well our models detect Parkinson's Disease</p>
     </div>
 
-    <!-- Model Performance Summary -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-trophy"></i> Performance Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <div class="p-3 bg-light rounded">
-                                <h2 class="text-success mb-0">{{ "%.1f"|format(metrics.svm.accuracy * 100) }}%</h2>
-                                <p class="mb-0"><strong>Accuracy</strong></p>
-                                <small class="text-muted">Overall correctness</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="p-3 bg-light rounded">
-                                <h2 class="text-info mb-0">{{ "%.1f"|format(metrics.svm.precision * 100) }}%</h2>
-                                <p class="mb-0"><strong>Precision</strong></p>
-                                <small class="text-muted">True positive rate</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="p-3 bg-light rounded">
-                                <h2 class="text-warning mb-0">{{ "%.1f"|format(metrics.svm.recall * 100) }}%</h2>
-                                <p class="mb-0"><strong>Recall</strong></p>
-                                <small class="text-muted">Detected cases</small>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="p-3 bg-light rounded">
-                                <h2 class="text-primary mb-0">{{ "%.1f"|format(metrics.svm.roc_auc * 100) }}%</h2>
-                                <p class="mb-0"><strong>ROC-AUC</strong></p>
-                                <small class="text-muted">Classification quality</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if not metrics.svm.available %}
-                    <div class="alert alert-warning mt-2 mb-0">
-                        <small><i class="fas fa-exclamation-triangle"></i> 
-                        <strong>Note:</strong> These metrics are from the last training run. 
-                        Train models again to update: <code>python quick_train.py</code></small>
-                    </div>
-                    {% endif %}
-                </div>
+    <div class="alert alert-info mb-4 fade-in-up">
+        <i class="fas fa-info-circle"></i> These visualizations show model performance on multimodal data (speech, handwriting, and gait), evaluated on unseen test data.
+    </div>
+
+    <!-- Performance Summary (stat cards) -->
+    <div class="row g-3 mb-4 fade-in-up fade-in-up-d1">
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#75d9a0;">{{ "%.1f"|format(metrics.svm.accuracy * 100) }}%</div>
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-sub">Overall correctness</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#80e5f5;">{{ "%.1f"|format(metrics.svm.precision * 100) }}%</div>
+                <div class="stat-label">Precision</div>
+                <div class="stat-sub">True positive rate</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:#ffc107;">{{ "%.1f"|format(metrics.svm.recall * 100) }}%</div>
+                <div class="stat-label">Recall</div>
+                <div class="stat-sub">Detected cases</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" style="color:var(--accent-start);">{{ "%.1f"|format(metrics.svm.roc_auc * 100) }}%</div>
+                <div class="stat-label">ROC-AUC</div>
+                <div class="stat-sub">Classification quality</div>
             </div>
         </div>
     </div>
+
+    {% if not metrics.svm.available %}
+    <div class="alert alert-warning mb-4">
+        <small><i class="fas fa-exclamation-triangle"></i>
+        <strong>Note:</strong> Metrics from last training run.
+        Retrain to update: <code>python quick_train.py</code></small>
+    </div>
+    {% endif %}
 
     <!-- ROC Curves -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> SVM ROC Curve</h5>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6 fade-in-up fade-in-up-d1">
+            <div class="card h-100">
+                <div class="card-header bg-success">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-chart-line" style="color:#75d9a0;margin-right:6px;"></i> SVM ROC Curve</h5>
                 </div>
                 <div class="card-body">
-                    <img src="{{ url_for('model_images', filename='svm_roc_curve.png') }}" 
+                    <img src="{{ url_for('model_images', filename='svm_roc_curve.png') }}"
                          class="img-fluid rounded" alt="SVM ROC Curve"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23666%22%3EChart not yet generated. Train models first.%3C/text%3E%3C/svg%3E'">
-                    
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3EChart not yet generated.%3C/text%3E%3C/svg%3E'">
                     <div class="mt-3">
-                        <h6><i class="fas fa-lightbulb text-warning"></i> What is ROC Curve?</h6>
-                        <p class="small mb-2">
-                            <strong>ROC (Receiver Operating Characteristic) Curve</strong> shows the trade-off 
-                            between True Positive Rate (sensitivity) and False Positive Rate.
-                        </p>
+                        <h6><i class="fas fa-lightbulb" style="color:#ffc107;"></i> What is ROC Curve?</h6>
+                        <p class="small">Shows the trade-off between True Positive Rate and False Positive Rate.</p>
                         <ul class="small">
-                            <li><strong>Perfect Model:</strong> Curve reaches top-left corner (AUC = 1.0)</li>
-                            <li><strong>Our Model:</strong> AUC = 0.95 (Excellent performance!)</li>
-                            <li><strong>Random Guess:</strong> Diagonal line (AUC = 0.5)</li>
+                            <li><strong>Perfect:</strong> Top-left corner (AUC = 1.0)</li>
+                            <li><strong>Our Model:</strong> AUC = 0.95 (Excellent!)</li>
+                            <li><strong>Random:</strong> Diagonal line (AUC = 0.5)</li>
                         </ul>
-                        <div class="alert alert-success mt-2 py-2">
-                            <small><i class="fas fa-check-circle"></i> 
-                            <strong>95% ROC-AUC</strong> means our model correctly distinguishes between 
-                            Parkinson's and healthy cases 95% of the time!</small>
+                        <div class="alert alert-success py-2">
+                            <small><i class="fas fa-check-circle"></i> <strong>95% ROC-AUC</strong> &mdash; our model correctly distinguishes PD from healthy 95% of the time.</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Logistic Regression ROC Curve</h5>
+        <div class="col-lg-6 fade-in-up fade-in-up-d2">
+            <div class="card h-100">
+                <div class="card-header bg-info">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-chart-line" style="color:#80e5f5;margin-right:6px;"></i> Logistic Regression ROC</h5>
                 </div>
                 <div class="card-body">
-                    <img src="{{ url_for('model_images', filename='lr_roc_curve.png') }}" 
+                    <img src="{{ url_for('model_images', filename='lr_roc_curve.png') }}"
                          class="img-fluid rounded" alt="LR ROC Curve"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23666%22%3EChart not yet generated. Run full training.%3C/text%3E%3C/svg%3E'">
-                    
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3EChart not yet generated.%3C/text%3E%3C/svg%3E'">
                     <div class="mt-3">
-                        <h6><i class="fas fa-info-circle text-info"></i> Baseline Comparison</h6>
-                        <p class="small mb-2">
-                            This shows our <strong>baseline Logistic Regression model</strong> for comparison.
-                        </p>
+                        <h6><i class="fas fa-info-circle" style="color:#80e5f5;"></i> Baseline Comparison</h6>
+                        <p class="small">Logistic Regression baseline for comparison.</p>
                         <ul class="small">
-                            <li><strong>Purpose:</strong> Establish performance benchmark</li>
-                            <li><strong>Simpler Model:</strong> Linear decision boundary</li>
-                            <li><strong>Quick Training:</strong> Faster but less accurate</li>
+                            <li><strong>Purpose:</strong> Performance benchmark</li>
+                            <li><strong>Simpler:</strong> Linear decision boundary</li>
+                            <li><strong>Faster:</strong> Quick training, less accurate</li>
                         </ul>
-                        <div class="alert alert-info mt-2 py-2">
-                            <small><i class="fas fa-info-circle"></i> 
-                            <strong>Why SVM is Better:</strong> SVM with RBF kernel can capture 
-                            complex, non-linear patterns in the data that Logistic Regression might miss.</small>
+                        <div class="alert alert-info py-2">
+                            <small><i class="fas fa-info-circle"></i> <strong>Why SVM is Better:</strong> RBF kernel captures complex, non-linear patterns LR might miss.</small>
                         </div>
                     </div>
                 </div>
@@ -128,84 +106,65 @@
     </div>
 
     <!-- Confusion Matrices -->
-    <div class="row mb-4">
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-table"></i> SVM Confusion Matrix</h5>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6 fade-in-up fade-in-up-d1">
+            <div class="card h-100">
+                <div class="card-header bg-success">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-table" style="color:#75d9a0;margin-right:6px;"></i> SVM Confusion Matrix</h5>
                 </div>
                 <div class="card-body">
-                    <img src="{{ url_for('model_images', filename='svm_confusion_matrix.png') }}" 
+                    <img src="{{ url_for('model_images', filename='svm_confusion_matrix.png') }}"
                          class="img-fluid rounded" alt="SVM Confusion Matrix"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23666%22%3EChart not yet generated. Train models first.%3C/text%3E%3C/svg%3E'">
-                    
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3EChart not yet generated.%3C/text%3E%3C/svg%3E'">
                     <div class="mt-3">
-                        <h6><i class="fas fa-question-circle text-success"></i> Understanding Confusion Matrix</h6>
-                        <p class="small mb-2">Shows actual vs predicted classifications:</p>
+                        <h6><i class="fas fa-question-circle" style="color:#75d9a0;"></i> Understanding Confusion Matrix</h6>
+                        <p class="small mb-2">Actual vs predicted classifications:</p>
                         <table class="table table-sm table-bordered">
                             <thead>
                                 <tr>
                                     <th></th>
-                                    <th class="text-center">Predicted Healthy</th>
-                                    <th class="text-center">Predicted PD</th>
+                                    <th class="text-center">Pred. Healthy</th>
+                                    <th class="text-center">Pred. PD</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td><strong>Actually Healthy</strong></td>
-                                    <td class="text-center bg-success text-white">
-                                        <strong>True Negative</strong><br>
-                                        <small>7 cases</small>
-                                    </td>
-                                    <td class="text-center bg-warning">
-                                        <strong>False Positive</strong><br>
-                                        <small>0 cases ✓</small>
-                                    </td>
+                                    <td class="text-center bg-success"><strong>TN</strong><br><small>7</small></td>
+                                    <td class="text-center bg-warning"><strong>FP</strong><br><small>0</small></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Actually PD</strong></td>
-                                    <td class="text-center bg-danger text-white">
-                                        <strong>False Negative</strong><br>
-                                        <small>3 cases</small>
-                                    </td>
-                                    <td class="text-center bg-success text-white">
-                                        <strong>True Positive</strong><br>
-                                        <small>20 cases ✓</small>
-                                    </td>
+                                    <td class="text-center bg-danger"><strong>FN</strong><br><small>3</small></td>
+                                    <td class="text-center bg-success"><strong>TP</strong><br><small>20</small></td>
                                 </tr>
                             </tbody>
                         </table>
-                        <div class="alert alert-success mt-2 py-2">
-                            <small><i class="fas fa-check-circle"></i> 
-                            <strong>27 out of 30</strong> predictions were correct! Only 3 false negatives 
-                            (missed PD cases) and 0 false positives.</small>
+                        <div class="alert alert-success py-2">
+                            <small><i class="fas fa-check-circle"></i> <strong>27/30</strong> correct! 3 false negatives, 0 false positives.</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-table"></i> Logistic Regression Confusion Matrix</h5>
+        <div class="col-lg-6 fade-in-up fade-in-up-d2">
+            <div class="card h-100">
+                <div class="card-header bg-info">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-table" style="color:#80e5f5;margin-right:6px;"></i> LR Confusion Matrix</h5>
                 </div>
                 <div class="card-body">
-                    <img src="{{ url_for('model_images', filename='lr_confusion_matrix.png') }}" 
+                    <img src="{{ url_for('model_images', filename='lr_confusion_matrix.png') }}"
                          class="img-fluid rounded" alt="LR Confusion Matrix"
-                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%23f0f0f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23666%22%3EChart not yet generated. Run full training.%3C/text%3E%3C/svg%3E'">
-                    
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect width=%22400%22 height=%22300%22 fill=%22%231a1a2e%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23888%22%3EChart not yet generated.%3C/text%3E%3C/svg%3E'">
                     <div class="mt-3">
-                        <h6><i class="fas fa-info-circle text-info"></i> Baseline Performance</h6>
+                        <h6><i class="fas fa-info-circle" style="color:#80e5f5;"></i> Baseline Performance</h6>
                         <p class="small">
-                            The Logistic Regression baseline typically achieves 82-85% accuracy, 
-                            serving as a reference point to demonstrate the improvement achieved 
-                            with the optimized SVM model.
+                            LR typically achieves 82-85% accuracy, serving as a reference for
+                            the improvement achieved with the optimized SVM model.
                         </p>
-                        <div class="alert alert-info mt-2 py-2">
-                            <small><i class="fas fa-info-circle"></i> 
-                            To see the full baseline comparison, run <code>python train.py</code> 
-                            which trains both models with comprehensive evaluation.</small>
+                        <div class="alert alert-info py-2">
+                            <small><i class="fas fa-info-circle"></i>
+                            Run <code>python train.py</code> for full baseline comparison.</small>
                         </div>
                     </div>
                 </div>
@@ -214,58 +173,54 @@
     </div>
 
     <!-- Interpretation Guide -->
-    <div class="row mb-4">
+    <div class="row mb-4 fade-in-up fade-in-up-d2">
         <div class="col-12">
-            <div class="card shadow-sm">
+            <div class="card">
                 <div class="card-header bg-warning">
-                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> How to Interpret These Results</h5>
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-graduation-cap" style="color:#ffc107;margin-right:6px;"></i> How to Interpret Results</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row">
                         <div class="col-md-6">
-                            <h6><i class="fas fa-check-circle text-success"></i> What Makes a Good Model?</h6>
+                            <h6><i class="fas fa-check-circle" style="color:#75d9a0;"></i> What Makes a Good Model?</h6>
                             <ul>
                                 <li><strong>High Accuracy (90%):</strong> Gets most predictions right</li>
-                                <li><strong>High ROC-AUC (95%):</strong> Excellent discrimination ability</li>
+                                <li><strong>High ROC-AUC (95%):</strong> Excellent discrimination</li>
                                 <li><strong>High Recall (87%):</strong> Catches most PD cases</li>
                                 <li><strong>High Precision (100%):</strong> No false alarms</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h6><i class="fas fa-heartbeat text-danger"></i> Why These Metrics Matter</h6>
+                            <h6><i class="fas fa-heartbeat" style="color:#ff6b7a;"></i> Why These Metrics Matter</h6>
                             <ul>
-                                <li><strong>False Negatives:</strong> Missing PD cases (critical to minimize)</li>
-                                <li><strong>False Positives:</strong> False alarms (causes unnecessary worry)</li>
-                                <li><strong>Our Goal:</strong> Balance both while maximizing overall accuracy</li>
-                                <li><strong>Clinical Use:</strong> High recall prioritizes catching all cases</li>
+                                <li><strong>False Negatives:</strong> Missing PD cases (critical)</li>
+                                <li><strong>False Positives:</strong> Unnecessary worry</li>
+                                <li><strong>Our Goal:</strong> Balance both, maximize accuracy</li>
+                                <li><strong>Clinical Use:</strong> High recall = catch all cases</li>
                             </ul>
                         </div>
                     </div>
-                    
-                    <hr>
-                    
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <h6><i class="fas fa-brain text-primary"></i> Model Architecture Highlights</h6>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-light rounded mb-2">
-                                        <strong>Multimodal Fusion</strong>
-                                        <p class="small mb-0">Combines speech, handwriting, and gait data (42 features)</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-light rounded mb-2">
-                                        <strong>SVM with RBF Kernel</strong>
-                                        <p class="small mb-0">Optimized hyperparameters (C=1.0, gamma=scale)</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="p-3 bg-light rounded mb-2">
-                                        <strong>Cross-Validation</strong>
-                                        <p class="small mb-0">3-fold CV ensures robust, generalizable results</p>
-                                    </div>
-                                </div>
+
+                    <hr class="divider my-3">
+
+                    <h6><i class="fas fa-brain" style="color:var(--accent-start);"></i> Model Architecture</h6>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <strong>Multimodal Fusion</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">42 features (speech + handwriting + gait)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <strong>SVM with RBF Kernel</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">C=1.0, gamma=scale</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <strong>Cross-Validation</strong>
+                                <p class="small mb-0" style="color:var(--text-muted);">3-fold CV, robust results</p>
                             </div>
                         </div>
                     </div>
@@ -275,31 +230,31 @@
     </div>
 
     <!-- Technical Details -->
-    <div class="row">
+    <div class="row mb-4 fade-in-up fade-in-up-d3">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-cogs"></i> Technical Details</h5>
+            <div class="card">
+                <div class="card-header bg-secondary">
+                    <h5 class="mb-0" style="color:var(--text-primary);"><i class="fas fa-cogs" style="margin-right:6px;"></i> Technical Details</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Training Configuration</h6>
                             <ul class="small">
                                 <li><strong>Dataset:</strong> 195 samples (147 PD, 48 healthy)</li>
-                                <li><strong>Split:</strong> 70% train, 15% validation, 15% test</li>
-                                <li><strong>Features:</strong> 42 multimodal features</li>
-                                <li><strong>Preprocessing:</strong> StandardScaler normalization</li>
-                                <li><strong>Optimization:</strong> GridSearchCV with 3-fold CV</li>
+                                <li><strong>Split:</strong> 70/15/15 train/val/test</li>
+                                <li><strong>Features:</strong> 42 multimodal</li>
+                                <li><strong>Preprocessing:</strong> StandardScaler</li>
+                                <li><strong>Optimization:</strong> GridSearchCV, 3-fold</li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h6>Model Parameters</h6>
                             <ul class="small">
-                                <li><strong>Algorithm:</strong> Support Vector Machine (SVM)</li>
-                                <li><strong>Kernel:</strong> RBF (Radial Basis Function)</li>
-                                <li><strong>Regularization (C):</strong> 1.0</li>
-                                <li><strong>Gamma:</strong> scale (1 / (n_features * X.var()))</li>
+                                <li><strong>Algorithm:</strong> SVM (SVC)</li>
+                                <li><strong>Kernel:</strong> RBF</li>
+                                <li><strong>C:</strong> 1.0</li>
+                                <li><strong>Gamma:</strong> scale</li>
                                 <li><strong>Class Weight:</strong> Balanced</li>
                             </ul>
                         </div>
@@ -310,19 +265,15 @@
     </div>
 
     <!-- Training Instructions -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="alert alert-primary" role="alert">
-                <h5><i class="fas fa-terminal"></i> Want to Retrain or See Full Results?</h5>
-                <p>Run the complete training pipeline to generate both baseline and optimized models:</p>
-                <pre class="bg-dark text-light p-3 rounded"><code>source venv/bin/activate
-python train.py  # Full training (~15 minutes)
-# OR
-python quick_train.py  # Quick training (~2 minutes)</code></pre>
-                <p class="mb-0">This will generate all visualizations and detailed performance comparisons.</p>
-            </div>
+    <div class="fade-in-up">
+        <div class="alert alert-primary">
+            <h5><i class="fas fa-terminal"></i> Want to Retrain?</h5>
+            <p>Run the complete training pipeline:</p>
+            <pre><code>source venv/bin/activate
+python train.py       # Full training (~15 min)
+python quick_train.py # Quick training (~2 min)</code></pre>
+            <p class="mb-0">This generates all visualizations and performance comparisons.</p>
         </div>
     </div>
 </div>
 {% endblock %}
-

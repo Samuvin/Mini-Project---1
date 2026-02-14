@@ -3,6 +3,11 @@ WSGI entry point for Parkinson's Disease Detection System.
 This file is used by WSGI servers like Gunicorn.
 """
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env before anything else.
+load_dotenv()
+
 from webapp.app import create_app
 
 # Create the Flask application instance
