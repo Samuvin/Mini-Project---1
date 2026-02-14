@@ -93,7 +93,7 @@ $(document).ready(function () {
     var predictBtn = document.getElementById('predictBtn');
     if (predictBtn) new bootstrap.Tooltip(predictBtn);
 
-    // DL accordion toggles (event delegation)
+    // Explainability section toggles (event delegation)
     $(document).on('click', '.dl-section-toggle', function () {
         var targetId = $(this).data('target');
         var $content = $('#' + targetId);
@@ -499,13 +499,13 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
 
     var prediction = response.prediction;
     var confidence = response.confidence;
-    var isDL = response.model_type === 'deep_learning';
+    var isAdvanced = response.model_type === 'advanced_ai' || response.model_type === 'deep_learning';
 
     // Model type badge
-    if (isDL) {
-        $('#modelTypeBadgeContainer').html('<span class="model-type-badge dl"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion</span>');
+    if (isAdvanced) {
+        $('#modelTypeBadgeContainer').html('<span class="model-type-badge dl"><i class="fas fa-brain"></i> Advanced AI Model</span>');
     } else {
-        $('#modelTypeBadgeContainer').html('<span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> sklearn Ensemble</span>');
+        $('#modelTypeBadgeContainer').html('<span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> Machine Learning Model</span>');
     }
 
     // Prediction icon and label
@@ -515,7 +515,7 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
 
     if (prediction === 1) {
         $icon.html('<i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>');
-        $label.html("Parkinson's Disease Detected").css('color', 'var(--warning)');
+        $label.html("Parkinson's Disease Predicted").css('color', 'var(--warning)');
         $text.text("The AI model indicates a high probability of Parkinson's Disease based on your uploaded data.");
     } else {
         $icon.html('<i class="fas fa-shield-alt" style="color:var(--success)"></i>');
@@ -550,8 +550,8 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
     $('#healthyProb').text(hp + '%');
     $('#parkinsonsProb').text(pp + '%');
 
-    // DL Explainability
-    if (isDL) {
+    // Model Explainability
+    if (isAdvanced) {
         renderAttentionWeights(response.attention_weights);
         renderFeatureImportance(response.feature_importance, response.feature_names);
         renderSEWeights(response.se_weights);
@@ -568,7 +568,7 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  DL Visualization                                                   */
+/*  Model Visualization                                                */
 /* ------------------------------------------------------------------ */
 
 function renderAttentionWeights(weights) {
@@ -710,7 +710,7 @@ function resetForm() {
     var modalInstance = bootstrap.Modal.getInstance(modalEl);
     if (modalInstance) modalInstance.hide();
 
-    // Reset DL sections
+    // Reset explainability sections
     $('#dlAttentionSection, #dlFeatureImportanceSection, #dlSEWeightsSection').hide();
     $('#modelTypeBadgeContainer').empty();
 

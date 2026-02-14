@@ -1,5 +1,5 @@
 /**
- * main.js — Vanilla JS utilities for Parkinson's Disease Detection System.
+ * main.js — Vanilla JS utilities for Parkinson's Disease Prediction System.
  *
  * No jQuery dependency. Provides:
  *  - Unified toast notification (showNotification) as single source of truth

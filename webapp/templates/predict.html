@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Predict - Parkinson's Disease Detection{% endblock %}
+{% block title %}Predict - Parkinson's Disease Prediction{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -390,9 +390,9 @@
                             </div>
                         </div>
 
-                        <!-- Right column: DL Explainability -->
+                        <!-- Right column: Model Explainability -->
                         <div class="col-md-6">
-                            <!-- DL Explainability: Attention -->
+                            <!-- Model Explainability: Attention -->
                             <div id="dlAttentionSection" style="display:none">
                                 <div class="dl-section-toggle" data-target="attentionContent">
                                     <h6><i class="fas fa-brain" style="color:var(--accent)"></i> Modality Attention</h6>
@@ -401,7 +401,7 @@
                                 <div id="attentionContent" class="attention-chart"></div>
                             </div>
 
-                            <!-- DL Explainability: Feature Importance -->
+                            <!-- Model Explainability: Feature Importance -->
                             <div id="dlFeatureImportanceSection" style="display:none">
                                 <div class="dl-section-toggle" data-target="featureImportanceContent">
                                     <h6><i class="fas fa-chart-bar" style="color:var(--success)"></i> Feature Importance</h6>
@@ -410,10 +410,10 @@
                                 <div id="featureImportanceContent" class="feature-importance-section"></div>
                             </div>
 
-                            <!-- DL Explainability: SE Weights -->
+                            <!-- Model Explainability: Channel Weights -->
                             <div id="dlSEWeightsSection" style="display:none">
                                 <div class="dl-section-toggle" data-target="seWeightsContent">
-                                    <h6><i class="fas fa-sliders-h" style="color:var(--warning)"></i> SE Channel Weights</h6>
+                                    <h6><i class="fas fa-sliders-h" style="color:var(--warning)"></i> Channel Weights</h6>
                                     <i class="fas fa-chevron-down toggle-icon"></i>
                                 </div>
                                 <div id="seWeightsContent"></div>

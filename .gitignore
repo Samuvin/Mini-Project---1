@@ -1,4 +1,4 @@
-# .gitignore for Parkinson's Disease Detection System
+# .gitignore for Parkinson's Disease Prediction System
 
 # Python
 __pycache__/

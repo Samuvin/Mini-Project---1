@@ -1,10 +1,10 @@
-# Parkinson's Disease Early Detection System
+# Parkinson's Disease Early Prediction System
 
-A multimodal deep learning system for early detection of Parkinson's Disease using **SE-ResNet with Attention Fusion** across speech, handwriting, and gait modalities.
+A multimodal deep learning system for early prediction of Parkinson's Disease using **SE-ResNet with Attention Fusion** across speech, handwriting, and gait modalities.
 
 ## Project Overview
 
-Parkinson's Disease is the second most common neurodegenerative disorder, causing tremors, stiffness, and slow movement. Early detection is crucial for improving patient outcomes. This project uses a deep learning framework that analyzes **three data modalities** with explainable AI (Grad-CAM) to provide accurate and interpretable predictions.
+Parkinson's Disease is the second most common neurodegenerative disorder, causing tremors, stiffness, and slow movement. Early prediction is crucial for improving patient outcomes. This project uses a deep learning framework that analyzes **three data modalities** with explainable AI (Grad-CAM) to provide accurate and interpretable predictions.
 
 ## Methodology
 

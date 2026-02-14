@@ -72,30 +72,64 @@ def process_combined_video():
             
             if extract_voice:
                 try:
-                    voice_features = _generate_sample_speech_features()
-                    response_data['voice_features'] = voice_features
-                    response_data['total_features'] += len(voice_features)
-                    logger.info("Extracted %d voice features", len(voice_features))
+                    # Extract audio from video and get speech features
+                    audio_path = _extract_audio_from_video(tmp_path)
+                    if audio_path:
+                        features_dict = extract_speech_features(audio_path)
+                        from utils.audio_processing import features_dict_to_array
+                        voice_features = features_dict_to_array(features_dict)
+                        response_data['voice_features'] = voice_features.tolist()
+                        response_data['total_features'] += len(voice_features)
+                        logger.info("Extracted %d voice features from video", len(voice_features))
+                        # Clean up temporary audio file
+                        if os.path.exists(audio_path):
+                            os.unlink(audio_path)
+                    else:
+                        logger.warning("Could not extract audio from video")
+                except (RuntimeError, ValueError) as e:
+                    logger.error("Error extracting voice from video: %s", e)
+                    # Don't fail entire request, just skip voice features
                 except Exception as e:
-                    logger.warning("Error extracting voice: %s", e)
+                    logger.warning("Unexpected error extracting voice: %s", e)
             
             if extract_handwriting:
                 try:
-                    handwriting_features = _generate_sample_handwriting_features()
-                    response_data['handwriting_features'] = handwriting_features
-                    response_data['total_features'] += len(handwriting_features)
-                    logger.info("Extracted %d handwriting features", len(handwriting_features))
+                    # Extract a frame from video and analyze for handwriting features
+                    # Note: Handwriting analysis from video frames is limited
+                    # Real handwriting analysis requires pen digitizer data
+                    frame_path = _extract_frame_from_video(tmp_path)
+                    if frame_path:
+                        features_dict = extract_handwriting_features(frame_path)
+                        from utils.image_processing import features_dict_to_array
+                        handwriting_features = features_dict_to_array(features_dict)
+                        response_data['handwriting_features'] = handwriting_features.tolist()
+                        response_data['total_features'] += len(handwriting_features)
+                        logger.info("Extracted %d handwriting features from video frame", len(handwriting_features))
+                        # Clean up temporary frame
+                        if os.path.exists(frame_path):
+                            os.unlink(frame_path)
+                    else:
+                        logger.warning("Could not extract frame from video for handwriting analysis")
+                except (RuntimeError, ValueError) as e:
+                    logger.error("Error extracting handwriting from video: %s", e)
+                    # Don't fail entire request, just skip handwriting features
                 except Exception as e:
-                    logger.warning("Error extracting handwriting: %s", e)
+                    logger.warning("Unexpected error extracting handwriting: %s", e)
             
             if extract_gait:
                 try:
-                    gait_features = _generate_sample_gait_features()
-                    response_data['gait_features'] = gait_features
+                    # Extract gait features from video (real extraction)
+                    features_dict = extract_gait_features(tmp_path)
+                    from utils.video_processing import features_dict_to_array
+                    gait_features = features_dict_to_array(features_dict)
+                    response_data['gait_features'] = gait_features.tolist()
                     response_data['total_features'] += len(gait_features)
-                    logger.info("Extracted %d gait features", len(gait_features))
+                    logger.info("Extracted %d gait features from video", len(gait_features))
+                except (RuntimeError, ValueError) as e:
+                    logger.error("Error extracting gait from video: %s", e)
+                    # Don't fail entire request, just skip gait features
                 except Exception as e:
-                    logger.warning("Error extracting gait: %s", e)
+                    logger.warning("Unexpected error extracting gait: %s", e)
             
             if response_data['total_features'] == 0:
                 return jsonify({
@@ -114,30 +148,110 @@ def process_combined_video():
     except Exception as e:
         logger.exception("Combined video processing failed")
         return jsonify({
-            'error': str(e),
+            'error': 'An error occurred while processing the video. Please ensure the file is valid and try again.',
             'success': False
         }), 500
 
 
-def _generate_sample_speech_features():
-    """Generate sample speech features (placeholder for real extraction)."""
-    import time
-    seed = int(time.time() * 1000) % 100000
-    rng = np.random.default_rng(seed)
-    return [round(float(x), 6) for x in rng.uniform(0.001, 0.01, 22)]
+def _extract_frame_from_video(video_path: str) -> str:
+    """Extract a frame from video file for handwriting analysis.
+    
+    Args:
+        video_path: Path to video file
+        
+    Returns:
+        Path to temporary image file, or None if extraction fails
+    """
+    try:
+        import cv2
+        import tempfile
+        
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            return None
+        
+        # Get middle frame (more likely to have content)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        frame_number = total_frames // 2 if total_frames > 0 else 0
+        
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        ret, frame = cap.read()
+        cap.release()
+        
+        if not ret or frame is None:
+            return None
+        
+        # Save frame as temporary image
+        frame_file = tempfile.NamedTemporaryFile(delete=False, suffix='.jpg')
+        frame_path = frame_file.name
+        frame_file.close()
+        
+        cv2.imwrite(frame_path, frame)
+        
+        if os.path.exists(frame_path):
+            logger.info("Successfully extracted frame from video")
+            return frame_path
+        return None
+        
+    except Exception as e:
+        logger.warning("Error extracting frame from video: %s", e)
+        if 'frame_path' in locals() and os.path.exists(frame_path):
+            os.unlink(frame_path)
+        return None
 
 
-def _generate_sample_handwriting_features():
-    """Generate sample handwriting features (placeholder for real extraction)."""
-    import time
-    seed = int(time.time() * 1000) % 100000 + 17
-    rng = np.random.default_rng(seed)
-    return [round(float(x), 6) for x in rng.uniform(0.1, 1.0, 10)]
-
-
-def _generate_sample_gait_features():
-    """Generate sample gait features (placeholder for real extraction)."""
-    import time
-    seed = int(time.time() * 1000) % 100000 + 37
-    rng = np.random.default_rng(seed)
-    return [round(float(x), 6) for x in rng.uniform(0.5, 2.0, 10)]
+def _extract_audio_from_video(video_path: str) -> str:
+    """Extract audio track from video file and save as temporary WAV file.
+    
+    Args:
+        video_path: Path to video file
+        
+    Returns:
+        Path to temporary audio file, or None if extraction fails
+    """
+    try:
+        import subprocess
+        import tempfile
+        
+        # Create temporary audio file
+        audio_file = tempfile.NamedTemporaryFile(delete=False, suffix='.wav')
+        audio_path = audio_file.name
+        audio_file.close()
+        
+        # Use ffmpeg to extract audio
+        # ffmpeg -i video.mp4 -vn -acodec pcm_s16le -ar 44100 -ac 1 audio.wav
+        cmd = [
+            'ffmpeg',
+            '-i', video_path,
+            '-vn',  # No video
+            '-acodec', 'pcm_s16le',  # PCM 16-bit little-endian
+            '-ar', '44100',  # Sample rate
+            '-ac', '1',  # Mono
+            '-y',  # Overwrite output file
+            audio_path
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30
+        )
+        
+        if result.returncode == 0 and os.path.exists(audio_path):
+            logger.info("Successfully extracted audio from video")
+            return audio_path
+        else:
+            logger.warning("ffmpeg failed to extract audio: %s", result.stderr.decode())
+            if os.path.exists(audio_path):
+                os.unlink(audio_path)
+            return None
+            
+    except FileNotFoundError:
+        logger.warning("ffmpeg not found. Cannot extract audio from video.")
+        return None
+    except Exception as e:
+        logger.warning("Error extracting audio from video: %s", e)
+        if 'audio_path' in locals() and os.path.exists(audio_path):
+            os.unlink(audio_path)
+        return None

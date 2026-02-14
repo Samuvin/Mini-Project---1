@@ -1,5 +1,5 @@
 """
-Video processing for gait analysis in Parkinson's Disease detection.
+Video processing for gait analysis in Parkinson's Disease prediction.
 Extracts 10 gait features from walking videos.
 """
 
@@ -27,9 +27,11 @@ def extract_gait_features(video_path: str) -> Dict[str, float]:
     cap = cv2.VideoCapture(video_path)
     
     if not cap.isOpened():
-        # Return features based on file properties if video can't be opened
-        print("Warning: Could not open video file, using file-based features")
-        return get_file_based_features(video_path)
+        # Raise exception if video cannot be opened
+        raise RuntimeError(
+            f"Failed to open video file '{video_path}'. "
+            f"Please ensure the file is a valid video format and is not corrupted."
+        )
     
     fps = cap.get(cv2.CAP_PROP_FPS)
     if fps == 0:
@@ -73,8 +75,11 @@ def extract_gait_features(video_path: str) -> Dict[str, float]:
     cap.release()
     
     if len(motion_data) < 10:
-        print(f"Warning: Only {len(motion_data)} motion frames detected, using file-based features")
-        return get_file_based_features(video_path)
+        raise ValueError(
+            f"Insufficient motion data extracted from video '{video_path}'. "
+            f"Only {len(motion_data)} motion frames detected (minimum 10 required). "
+            f"Please ensure the video contains clear walking/gait movement."
+        )
     
     # Extract features from motion data
     features = calculate_gait_features(motion_data, fps, frame_count)
@@ -234,75 +239,8 @@ def detect_steps(motion_data: np.ndarray, min_distance: int = 15) -> List[int]:
     return filtered_peaks
 
 
-def get_file_based_features(video_path: str) -> Dict[str, float]:
-    """
-    Generate gait features based on video file properties.
-    Uses file hash to ensure consistent features for the same video.
-    
-    Args:
-        video_path: Path to video file
-        
-    Returns:
-        Dictionary with 10 gait features
-    """
-    import hashlib
-    import os
-    
-    try:
-        # Get file size and use it for variation
-        file_size = os.path.getsize(video_path)
-        
-        # Read a small chunk of the file to create a hash
-        with open(video_path, 'rb') as f:
-            # Read first 8KB and last 8KB for hash
-            chunk1 = f.read(8192)
-            f.seek(max(0, file_size - 8192))
-            chunk2 = f.read(8192)
-            
-            # Create hash from file content
-            file_hash = hashlib.md5(chunk1 + chunk2).hexdigest()
-        
-        # Use hash to seed random generator (consistent for same file)
-        seed = int(file_hash[:8], 16) % 100000
-        np.random.seed(seed)
-        
-        # Generate realistic gait features with variation
-        # These ranges span both healthy and PD patterns
-        features = {
-            'stride_interval': float(np.random.uniform(0.85, 1.35)),
-            'stride_interval_std': float(np.random.uniform(0.025, 0.15)),
-            'swing_time': float(np.random.uniform(0.3, 0.52)),
-            'stance_time': float(np.random.uniform(0.52, 0.78)),
-            'double_support': float(np.random.uniform(0.15, 0.40)),
-            'gait_speed': float(np.random.uniform(0.65, 1.35)),
-            'cadence': float(np.random.uniform(85, 130)),
-            'step_length': float(np.random.uniform(0.42, 0.72)),
-            'stride_regularity': float(np.random.uniform(0.50, 0.97)),
-            'gait_asymmetry': float(np.random.uniform(0.05, 0.30))
-        }
-        
-        print(f"✓ Generated file-based features (seed: {seed})")
-        return features
-        
-    except Exception as e:
-        print(f"Error generating file-based features: {e}")
-        return get_default_features()
 
 
-def get_default_features() -> Dict[str, float]:
-    """Return default gait features as fallback."""
-    return {
-        'stride_interval': 1.1,
-        'stride_interval_std': 0.08,
-        'swing_time': 0.4,
-        'stance_time': 0.65,
-        'double_support': 0.25,
-        'gait_speed': 1.0,
-        'cadence': 105.0,
-        'step_length': 0.58,
-        'stride_regularity': 0.75,
-        'gait_asymmetry': 0.15
-    }
 
 
 def get_feature_names() -> List[str]:
@@ -329,7 +267,7 @@ def features_dict_to_array(features: Dict[str, float]) -> List[float]:
 
 if __name__ == "__main__":
     print("Gait Video Feature Extractor")
-    print("10 features for Parkinson's Disease detection")
+    print("10 features for Parkinson's Disease prediction")
     print("\nFeature list:")
     for i, name in enumerate(get_feature_names(), 1):
         print(f"  {i}. {name}")

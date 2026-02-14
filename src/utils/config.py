@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 
 class Config:
-    """Configuration manager for the Parkinson's detection system."""
+    """Configuration manager for the Parkinson's prediction system."""
     
     def __init__(self, config_path: str = None):
         """

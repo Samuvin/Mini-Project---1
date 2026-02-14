@@ -1,4 +1,4 @@
-"""Flask web application for Parkinson's Disease detection."""
+"""Flask web application for Parkinson's Disease prediction."""
 
 import sys
 import os
@@ -39,7 +39,7 @@ def setup_logging(app):
         app.logger.addHandler(file_handler)
         
         app.logger.setLevel(logging.INFO)
-        app.logger.info('Parkinson\'s Detection System startup')
+        app.logger.info('Parkinson\'s Prediction System startup')
 
 
 def create_app(config_path=None):
@@ -153,7 +153,7 @@ def create_app(config_path=None):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("Parkinson's Disease Detection System")
+    print("Parkinson's Disease Prediction System")
     print("="*60)
     print("\nThis application should be run using Gunicorn:")
     print("  gunicorn -c gunicorn_config.py wsgi:app")

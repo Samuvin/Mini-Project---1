@@ -1,4 +1,4 @@
-"""WSGI entry point for Parkinson's Disease Detection System.
+"""WSGI entry point for Parkinson's Disease Prediction System.
 
 This file is used by WSGI servers like Gunicorn.
 """
@@ -14,8 +14,17 @@ from webapp.app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    # Direct execution not recommended - use Gunicorn instead
-    print("Please run the application using Gunicorn:")
-    print("  gunicorn -c gunicorn_config.py wsgi:app")
-    print("Or use the start script:")
-    print("  ./start.sh")
+    # For Windows compatibility, allow direct Flask run
+    import sys
+    import os
+    
+    # Check if running on Windows
+    if sys.platform == "win32":
+        print("Running Flask development server (Windows)...")
+        print("For production on Linux/Mac, use: gunicorn -c gunicorn_config.py wsgi:app")
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
+    else:
+        print("Please run the application using Gunicorn:")
+        print("  gunicorn -c gunicorn_config.py wsgi:app")
+        print("Or use the start script:")
+        print("  ./start.sh")

@@ -64,27 +64,30 @@ def upload_audio():
             features_array = audio_to_array(features_dict)
             os.unlink(tmp_path)
             
-            is_example = abs(features_array[0] - 119.992) < 0.001
-            
             return jsonify({
                 'success': True,
                 'features': features_array,
                 'feature_count': len(features_array),
                 'feature_names': list(features_dict.keys()),
                 'modality': 'speech',
-                'message': 'Audio features extracted successfully',
-                'note': 'Note: Browser audio format not fully supported. Using reference features for demonstration.' if is_example else 'Features extracted from your audio'
+                'message': 'Audio features extracted successfully'
             })
         except Exception as e:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise e
     
+    except RuntimeError as e:
+        logger.error("Audio extraction failed: %s", str(e))
+        return jsonify({
+            'success': False,
+            'error': 'Failed to extract features from audio file. Please ensure the file is a valid audio format and contains speech data.'
+        }), 400
     except Exception as e:
         logger.exception("Error processing audio")
         return jsonify({
             'success': False,
-            'error': f'Error processing audio file: {str(e)}'
+            'error': 'An error occurred while processing the audio file. Please try again or contact support if the issue persists.'
         }), 500
 
 
@@ -129,11 +132,17 @@ def upload_handwriting():
                 os.unlink(tmp_path)
             raise e
     
+    except (ValueError, RuntimeError) as e:
+        logger.error("Handwriting extraction failed: %s", str(e))
+        return jsonify({
+            'success': False,
+            'error': 'Failed to extract features from handwriting image. Please ensure the image is clear and contains handwriting or drawing.'
+        }), 400
     except Exception as e:
         logger.exception("Error processing handwriting")
         return jsonify({
             'success': False,
-            'error': f'Error processing handwriting image: {str(e)}'
+            'error': 'An error occurred while processing the handwriting image. Please try again or contact support if the issue persists.'
         }), 500
 
 
@@ -178,23 +187,17 @@ def upload_gait():
                 os.unlink(tmp_path)
             raise e
     
+    except (ValueError, RuntimeError) as e:
+        logger.error("Gait extraction failed: %s", str(e))
+        return jsonify({
+            'success': False,
+            'error': 'Failed to extract features from gait video. Please ensure the video is valid and contains clear walking/gait movement.'
+        }), 400
     except Exception as e:
         logger.exception("Error processing gait video")
         return jsonify({
             'success': False,
-            'error': f'Error processing gait video: {str(e)}'
+            'error': 'An error occurred while processing the gait video. Please try again or contact support if the issue persists.'
         }), 500
 
 
-@upload_bp.route('/test', methods=['GET'])
-def test_upload():
-    """Test endpoint to verify upload API is working."""
-    return jsonify({
-        'success': True,
-        'message': 'Upload API is working',
-        'endpoints': {
-            'audio': '/api/upload/audio',
-            'handwriting': '/api/upload/handwriting',
-            'gait': '/api/upload/gait'
-        }
-    })

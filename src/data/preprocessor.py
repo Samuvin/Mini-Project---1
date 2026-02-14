@@ -1,4 +1,4 @@
-"""Data preprocessing utilities for Parkinson's Disease detection."""
+"""Data preprocessing utilities for Parkinson's Disease prediction."""
 
 import numpy as np
 import pandas as pd

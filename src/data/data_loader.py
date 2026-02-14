@@ -48,7 +48,7 @@ class DataLoader:
     
     def load_speech_data(self) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Load speech/voice data for Parkinson's detection from UCI repository.
+        Load speech/voice data for Parkinson's prediction from UCI repository.
         
         Returns:
             Tuple of (features DataFrame, labels Series)
@@ -193,7 +193,7 @@ class DataLoader:
     
     def load_handwriting_data(self) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Load handwriting data for Parkinson's detection.
+        Load handwriting data for Parkinson's prediction.
         
         Uses REAL handwriting dataset only - NO synthetic data generation.
         
@@ -229,7 +229,7 @@ class DataLoader:
     
     def load_gait_data(self) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Load gait data for Parkinson's detection.
+        Load gait data for Parkinson's prediction.
         
         Uses REAL gait dataset only - NO synthetic data generation.
         

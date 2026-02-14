@@ -1,5 +1,5 @@
 """
-Deep Learning inference for Parkinson's Disease detection.
+Deep Learning inference for Parkinson's Disease prediction.
 
 Provides ``DLPredictor`` -- a high-level class that loads the trained
 SE-ResNet multimodal model, runs a forward pass on new patient data,

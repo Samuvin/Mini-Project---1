@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Parkinson's Disease Detection System - Start Script
+# Parkinson's Disease Prediction System - Start Script
 # Handles setup, installation, dataset generation, training, and server start
 
 echo "============================================================"
-echo "Parkinson's Disease Detection System"
+echo "Parkinson's Disease Prediction System"
 echo "Automated Setup & Start"
 echo "============================================================"
 echo ""

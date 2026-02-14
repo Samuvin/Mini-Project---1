@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: parkinsons-detection
+    name: parkinsons-prediction
     env: docker
     plan: free
     region: oregon

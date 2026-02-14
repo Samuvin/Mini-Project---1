@@ -1,5 +1,5 @@
 """
-Audio feature extraction for Parkinson's Disease detection.
+Audio feature extraction for Parkinson's Disease prediction.
 Extracts 22 speech features from audio files using librosa and Praat-Parselmouth.
 """
 
@@ -11,8 +11,10 @@ import soundfile as sf
 from typing import Dict, List, Tuple
 import warnings
 import os
+import logging
 
 warnings.filterwarnings('ignore')
+logger = logging.getLogger(__name__)
 
 
 def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
@@ -29,22 +31,27 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
     try:
         y, sr = librosa.load(audio_file_path, sr=None)
     except Exception as e:
-        print(f"Error loading audio with librosa: {e}")
+        error_msg = f"Error loading audio with librosa: {e}"
+        print(error_msg)
         # Try alternative loading method
         try:
             import scipy.io.wavfile as wav
             sr, y = wav.read(audio_file_path)
             y = y.astype(float)
-        except:
-            # If all else fails, return example features
-            print("Could not load audio file. Returning example features.")
-            return get_example_speech_features()
+        except Exception as e2:
+            # If all else fails, raise exception
+            raise RuntimeError(
+                f"Failed to load audio file '{audio_file_path}'. "
+                f"Librosa error: {e}. Scipy error: {e2}. "
+                f"Please ensure the file is a valid audio format."
+            ) from e2
     
     # Create Praat Sound object for analysis
     try:
         sound = parselmouth.Sound(audio_file_path)
     except Exception as e:
-        print(f"Error loading audio with Praat: {e}")
+        error_msg = f"Error loading audio with Praat: {e}"
+        print(error_msg)
         # Try to create sound from loaded data
         try:
             # Save temporarily and reload
@@ -53,43 +60,65 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
                 sf.write(tmp.name, y, sr)
                 sound = parselmouth.Sound(tmp.name)
                 os.unlink(tmp.name)
-        except:
-            print("Could not create Praat Sound object. Returning example features.")
-            return get_example_speech_features()
+        except Exception as e2:
+            # If all else fails, raise exception
+            raise RuntimeError(
+                f"Failed to create Praat Sound object from '{audio_file_path}'. "
+                f"Praat error: {e}. Temp file error: {e2}. "
+                f"Please ensure the audio file is valid and contains speech data."
+            ) from e2
     
     # Extract features
     features = {}
     
-    # 1-3: Fundamental frequency measures (Fo, Fhi, Flo)
-    pitch = call(sound, "To Pitch", 0.0, 75, 600)
-    f0_values = pitch.selected_array['frequency']
-    f0_values = f0_values[f0_values != 0]  # Remove unvoiced frames
+    # Helper function to replace NaN/Inf with 0
+    def safe_float(value, default=0.0):
+        """Convert value to float, replacing NaN/Inf with default."""
+        try:
+            val = float(value)
+            if np.isnan(val) or np.isinf(val):
+                return default
+            return val
+        except (ValueError, TypeError):
+            return default
     
-    if len(f0_values) > 0:
-        features['MDVP:Fo(Hz)'] = float(np.mean(f0_values))
-        features['MDVP:Fhi(Hz)'] = float(np.max(f0_values))
-        features['MDVP:Flo(Hz)'] = float(np.min(f0_values))
-    else:
+    # 1-3: Fundamental frequency measures (Fo, Fhi, Flo)
+    try:
+        pitch = call(sound, "To Pitch", 0.0, 75, 600)
+        f0_values = pitch.selected_array['frequency']
+        f0_values = f0_values[f0_values != 0]  # Remove unvoiced frames
+        
+        if len(f0_values) > 0:
+            features['MDVP:Fo(Hz)'] = safe_float(np.mean(f0_values), 120.0)
+            features['MDVP:Fhi(Hz)'] = safe_float(np.max(f0_values), 160.0)
+            features['MDVP:Flo(Hz)'] = safe_float(np.min(f0_values), 80.0)
+        else:
+            features['MDVP:Fo(Hz)'] = 120.0
+            features['MDVP:Fhi(Hz)'] = 160.0
+            features['MDVP:Flo(Hz)'] = 80.0
+    except Exception as e:
+        logger.warning(f"Pitch extraction failed for '{audio_file_path}': {e}. Using default values.")
         features['MDVP:Fo(Hz)'] = 120.0
         features['MDVP:Fhi(Hz)'] = 160.0
         features['MDVP:Flo(Hz)'] = 80.0
     
     # 4-8: Jitter measures
-    point_process = call(sound, "To PointProcess (periodic, cc)", 75, 600)
-    
     try:
-        jitter_local = call(point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3)
-        jitter_local_abs = call(point_process, "Get jitter (local, absolute)", 0, 0, 0.0001, 0.02, 1.3)
-        jitter_rap = call(point_process, "Get jitter (rap)", 0, 0, 0.0001, 0.02, 1.3)
-        jitter_ppq5 = call(point_process, "Get jitter (ppq5)", 0, 0, 0.0001, 0.02, 1.3)
-        jitter_ddp = jitter_rap * 3
+        point_process = call(sound, "To PointProcess (periodic, cc)", 75, 600)
+        
+        jitter_local = safe_float(call(point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3), 0.005)
+        jitter_local_abs = safe_float(call(point_process, "Get jitter (local, absolute)", 0, 0, 0.0001, 0.02, 1.3), 0.00005)
+        jitter_rap = safe_float(call(point_process, "Get jitter (rap)", 0, 0, 0.0001, 0.02, 1.3), 0.003)
+        jitter_ppq5 = safe_float(call(point_process, "Get jitter (ppq5)", 0, 0, 0.0001, 0.02, 1.3), 0.003)
+        jitter_ddp = safe_float(jitter_rap * 3, 0.009)
         
         features['MDVP:Jitter(%)'] = float(jitter_local * 100)
         features['MDVP:Jitter(Abs)'] = float(jitter_local_abs)
         features['MDVP:RAP'] = float(jitter_rap)
         features['MDVP:PPQ'] = float(jitter_ppq5)
         features['Jitter:DDP'] = float(jitter_ddp)
-    except:
+    except Exception as e:
+        logger.warning(f"Jitter extraction failed for '{audio_file_path}': {e}. Using default values.")
         features['MDVP:Jitter(%)'] = 0.005
         features['MDVP:Jitter(Abs)'] = 0.00005
         features['MDVP:RAP'] = 0.003
@@ -98,12 +127,12 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
     
     # 9-14: Shimmer measures
     try:
-        shimmer_local = call([sound, point_process], "Get shimmer (local)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
-        shimmer_local_db = call([sound, point_process], "Get shimmer (local_dB)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
-        shimmer_apq3 = call([sound, point_process], "Get shimmer (apq3)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
-        shimmer_apq5 = call([sound, point_process], "Get shimmer (apq5)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
-        shimmer_apq11 = call([sound, point_process], "Get shimmer (apq11)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
-        shimmer_dda = shimmer_apq3 * 3
+        shimmer_local = safe_float(call([sound, point_process], "Get shimmer (local)", 0, 0, 0.0001, 0.02, 1.3, 1.6), 0.03)
+        shimmer_local_db = safe_float(call([sound, point_process], "Get shimmer (local_dB)", 0, 0, 0.0001, 0.02, 1.3, 1.6), 0.3)
+        shimmer_apq3 = safe_float(call([sound, point_process], "Get shimmer (apq3)", 0, 0, 0.0001, 0.02, 1.3, 1.6), 0.015)
+        shimmer_apq5 = safe_float(call([sound, point_process], "Get shimmer (apq5)", 0, 0, 0.0001, 0.02, 1.3, 1.6), 0.02)
+        shimmer_apq11 = safe_float(call([sound, point_process], "Get shimmer (apq11)", 0, 0, 0.0001, 0.02, 1.3, 1.6), 0.025)
+        shimmer_dda = safe_float(shimmer_apq3 * 3, 0.045)
         
         features['MDVP:Shimmer'] = float(shimmer_local)
         features['MDVP:Shimmer(dB)'] = float(shimmer_local_db)
@@ -111,7 +140,8 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
         features['Shimmer:APQ5'] = float(shimmer_apq5)
         features['MDVP:APQ'] = float(shimmer_apq11)
         features['Shimmer:DDA'] = float(shimmer_dda)
-    except:
+    except Exception as e:
+        logger.warning(f"Shimmer extraction failed for '{audio_file_path}': {e}. Using default values.")
         features['MDVP:Shimmer'] = 0.03
         features['MDVP:Shimmer(dB)'] = 0.3
         features['Shimmer:APQ3'] = 0.015
@@ -122,12 +152,13 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
     # 15-16: Harmonics-to-Noise Ratio
     try:
         harmonicity = call(sound, "To Harmonicity (cc)", 0.01, 75, 0.1, 1.0)
-        hnr = call(harmonicity, "Get mean", 0, 0)
-        nhr = 1.0 / (hnr + 1e-10)  # Noise-to-Harmonics Ratio
+        hnr = safe_float(call(harmonicity, "Get mean", 0, 0), 20.0)
+        nhr = safe_float(1.0 / (hnr + 1e-10), 0.02)  # Noise-to-Harmonics Ratio
         
         features['NHR'] = float(abs(nhr) * 0.01)  # Scale to match dataset range
         features['HNR'] = float(hnr)
-    except:
+    except Exception as e:
+        logger.warning(f"HNR extraction failed for '{audio_file_path}': {e}. Using default values.")
         features['NHR'] = 0.02
         features['HNR'] = 20.0
     
@@ -135,31 +166,45 @@ def extract_speech_features(audio_file_path: str) -> Dict[str, float]:
     # These are approximate implementations
     try:
         # RPDE - Recurrence Period Density Entropy (simplified)
-        features['RPDE'] = float(estimate_rpde(f0_values))
+        features['RPDE'] = safe_float(estimate_rpde(f0_values), 0.5)
         
         # DFA - Detrended Fluctuation Analysis (simplified)
-        features['DFA'] = float(estimate_dfa(f0_values))
+        features['DFA'] = safe_float(estimate_dfa(f0_values), 0.7)
         
         # spread1, spread2 - Nonlinear measures of fundamental frequency variation
         if len(f0_values) > 1:
-            features['spread1'] = float(np.log(np.std(f0_values) / np.mean(f0_values) + 1e-10))
-            features['spread2'] = float(np.std(f0_values) / np.mean(f0_values))
+            features['spread1'] = safe_float(np.log(np.std(f0_values) / np.mean(f0_values) + 1e-10), -5.0)
+            features['spread2'] = safe_float(np.std(f0_values) / np.mean(f0_values), 0.2)
         else:
             features['spread1'] = -5.0
             features['spread2'] = 0.2
         
         # D2 - Correlation dimension (simplified)
-        features['D2'] = float(estimate_correlation_dimension(f0_values))
+        features['D2'] = safe_float(estimate_correlation_dimension(f0_values), 2.5)
         
         # PPE - Pitch Period Entropy
-        features['PPE'] = float(estimate_entropy(f0_values))
-    except:
+        features['PPE'] = safe_float(estimate_entropy(f0_values), 0.2)
+    except Exception as e:
+        logger.warning(f"Nonlinear features extraction failed for '{audio_file_path}': {e}. Using default values.")
         features['RPDE'] = 0.5
         features['DFA'] = 0.7
         features['spread1'] = -5.0
         features['spread2'] = 0.2
         features['D2'] = 2.5
         features['PPE'] = 0.2
+    
+    # Replace any remaining NaN/Inf values with 0 and log warnings
+    nan_features = []
+    for name, value in features.items():
+        if np.isnan(value) or np.isinf(value):
+            nan_features.append(name)
+            features[name] = 0.0
+    
+    if nan_features:
+        logger.warning(
+            f"Found NaN/Inf values in features {', '.join(nan_features)} for '{audio_file_path}'. "
+            f"Replaced with 0.0"
+        )
     
     return features
 
@@ -239,8 +284,13 @@ def features_dict_to_array(features: Dict[str, float]) -> List[float]:
 
 def get_example_speech_features() -> Dict[str, float]:
     """
-    Return example speech features from UCI Parkinson's dataset.
-    Used as fallback when audio processing fails.
+    DEPRECATED: Return example speech features from UCI Parkinson's dataset.
+    
+    This function is kept for testing/documentation purposes only.
+    Production code should raise exceptions instead of using fallback features.
+    
+    .. deprecated:: Production
+        Use proper error handling instead of fallback features.
     """
     feature_names = get_feature_names()
     # Real example from UCI dataset (HEALTHY control subject)
@@ -256,7 +306,7 @@ def get_example_speech_features() -> Dict[str, float]:
 if __name__ == "__main__":
     # Test with example
     print("Audio Feature Extractor")
-    print("22 speech features for Parkinson's Disease detection")
+    print("22 speech features for Parkinson's Disease prediction")
     print("\nFeature list:")
     for i, name in enumerate(get_feature_names(), 1):
         print(f"  {i}. {name}")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate synthetic training datasets for handwriting and gait-based PD detection.
+Generate synthetic training datasets for handwriting and gait-based PD prediction.
 Based on published research characteristics and realistic feature distributions.
 """
 

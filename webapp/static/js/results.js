@@ -193,8 +193,8 @@
             }
 
             // Model type badge
-            var modelBadge = result.model_type === 'dl' ? 
-                '<span class="badge bg-primary">Deep Learning</span>' :
+            var modelBadge = (result.model_type === 'dl' || result.model_type === 'advanced_ai') ? 
+                '<span class="badge bg-primary">Advanced AI</span>' :
                 '<span class="badge bg-info">Machine Learning</span>';
 
             row.innerHTML = 
@@ -293,8 +293,8 @@
                     '</div>' +
                     '<div class="col-md-6">' +
                         '<h6>Model Type</h6>' +
-                        '<p>' + (result.model_type === 'dl' ? 
-                            '<span class="badge bg-primary">Deep Learning</span>' :
+                        '<p>' + ((result.model_type === 'dl' || result.model_type === 'advanced_ai') ? 
+                            '<span class="badge bg-primary">Advanced AI</span>' :
                             '<span class="badge bg-info">Machine Learning</span>') + '</p>' +
                     '</div>' +
                 '</div>' +

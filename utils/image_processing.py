@@ -1,5 +1,5 @@
 """
-Handwriting image processing for Parkinson's Disease detection.
+Handwriting image processing for Parkinson's Disease prediction.
 Extracts 10 handwriting features from images of handwriting/drawings.
 """
 
@@ -210,7 +210,7 @@ def features_dict_to_array(features: Dict[str, float]) -> List[float]:
 
 if __name__ == "__main__":
     print("Handwriting Feature Extractor")
-    print("10 features for Parkinson's Disease detection")
+    print("10 features for Parkinson's Disease prediction")
     print("\nFeature list:")
     for i, name in enumerate(get_feature_names(), 1):
         print(f"  {i}. {name}")

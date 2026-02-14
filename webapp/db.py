@@ -19,7 +19,7 @@ def get_db():
 
     The connection URI is read from the MONGODB_URI environment variable.
     The database name can be overridden via MONGODB_DB_NAME (defaults to
-    ``parkinsons_detection``).
+    ``parkinsons_prediction``).
 
     Returns:
         pymongo.database.Database: The application database.
@@ -39,7 +39,7 @@ def get_db():
             "Please add it to your .env file."
         )
 
-    db_name = os.environ.get("MONGODB_DB_NAME", "parkinsons_detection")
+    db_name = os.environ.get("MONGODB_DB_NAME", "parkinsons_prediction")
 
     try:
         _client = MongoClient(uri, serverSelectionTimeoutMS=5000, tlsCAFile=certifi.where())

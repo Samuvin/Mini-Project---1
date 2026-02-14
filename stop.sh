@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# Parkinson's Disease Detection System - Stop Script
+# Parkinson's Disease Prediction System - Stop Script
 # Gracefully stops the running server
 
 echo "============================================================"
-echo "Parkinson's Disease Detection System"
+echo "Parkinson's Disease Prediction System"
 echo "Stop Server"
 echo "============================================================"
 echo ""

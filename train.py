@@ -1,4 +1,4 @@
-"""Complete training pipeline for Parkinson's Disease Detection System."""
+"""Complete training pipeline for Parkinson's Disease Prediction System."""
 
 import sys
 from pathlib import Path
@@ -20,7 +20,7 @@ import pandas as pd
 def main():
     """Main training pipeline."""
     print("\n" + "="*80)
-    print("PARKINSON'S DISEASE DETECTION SYSTEM - TRAINING PIPELINE")
+    print("PARKINSON'S DISEASE PREDICTION SYSTEM - TRAINING PIPELINE")
     print("="*80 + "\n")
     
     # Initialize configuration

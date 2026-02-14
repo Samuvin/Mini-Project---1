@@ -1,4 +1,4 @@
-"""Logistic Regression baseline model for Parkinson's Disease detection."""
+"""Logistic Regression baseline model for Parkinson's Disease prediction."""
 
 import numpy as np
 import pandas as pd

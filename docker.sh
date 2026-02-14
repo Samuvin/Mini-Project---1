@@ -7,7 +7,7 @@ set -e
 echo "=========================================="
 echo "Building Docker Image"
 echo "=========================================="
-docker build -t parkinsons-detection .
+docker build -t parkinsons-prediction .
 
 echo ""
 echo "=========================================="
@@ -17,7 +17,7 @@ docker run -d \
   --name parkinsons-test \
   -p 8000:8000 \
   --env-file .env \
-  parkinsons-detection
+  parkinsons-prediction
 
 echo ""
 echo "Waiting for container to start..."

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Train the Multimodal SE-ResNet1D model for Parkinson's Disease detection.
+Train the Multimodal SE-ResNet1D model for Parkinson's Disease prediction.
 
 Usage::
 
@@ -98,7 +98,7 @@ def apply_smote(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Train Multimodal SE-ResNet1D for PD detection",
+        description="Train Multimodal SE-ResNet1D for PD prediction",
     )
     parser.add_argument(
         "--config", default="config.yaml", help="Path to config.yaml",

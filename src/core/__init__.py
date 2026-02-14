@@ -1,2 +1,2 @@
-"""Core abstractions and interfaces for the PD detection system."""
+"""Core abstractions and interfaces for the PD prediction system."""
 

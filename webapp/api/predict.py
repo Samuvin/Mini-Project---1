@@ -1,9 +1,8 @@
 """Prediction API endpoints.
 
 Supports two backends:
-    1. **Deep Learning** (SE-ResNet + Attention Fusion) -- preferred when
-       a trained ``.pt`` model exists under ``models/``.
-    2. **sklearn ensemble** -- legacy fallback via ``src.facade``.
+    1. **Advanced AI Models** -- preferred when a trained model exists.
+    2. **Machine Learning ensemble** -- fallback via ``src.facade``.
 """
 
 import logging
@@ -52,7 +51,7 @@ def get_dl_predictor():
             _dl_predictor.load()
             logger.info("DL predictor loaded successfully.")
             return _dl_predictor
-        logger.info("DL model not found; will use sklearn fallback.")
+        logger.info("Advanced AI model not found; will use machine learning fallback.")
     except Exception as e:
         logger.warning("Could not load DL predictor: %s", e)
 
@@ -74,10 +73,14 @@ def health_check():
 
         dl = get_dl_predictor()
         if dl is not None:
-            resp['dl_model'] = dl.get_model_info()
-            resp['active_backend'] = 'deep_learning'
+            model_info = dl.get_model_info()
+            # Rename to remove DL references for user-facing API
+            if 'model_type' in model_info:
+                model_info['model_type'] = 'advanced_ai'
+            resp['ai_model'] = model_info
+            resp['active_backend'] = 'advanced_ai'
         else:
-            resp['active_backend'] = 'sklearn'
+            resp['active_backend'] = 'machine_learning'
 
         return jsonify(resp)
     except Exception as e:
@@ -89,7 +92,7 @@ def health_check():
 
 @predict_bp.route('/predict', methods=['POST'])
 def predict():
-    """Make a prediction using the DL model or sklearn fallback.
+    """Make a prediction using advanced AI models or machine learning fallback.
 
     Expected JSON::
 
@@ -165,17 +168,17 @@ def predict():
         if gait_features is not None:
             modalities_used.append("gait")
 
-        # ---- Try Deep Learning predictor first ---- #
+        # ---- Try Advanced AI predictor first ---- #
         dl = get_dl_predictor()
         if dl is not None:
-            logger.info("Using DL predictor (SE-ResNet + Attention Fusion)")
+            logger.info("Using advanced AI predictor")
             result = dl.predict(
                 speech_features=speech_features,
                 handwriting_features=handwriting_features,
                 gait_features=gait_features,
             )
             logger.info(
-                "DL prediction: %s (%.2f%% confidence), attention=%s",
+                "Advanced AI prediction: %s (%.2f%% confidence), attention=%s",
                 result['prediction_label'],
                 result['confidence'] * 100,
                 result.get('attention_weights'),
@@ -210,7 +213,7 @@ def predict():
                             'confidence': result.get('confidence', 0.0),
                             'probabilities': normalized_probs,
                             'modalities_used': result.get('modalities_used', modalities_used),
-                            'model_type': 'dl'
+                            'model_type': 'advanced_ai'
                         }
                     )
             except Exception as e:
@@ -219,8 +222,8 @@ def predict():
             
             return jsonify(result)
 
-        # ---- Fallback: sklearn ensemble ---- #
-        logger.info("Using sklearn ensemble fallback")
+        # ---- Fallback: Machine Learning ensemble ---- #
+        logger.info("Using machine learning ensemble fallback")
         
         result = manager.predict_ensemble(
             speech_features=speech_features,
@@ -230,7 +233,7 @@ def predict():
         )
         
         logger.info(
-            "sklearn prediction: %s (%.2f%% confidence)",
+            "Machine learning prediction: %s (%.2f%% confidence)",
             result['prediction_label'],
             result['confidence'] * 100,
         )
@@ -257,7 +260,7 @@ def predict():
                         'confidence': result.get('confidence', 0.0),
                         'probabilities': normalized_probs,
                         'modalities_used': result.get('modalities_used', modalities_used),
-                        'model_type': 'sklearn'
+                        'model_type': 'machine_learning'
                     }
                 )
         except Exception as e:
@@ -343,10 +346,14 @@ def model_info():
 
         dl = get_dl_predictor()
         if dl is not None:
-            resp['dl_model'] = dl.get_model_info()
-            resp['active_backend'] = 'deep_learning'
+            model_info = dl.get_model_info()
+            # Rename to remove DL references for user-facing API
+            if 'model_type' in model_info:
+                model_info['model_type'] = 'advanced_ai'
+            resp['ai_model'] = model_info
+            resp['active_backend'] = 'advanced_ai'
         else:
-            resp['active_backend'] = 'sklearn'
+            resp['active_backend'] = 'machine_learning'
 
         return jsonify(resp)
     

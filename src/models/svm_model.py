@@ -1,4 +1,4 @@
-"""Support Vector Machine model with kernel optimization for Parkinson's Disease detection."""
+"""Support Vector Machine model with kernel optimization for Parkinson's Disease prediction."""
 
 import numpy as np
 import pandas as pd

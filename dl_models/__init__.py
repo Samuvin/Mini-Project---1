@@ -1,5 +1,5 @@
 """
-Deep Learning models for Parkinson's Disease Detection.
+Deep Learning models for Parkinson's Disease Prediction.
 
 Algorithm: SE-ResNet 1D CNN with Attention-Based Multimodal Fusion.
 

@@ -1,4 +1,4 @@
-# Dockerfile for Parkinson's Disease Detection System
+# Dockerfile for Parkinson's Disease Prediction System
 FROM python:3.11-slim
 
 # Set working directory

@@ -1,5 +1,5 @@
 """
-Multi-Model Manager for Parkinson's Disease Detection.
+Multi-Model Manager for Parkinson's Disease Prediction.
 Handles loading and ensemble predictions from speech, handwriting, and gait models.
 """
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ModelManager:
     """
-    Manages multiple PD detection models and provides ensemble predictions.
+    Manages multiple PD prediction models and provides ensemble predictions.
     """
     
     def __init__(self, models_dir: str = 'models'):
