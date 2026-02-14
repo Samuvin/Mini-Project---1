@@ -12,7 +12,7 @@ import warnings
 from pathlib import Path
 
 import numpy as np
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 
 # Suppress feature name warnings
 warnings.filterwarnings('ignore', message='X does not have valid feature names')
@@ -21,6 +21,7 @@ warnings.filterwarnings('ignore', message='X does not have valid feature names')
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.facade import get_model_manager
+from webapp.models.prediction_result import save_prediction
 
 logger = logging.getLogger(__name__)
 
@@ -155,6 +156,15 @@ def predict():
                 'success': False
             }), 400
         
+        # Determine which modalities were used
+        modalities_used = []
+        if speech_features is not None:
+            modalities_used.append("speech")
+        if handwriting_features is not None:
+            modalities_used.append("handwriting")
+        if gait_features is not None:
+            modalities_used.append("gait")
+
         # ---- Try Deep Learning predictor first ---- #
         dl = get_dl_predictor()
         if dl is not None:
@@ -168,8 +178,45 @@ def predict():
                 "DL prediction: %s (%.2f%% confidence), attention=%s",
                 result['prediction_label'],
                 result['confidence'] * 100,
-                result['attention_weights'],
+                result.get('attention_weights'),
             )
+            
+            # Save prediction to database if user is authenticated
+            try:
+                if hasattr(g, 'current_user') and g.current_user:
+                    # Normalize prediction_label format
+                    prediction_label = result.get('prediction_label', 'Unknown')
+                    if prediction_label.lower() == 'parkinsons':
+                        prediction_label = "Parkinson's Disease"
+                    elif prediction_label.lower() == 'healthy':
+                        prediction_label = "Healthy"
+                    
+                    # Normalize probabilities keys
+                    probabilities = result.get('probabilities', {})
+                    normalized_probs = {}
+                    for key, value in probabilities.items():
+                        if key.lower() == 'parkinsons':
+                            normalized_probs["Parkinson's Disease"] = value
+                        elif key.lower() == 'healthy':
+                            normalized_probs["Healthy"] = value
+                        else:
+                            normalized_probs[key] = value
+                    
+                    save_prediction(
+                        user_id=str(g.current_user['_id']),
+                        result_data={
+                            'prediction': result.get('prediction', 0),
+                            'prediction_label': prediction_label,
+                            'confidence': result.get('confidence', 0.0),
+                            'probabilities': normalized_probs,
+                            'modalities_used': result.get('modalities_used', modalities_used),
+                            'model_type': 'dl'
+                        }
+                    )
+            except Exception as e:
+                logger.warning("Failed to save prediction to database: %s", e)
+                # Don't fail the prediction if save fails
+            
             return jsonify(result)
 
         # ---- Fallback: sklearn ensemble ---- #
@@ -187,6 +234,35 @@ def predict():
             result['prediction_label'],
             result['confidence'] * 100,
         )
+        
+        # Save prediction to database if user is authenticated
+        try:
+            if hasattr(g, 'current_user') and g.current_user:
+                # Normalize probabilities keys (sklearn uses lowercase)
+                probabilities = result.get('probabilities', {})
+                normalized_probs = {}
+                for key, value in probabilities.items():
+                    if key.lower() == 'parkinsons':
+                        normalized_probs["Parkinson's Disease"] = value
+                    elif key.lower() == 'healthy':
+                        normalized_probs["Healthy"] = value
+                    else:
+                        normalized_probs[key] = value
+                
+                save_prediction(
+                    user_id=str(g.current_user['_id']),
+                    result_data={
+                        'prediction': result.get('prediction', 0),
+                        'prediction_label': result.get('prediction_label', 'Unknown'),
+                        'confidence': result.get('confidence', 0.0),
+                        'probabilities': normalized_probs,
+                        'modalities_used': result.get('modalities_used', modalities_used),
+                        'model_type': 'sklearn'
+                    }
+                )
+        except Exception as e:
+            logger.warning("Failed to save prediction to database: %s", e)
+            # Don't fail the prediction if save fails
         
         return jsonify(result)
     

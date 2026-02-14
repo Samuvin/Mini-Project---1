@@ -83,6 +83,10 @@ def create_app(config_path=None):
     from webapp.api.combined_processing import combined_bp
     app.register_blueprint(combined_bp, url_prefix='/api')
     
+    # Import and register results blueprint
+    from webapp.api.results import results_bp
+    app.register_blueprint(results_bp, url_prefix='/api')
+    
     # Enforce JWT authentication on all routes except public ones.
     app.before_request(enforce_auth)
     
@@ -115,10 +119,10 @@ def create_app(config_path=None):
         """About page."""
         return render_template('about.html')
     
-    @app.route('/documentation')
-    def documentation():
-        """Documentation page."""
-        return render_template('documentation.html')
+    @app.route('/results')
+    def results():
+        """Results page."""
+        return render_template('results.html')
     
     @app.route('/model_images/<path:filename>')
     def model_images(filename):

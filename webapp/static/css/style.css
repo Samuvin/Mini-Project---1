@@ -373,9 +373,12 @@ textarea.form-control{resize:vertical;min-height:100px}
    Tables
    ================================================================= */
 .table{color:var(--text-2);--bs-table-bg:transparent}
-.table thead{background:var(--bg-surface-2)}
-.table thead th{color:var(--text-1);font-weight:600;font-size:.85rem;border-bottom:1px solid var(--border)}
+.table thead{background:var(--bg-surface-3)!important;border-bottom:2px solid var(--border)}
+.table thead th{color:var(--text-1)!important;font-weight:600!important;font-size:.9rem!important;border-bottom:2px solid var(--border)!important;text-transform:uppercase;letter-spacing:.05em;padding:.75rem .75rem!important}
+.table thead.table-light{background:var(--bg-surface-3)!important}
+.table thead.table-light th{color:var(--text-1)!important;background:var(--bg-surface-3)!important}
 .table td,.table th{border-color:var(--border);padding:.6rem .75rem}
+.table td:first-child{color:var(--text-1)!important;font-weight:500}
 .table-bordered{border-color:var(--border)}
 .table-sm td,.table-sm th{padding:.45rem .6rem}
 .table .bg-success{background:var(--success-bg)!important;color:var(--success)!important}
