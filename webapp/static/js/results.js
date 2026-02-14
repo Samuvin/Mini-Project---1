@@ -18,8 +18,16 @@
         // Check if user is logged in
         if (!window.AuthHelper || !window.AuthHelper.isLoggedIn()) {
             showError('Please log in to view your prediction results.');
+            // Hide loading state
+            document.getElementById('loadingSection').style.display = 'none';
             return;
         }
+
+        // Ensure initial states are hidden
+        document.getElementById('loadingSection').style.display = 'block';
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('errorState').style.display = 'none';
 
         // Load initial results
         loadResults();
@@ -96,19 +104,23 @@
         .then(function (data) {
             document.getElementById('loadingSection').style.display = 'none';
 
-            if (!data) return;
+            if (!data) {
+                showError('Unable to load results. Please try again.');
+                return;
+            }
 
-            if (data.success) {
-                displayResults(data.data.results, data.data.total);
-                totalResults = data.data.total;
+            if (data.success && data.data) {
+                displayResults(data.data.results || [], data.data.total || 0);
+                totalResults = data.data.total || 0;
                 updatePagination();
             } else {
                 showError(data.error || 'Failed to load results');
             }
         })
         .catch(function (error) {
+            console.error('Error loading results:', error);
             document.getElementById('loadingSection').style.display = 'none';
-            showError('Error loading results: ' + error.message);
+            showError('Error loading results: ' + (error.message || 'Unknown error'));
         });
     }
 
@@ -320,6 +332,7 @@
         document.getElementById('errorState').style.display = 'block';
         document.getElementById('resultsSection').style.display = 'none';
         document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('loadingSection').style.display = 'none';
     }
 
     /* ------------------------------------------------------------------ */

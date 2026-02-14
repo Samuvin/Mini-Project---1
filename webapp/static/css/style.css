@@ -727,11 +727,8 @@ ul li{color:var(--text-2)}
 }
 .glow-pulse{animation:glowPulse 3s ease-in-out infinite}
 
-/* Hero orbit animation */
-@keyframes orbit{from{transform:rotate(0deg) translateX(110px) rotate(0deg)}to{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
-.orbit{animation:orbit 12s linear infinite}
-.orbit-slow{animation:orbit 20s linear infinite}
-.orbit-reverse{animation:orbit 15s linear infinite reverse}
+/* Hero static positioning - no rotation */
+.orbit,.orbit-slow,.orbit-reverse{animation:none!important}
 
 /* =================================================================
    Results Modal
@@ -908,11 +905,100 @@ ul li{color:var(--text-2)}
     position:absolute;width:10px;height:10px;border-radius:50%;
     box-shadow:0 0 8px currentColor;
 }
+/* Keep icons upright while orbiting - the orbit animation already counter-rotates, but ensure icons don't inherit rotation */
+.hero-orb span{display:inline-block;transform:rotate(0deg)!important}
+.hero-orb span i{transform:rotate(0deg)!important}
+
+/* =================================================================
+   Hero Modality Badges
+   ================================================================= */
+.hero-modalities{position:relative;width:100%;height:100%}
+
+.modality-badge{
+    position:absolute;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:8px;
+    font-size:.7rem;
+    font-weight:600;
+    white-space:nowrap;
+    z-index:4;
+    background:rgba(0,0,0,0.4);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+}
+
+.modality-badge i{
+    font-size:.75rem;
+    margin:0;
+}
+
+.modality-badge span{
+    color:#fff;
+}
+
+/* Speech badge - top-right */
+.speech-badge{
+    top:-60px;
+    left:110px;
+    color:var(--success);
+    border:1.5px solid var(--success);
+    box-shadow:0 0 12px rgba(16,185,129,0.3);
+}
+
+.speech-badge i{color:var(--success)}
+
+/* Handwriting badge - bottom-left */
+.handwriting-badge{
+    top:70px;
+    left:-145px;
+    color:var(--info);
+    border:1.5px solid var(--info);
+    box-shadow:0 0 12px rgba(6,182,212,0.3);
+}
+
+.handwriting-badge i{color:var(--info)}
+
+/* Gait badge - bottom-right (within circle) */
+.gait-badge{
+    top:90px;
+    left:110px;
+    color:var(--warning);
+    border:1.5px solid var(--warning);
+    box-shadow:0 0 12px rgba(245,158,11,0.3);
+}
+
+.gait-badge i{color:var(--warning)}
 
 /* Focus visible for keyboard */
 :focus-visible{
     outline:2px solid var(--accent);
     outline-offset:2px;
+}
+
+/* =================================================================
+   Hero Modality Badges - Responsive
+   ================================================================= */
+@media(max-width:768px){
+    .modality-badge{
+        font-size:.6rem;
+        padding:4px 8px;
+        gap:4px;
+    }
+    .modality-badge i{font-size:.65rem}
+    .speech-badge{top:-50px;left:85px}
+    .handwriting-badge{top:60px;left:-115px}
+    .gait-badge{top:75px;left:85px}
+}
+
+@media(max-width:480px){
+    .hero-visual{width:220px!important;height:220px!important}
+    .modality-badge{font-size:.55rem;padding:3px 6px}
+    .speech-badge{top:-45px;left:70px}
+    .handwriting-badge{top:55px;left:-100px}
+    .gait-badge{top:70px;left:70px}
 }
 
 /* =================================================================

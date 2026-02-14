@@ -9,7 +9,6 @@ from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
 
 from ..utils.config import Config, get_processed_data_dir, ensure_dir_exists
-from .augmentation import DataAugmentor
 
 
 class DataPreprocessor:
@@ -25,7 +24,7 @@ class DataPreprocessor:
         self.config = config or Config()
         self.scaler = StandardScaler()
         self.smote = None
-        self.augmentor = DataAugmentor(config)
+        self.augmentor = None  # Lazy initialization if needed
         self.processed_dir = get_processed_data_dir()
         ensure_dir_exists(self.processed_dir)
     
@@ -291,10 +290,17 @@ class DataPreprocessor:
         
         # Step 6: Apply data augmentation (only on training set)
         if apply_augmentation and self.config.get('augmentation.enabled', False):
-            aug_methods = ['noise', 'smote', 'mixup']
-            X_train_norm, y_train = self.augmentor.augment_training_data(
-                X_train_norm, y_train, methods=aug_methods
-            )
+            try:
+                from .augmentation import DataAugmentor
+                if self.augmentor is None:
+                    self.augmentor = DataAugmentor(self.config)
+                aug_methods = ['noise', 'smote', 'mixup']
+                X_train_norm, y_train = self.augmentor.augment_training_data(
+                    X_train_norm, y_train, methods=aug_methods
+                )
+            except ImportError:
+                print("Warning: Data augmentation module not found. Skipping augmentation.")
+                print("To enable augmentation, create src/data/augmentation.py with DataAugmentor class.")
         
         # Convert to numpy arrays
         y_val = y_val.values

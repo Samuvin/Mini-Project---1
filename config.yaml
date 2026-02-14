@@ -78,7 +78,7 @@ training:
 
 # Augmentation Configuration
 augmentation:
-  enabled: true
+  enabled: false  # Set to true when augmentation module is available
   noise_level: 0.05  # Gaussian noise std as fraction of feature std
   smote_k_neighbors: 5
   adasyn_n_neighbors: 5

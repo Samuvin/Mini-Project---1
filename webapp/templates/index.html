@@ -35,22 +35,25 @@
                 <!-- Orbiting rings -->
                 <div class="hero-ring" style="width:180px;height:180px;top:40px;left:40px"></div>
                 <div class="hero-ring" style="width:240px;height:240px;top:10px;left:10px;animation-delay:1s"></div>
-                <!-- Orbiting dots -->
-                <div style="position:absolute;top:50%;left:50%;width:0;height:0">
-                    <div class="orbit" style="color:var(--success)">
-                        <div class="hero-orb" style="background:var(--success);transform:translateX(90px)">
-                            <span style="position:absolute;top:-20px;left:-12px;font-size:.65rem;white-space:nowrap;color:var(--success);font-weight:600"><i class="fas fa-microphone"></i></span>
-                        </div>
+                <div class="hero-ring" style="width:300px;height:300px;top:-20px;left:-20px;animation-delay:2s"></div>
+                <!-- Modality badges with icons and text -->
+                <div class="hero-modalities" style="position:absolute;top:50%;left:50%;width:0;height:0">
+                    <!-- Speech badge (top-right) -->
+                    <div class="modality-badge speech-badge">
+                        <i class="fas fa-microphone"></i>
+                        <span>Speech</span>
                     </div>
-                    <div class="orbit-slow" style="color:var(--info)">
-                        <div class="hero-orb" style="background:var(--info);transform:translateX(110px)">
-                            <span style="position:absolute;top:-20px;left:-6px;font-size:.65rem;white-space:nowrap;color:var(--info);font-weight:600"><i class="fas fa-pen"></i></span>
-                        </div>
+                    
+                    <!-- Handwriting badge (bottom-left) -->
+                    <div class="modality-badge handwriting-badge">
+                        <i class="fas fa-pen"></i>
+                        <span>Handwriting</span>
                     </div>
-                    <div class="orbit-reverse" style="color:var(--warning)">
-                        <div class="hero-orb" style="background:var(--warning);transform:translateX(120px)">
-                            <span style="position:absolute;top:-20px;left:-12px;font-size:.65rem;white-space:nowrap;color:var(--warning);font-weight:600"><i class="fas fa-walking"></i></span>
-                        </div>
+                    
+                    <!-- Gait badge (bottom-right) -->
+                    <div class="modality-badge gait-badge">
+                        <i class="fas fa-walking"></i>
+                        <span>Gait</span>
                     </div>
                 </div>
             </div>
