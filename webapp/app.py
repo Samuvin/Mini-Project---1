@@ -10,9 +10,8 @@ from logging.handlers import RotatingFileHandler
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, jsonify
 from flask_cors import CORS
-import numpy as np
 
 from src.utils.config import Config
 from webapp.api.predict import predict_bp, get_manager
@@ -57,7 +56,6 @@ def create_app(config_path=None):
     
     # Load configuration
     config = Config(config_path)
-    webapp_config = config.get_webapp_config()
     
     # Application configuration
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB for video uploads
@@ -92,9 +90,9 @@ def create_app(config_path=None):
     try:
         manager = get_manager()
         loaded_models = manager.get_loaded_modalities()
-        print(f"✓ Models loaded successfully on startup: {', '.join(loaded_models)}")
+        app.logger.info("Models loaded on startup: %s", ', '.join(loaded_models))
     except Exception as e:
-        print(f"Warning: Could not load models on startup: {e}")
+        app.logger.warning("Could not load models on startup: %s", e)
     
     # Routes
     @app.route('/')
@@ -121,56 +119,6 @@ def create_app(config_path=None):
     def documentation():
         """Documentation page."""
         return render_template('documentation.html')
-    
-    @app.route('/performance')
-    def performance():
-        """Model performance page."""
-        from pathlib import Path
-        import json
-        
-        # Get models directory
-        models_dir = Path(app.root_path).parent / 'models'
-        
-        # Load sklearn metrics from JSON file
-        metrics_file = models_dir / 'model_metrics.json'
-        if metrics_file.exists():
-            with open(metrics_file, 'r') as f:
-                metrics = json.load(f)
-        else:
-            # Default metrics
-            metrics = {
-                'svm': {
-                    'accuracy': 0.90,
-                    'precision': 1.00,
-                    'recall': 0.87,
-                    'f1_score': 0.93,
-                    'roc_auc': 0.95,
-                    'available': False
-                }
-            }
-        
-        # Load DL metrics if available
-        dl_metrics = None
-        dl_metrics_file = models_dir / 'dl_model_metrics.json'
-        if dl_metrics_file.exists():
-            with open(dl_metrics_file, 'r') as f:
-                dl_metrics = json.load(f)
-        
-        # Check available files
-        available_files = {
-            'svm_roc': (models_dir / 'svm_roc_curve.png').exists(),
-            'lr_roc': (models_dir / 'lr_roc_curve.png').exists(),
-            'svm_cm': (models_dir / 'svm_confusion_matrix.png').exists(),
-            'lr_cm': (models_dir / 'lr_confusion_matrix.png').exists(),
-            'dl_roc': (models_dir / 'dl_roc_curve.png').exists(),
-            'dl_cm': (models_dir / 'dl_confusion_matrix.png').exists(),
-            'dl_curves': (models_dir / 'dl_training_curves.png').exists(),
-        }
-        
-        return render_template('performance.html', 
-                             metrics=metrics, 
-                             dl_metrics=dl_metrics,
-                             files=available_files)
     
     @app.route('/model_images/<path:filename>')
     def model_images(filename):
@@ -206,6 +154,6 @@ if __name__ == '__main__':
     print("\nThis application should be run using Gunicorn:")
     print("  gunicorn -c gunicorn_config.py wsgi:app")
     print("\nOr use the start script:")
-    print("  ./start_production.sh")
+    print("  ./start.sh")
     print("="*60 + "\n")
 

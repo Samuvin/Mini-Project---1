@@ -1,15 +1,16 @@
-"""
-File upload API endpoints for audio, images, and video.
+"""File upload API endpoints for audio, images, and video.
+
 Handles file uploads and extracts features automatically.
 """
 
-from flask import Blueprint, request, jsonify
-from werkzeug.utils import secure_filename
+import logging
 import os
 import sys
-from pathlib import Path
 import tempfile
-import traceback
+from pathlib import Path
+
+from flask import Blueprint, request, jsonify
+from werkzeug.utils import secure_filename
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -18,6 +19,8 @@ sys.path.insert(0, str(project_root))
 from utils.audio_processing import extract_speech_features, features_dict_to_array as audio_to_array
 from utils.image_processing import extract_handwriting_features, features_dict_to_array as image_to_array
 from utils.video_processing import extract_gait_features, features_dict_to_array as video_to_array
+
+logger = logging.getLogger(__name__)
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -35,51 +38,32 @@ def allowed_file(filename, allowed_extensions):
 
 @upload_bp.route('/audio', methods=['POST'])
 def upload_audio():
-    """
-    Upload audio file and extract 22 speech features.
-    
-    Returns:
-        JSON with extracted features array
-    """
+    """Upload audio file and extract 22 speech features."""
     try:
-        # Check if file is present
         if 'file' not in request.files:
-            return jsonify({
-                'success': False,
-                'error': 'No file provided'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
         
         file = request.files['file']
-        
         if file.filename == '':
-            return jsonify({
-                'success': False,
-                'error': 'No file selected'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
         
-        # Validate file type
         if not allowed_file(file.filename, ALLOWED_AUDIO):
             return jsonify({
                 'success': False,
                 'error': f'Invalid file type. Allowed: {", ".join(ALLOWED_AUDIO)}'
             }), 400
         
-        # Save to temporary file
         filename = secure_filename(file.filename)
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp:
             file.save(tmp.name)
             tmp_path = tmp.name
         
         try:
-            # Extract features
-            print(f"Extracting features from: {tmp_path}")
+            logger.info("Extracting speech features from: %s", tmp_path)
             features_dict = extract_speech_features(tmp_path)
             features_array = audio_to_array(features_dict)
-            
-            # Clean up
             os.unlink(tmp_path)
             
-            # Check if example features were used (first value is 119.992)
             is_example = abs(features_array[0] - 119.992) < 0.001
             
             return jsonify({
@@ -91,16 +75,13 @@ def upload_audio():
                 'message': 'Audio features extracted successfully',
                 'note': 'Note: Browser audio format not fully supported. Using reference features for demonstration.' if is_example else 'Features extracted from your audio'
             })
-        
         except Exception as e:
-            # Clean up on error
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise e
     
     except Exception as e:
-        print(f"Error processing audio: {str(e)}")
-        traceback.print_exc()
+        logger.exception("Error processing audio")
         return jsonify({
             'success': False,
             'error': f'Error processing audio file: {str(e)}'
@@ -109,47 +90,29 @@ def upload_audio():
 
 @upload_bp.route('/handwriting', methods=['POST'])
 def upload_handwriting():
-    """
-    Upload handwriting image and extract 10 features.
-    
-    Returns:
-        JSON with extracted features array
-    """
+    """Upload handwriting image and extract 10 features."""
     try:
-        # Check if file is present
         if 'file' not in request.files:
-            return jsonify({
-                'success': False,
-                'error': 'No file provided'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
         
         file = request.files['file']
-        
         if file.filename == '':
-            return jsonify({
-                'success': False,
-                'error': 'No file selected'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
         
-        # Validate file type
         if not allowed_file(file.filename, ALLOWED_IMAGE):
             return jsonify({
                 'success': False,
                 'error': f'Invalid file type. Allowed: {", ".join(ALLOWED_IMAGE)}'
             }), 400
         
-        # Save to temporary file
         filename = secure_filename(file.filename)
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp:
             file.save(tmp.name)
             tmp_path = tmp.name
         
         try:
-            # Extract features
             features_dict = extract_handwriting_features(tmp_path)
             features_array = image_to_array(features_dict)
-            
-            # Clean up
             os.unlink(tmp_path)
             
             return jsonify({
@@ -161,16 +124,13 @@ def upload_handwriting():
                 'message': 'Handwriting features extracted successfully',
                 'note': 'Optional features that enhance prediction accuracy when combined with speech'
             })
-        
         except Exception as e:
-            # Clean up on error
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise e
     
     except Exception as e:
-        print(f"Error processing handwriting: {str(e)}")
-        traceback.print_exc()
+        logger.exception("Error processing handwriting")
         return jsonify({
             'success': False,
             'error': f'Error processing handwriting image: {str(e)}'
@@ -179,47 +139,29 @@ def upload_handwriting():
 
 @upload_bp.route('/gait', methods=['POST'])
 def upload_gait():
-    """
-    Upload walking video and extract 10 gait features.
-    
-    Returns:
-        JSON with extracted features array
-    """
+    """Upload walking video and extract 10 gait features."""
     try:
-        # Check if file is present
         if 'file' not in request.files:
-            return jsonify({
-                'success': False,
-                'error': 'No file provided'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
         
         file = request.files['file']
-        
         if file.filename == '':
-            return jsonify({
-                'success': False,
-                'error': 'No file selected'
-            }), 400
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
         
-        # Validate file type
         if not allowed_file(file.filename, ALLOWED_VIDEO):
             return jsonify({
                 'success': False,
                 'error': f'Invalid file type. Allowed: {", ".join(ALLOWED_VIDEO)}'
             }), 400
         
-        # Save to temporary file
         filename = secure_filename(file.filename)
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(filename).suffix) as tmp:
             file.save(tmp.name)
             tmp_path = tmp.name
         
         try:
-            # Extract features
             features_dict = extract_gait_features(tmp_path)
             features_array = video_to_array(features_dict)
-            
-            # Clean up
             os.unlink(tmp_path)
             
             return jsonify({
@@ -231,16 +173,13 @@ def upload_gait():
                 'message': 'Gait features extracted successfully',
                 'note': 'Optional features that enhance prediction accuracy when combined with speech'
             })
-        
         except Exception as e:
-            # Clean up on error
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
             raise e
     
     except Exception as e:
-        print(f"Error processing gait video: {str(e)}")
-        traceback.print_exc()
+        logger.exception("Error processing gait video")
         return jsonify({
             'success': False,
             'error': f'Error processing gait video: {str(e)}'
@@ -259,4 +198,3 @@ def test_upload():
             'gait': '/api/upload/gait'
         }
     })
-

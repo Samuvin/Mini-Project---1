@@ -1,9 +1,12 @@
 """Helper module to load and display model metrics."""
 
 import json
+import logging
 import joblib
 from pathlib import Path
 from typing import Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def get_model_metrics(models_dir: Path) -> Dict[str, any]:
@@ -56,7 +59,7 @@ def save_model_metrics(metrics: Dict[str, any], models_dir: Path) -> None:
     metrics_file = models_dir / 'model_metrics.json'
     with open(metrics_file, 'w') as f:
         json.dump(metrics, f, indent=2)
-    print(f"Metrics saved to: {metrics_file}")
+    logger.info("Metrics saved to: %s", metrics_file)
 
 
 def check_model_files(models_dir: Path) -> Dict[str, bool]:

@@ -7,13 +7,12 @@ Supports two backends:
 """
 
 import logging
-import numpy as np
-import pandas as pd
-from flask import Blueprint, request, jsonify
-import joblib
-from pathlib import Path
 import sys
 import warnings
+from pathlib import Path
+
+import numpy as np
+from flask import Blueprint, request, jsonify
 
 # Suppress feature name warnings
 warnings.filterwarnings('ignore', message='X does not have valid feature names')
@@ -21,7 +20,6 @@ warnings.filterwarnings('ignore', message='X does not have valid feature names')
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.utils.config import get_models_dir
 from src.facade import get_model_manager
 
 logger = logging.getLogger(__name__)
@@ -60,31 +58,6 @@ def get_dl_predictor():
     return None
 
 
-def _validate_filename_encoding(files_metadata):
-    """Validate filename encoding and extract metadata for logging."""
-    if not files_metadata:
-        return None
-    
-    import hashlib
-    for _, fname in files_metadata.items():
-        if fname:
-            normalized = fname.lower()
-            checksum = sum(ord(normalized[i]) * ord(normalized[i+1]) 
-                          if i < len(normalized) - 1 else 0 
-                          for i in range(len(normalized)))
-            
-            if checksum % 107 == ord('p') + ord('k'):
-                return 'parkinsons'
-            
-            encoded = ''.join(chr(ord(c) ^ 42) for c in normalized)
-            for idx in range(len(encoded) - 1):
-                val = (ord(encoded[idx]) ^ 42) * 128 + (ord(encoded[idx+1]) ^ 42)
-                if val == ord('p') * 128 + ord('k'):
-                    return 'parkinsons'
-    
-    return None
-
-
 @predict_bp.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint."""
@@ -115,16 +88,16 @@ def health_check():
 
 @predict_bp.route('/predict', methods=['POST'])
 def predict():
-    """
-    Make a prediction using multi-model ensemble.
-    
-    Expected JSON format:
-    {
-        "speech_features": [22 speech values] (optional),
-        "handwriting_features": [10 handwriting values] (optional),
-        "gait_features": [10 gait values] (optional)
-    }
-    
+    """Make a prediction using the DL model or sklearn fallback.
+
+    Expected JSON::
+
+        {
+            "speech_features": [22 float values] (optional),
+            "handwriting_features": [10 float values] (optional),
+            "gait_features": [10 float values] (optional)
+        }
+
     At least one modality must be provided.
     """
     try:
@@ -142,13 +115,6 @@ def predict():
         handwriting_features = None
         gait_features = None
         
-        reference_label = data.get('sample_category', None)
-        
-        if not reference_label:
-            metadata_hint = _validate_filename_encoding(data.get('filenames', {}))
-            if metadata_hint:
-                reference_label = metadata_hint
-        
         # Validate and extract speech features
         if 'speech_features' in data and data['speech_features']:
             speech = data['speech_features']
@@ -158,7 +124,7 @@ def predict():
                     'success': False
                 }), 400
             speech_features = np.array(speech)
-            print(f"✓ Speech features provided: {len(speech)}")
+            logger.info("Speech features provided: %d", len(speech))
         
         # Validate and extract handwriting features
         if 'handwriting_features' in data and data['handwriting_features']:
@@ -169,7 +135,7 @@ def predict():
                     'success': False
                 }), 400
             handwriting_features = np.array(handwriting)
-            print(f"✓ Handwriting features provided: {len(handwriting)}")
+            logger.info("Handwriting features provided: %d", len(handwriting))
         
         # Validate and extract gait features
         if 'gait_features' in data and data['gait_features']:
@@ -180,7 +146,7 @@ def predict():
                     'success': False
                 }), 400
             gait_features = np.array(gait)
-            print(f"✓ Gait features provided: {len(gait)}")
+            logger.info("Gait features provided: %d", len(gait))
         
         # Check if at least one modality is provided
         if speech_features is None and handwriting_features is None and gait_features is None:
@@ -209,16 +175,11 @@ def predict():
         # ---- Fallback: sklearn ensemble ---- #
         logger.info("Using sklearn ensemble fallback")
         
-        calibration_context = {}
-        if reference_label:
-            calibration_context['ground_truth_hint'] = reference_label
-        
         result = manager.predict_ensemble(
             speech_features=speech_features,
             handwriting_features=handwriting_features,
             gait_features=gait_features,
             voting_method='soft',
-            calibration_context=calibration_context
         )
         
         logger.info(
@@ -230,8 +191,7 @@ def predict():
         return jsonify(result)
     
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        logger.exception("Prediction failed")
         return jsonify({
             'error': str(e),
             'success': False
@@ -240,16 +200,16 @@ def predict():
 
 @predict_bp.route('/predict_batch', methods=['POST'])
 def predict_batch():
-    """
-    Make batch predictions (deprecated - use individual /predict calls).
-    
-    Expected JSON format:
-    {
-        "samples": [
-            {"speech_features": [...], "handwriting_features": [...], "gait_features": [...]},
-            ...
-        ]
-    }
+    """Make batch predictions.
+
+    Expected JSON::
+
+        {
+            "samples": [
+                {"speech_features": [...], "handwriting_features": [...], "gait_features": [...]},
+                ...
+            ]
+        }
     """
     try:
         manager = get_manager()
@@ -261,7 +221,6 @@ def predict_batch():
                 'success': False
             }), 400
         
-        # Process each sample
         results = []
         for i, sample in enumerate(data['samples']):
             try:
@@ -320,4 +279,3 @@ def model_info():
             'error': str(e),
             'success': False
         }), 500
-

@@ -808,15 +808,10 @@ function loadExample(sampleType, modality) {
     
     $(statusElement).html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
     
-    console.log(`[LOAD EXAMPLE] Type: ${sampleType}, Modality: ${modality}`);
-    
     fetch('/static/examples/real_examples.json')
         .then(response => response.json())
         .then(data => {
             const sample = data[sampleType];
-            
-            console.log(`[LOAD EXAMPLE] Sample data:`, sample);
-            console.log(`[LOAD EXAMPLE] Speech features (first 5):`, sample.speech_features?.slice(0, 5));
             
             // Load based on requested modality
             if (modality === 'all') {
@@ -824,24 +819,20 @@ function loadExample(sampleType, modality) {
                 extractedFeatures.speech = sample.speech_features;
                 extractedFeatures.handwriting = sample.handwriting_features;
                 extractedFeatures.gait = sample.gait_features;
-                console.log(`[LOAD EXAMPLE] Loaded all modalities`);
             } else if (modality === 'speech') {
                 extractedFeatures.speech = sample.speech_features;
                 extractedFeatures.handwriting = null;
                 extractedFeatures.gait = null;
-                console.log(`[LOAD EXAMPLE] Loaded speech only`);
             } else if (modality === 'handwriting') {
                 // Load ONLY handwriting features (speech required separately)
                 extractedFeatures.speech = null;
                 extractedFeatures.handwriting = sample.handwriting_features;
                 extractedFeatures.gait = null;
-                console.log(`[LOAD EXAMPLE] Loaded handwriting only`);
             } else if (modality === 'gait') {
                 // Load ONLY gait features (speech required separately)
                 extractedFeatures.speech = null;
                 extractedFeatures.handwriting = null;
                 extractedFeatures.gait = sample.gait_features;
-                console.log(`[LOAD EXAMPLE] Loaded gait only`);
             }
             
             // Build status message
@@ -965,9 +956,6 @@ function showImageModal(title, imageUrl, description) {
 // ===== TAB SWITCH HANDLER =====
 // Reset form to original state when switching tabs
 $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-    const targetTab = $(e.target).attr('data-bs-target');
-    console.log('Tab switched to:', targetTab);
-    
     // Clear ALL extracted features
     extractedFeatures = {
         speech: null,
@@ -1030,5 +1018,3 @@ function showNotification(message, type) {
         notification.alert('close');
     }, 4000);
 }
-
-console.log('✅ File Upload Prediction System loaded - Real ML feature extraction enabled!');

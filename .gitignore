@@ -50,23 +50,23 @@ htmlcov/
 .nox/
 
 # Data
-# Ignore processed data
-data/processed/*.npy
-
-# Ignore generated datasets (can be recreated)
+# Ignore processed/generated data (can be recreated)
+data/processed/
 data/raw/handwriting/*.csv
 data/raw/gait/*.csv
 
 # Allow speech dataset to be committed (needed for Docker builds)
 !data/raw/speech/parkinsons.csv
 !data/raw/speech/parkinsons_telemonitoring.csv
-!data/README.md
 
 # Models
 models/*.joblib
 models/*.pkl
 models/*.h5
 models/*.pt
+models/*.png
+models/*.csv
+models/*.json
 !models/.gitkeep
 
 # Logs

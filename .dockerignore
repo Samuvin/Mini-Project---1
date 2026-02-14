@@ -11,10 +11,6 @@ ENV/
 .eggs/
 *.egg
 
-# Important: Don't ignore speech data (needed for training)
-!data/raw/speech/parkinsons.csv
-!data/raw/speech/parkinsons_telemonitoring.csv
-
 # IDEs
 .vscode/
 .idea/
@@ -34,18 +30,14 @@ Thumbs.db
 # Logs
 logs/*.log
 
-# Documentation
+# Documentation (keep README)
 *.md
 !README.md
-QUICK_START.md
-FINAL_DESIGN.md
 
 # Development files
 .env
 .env.local
-notebooks/
-test_files/
-tests/
+.env.example
 
 # Build artifacts
 dist/
@@ -59,6 +51,3 @@ temp/
 # Scripts (handled in Dockerfile)
 start.sh
 stop.sh
-verify.py
-test_*.py
-

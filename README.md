@@ -1,136 +1,112 @@
 # Parkinson's Disease Early Detection System
 
-A machine learning system for early detection of Parkinson's Disease using **multimodal data analysis** (speech, handwriting, and gait patterns) with Support Vector Machines and kernel optimization.
+A multimodal deep learning system for early detection of Parkinson's Disease using **SE-ResNet with Attention Fusion** across speech, handwriting, and gait modalities.
 
-## 🎯 Project Overview
+## Project Overview
 
-Parkinson's Disease is the second most common brain disorder, causing tremors, stiffness, and slow movement. Early detection is crucial for improving patient outcomes. This project uses advanced machine learning techniques to analyze **multiple data modalities** to provide accurate and reliable early detection.
+Parkinson's Disease is the second most common neurodegenerative disorder, causing tremors, stiffness, and slow movement. Early detection is crucial for improving patient outcomes. This project uses a deep learning framework that analyzes **three data modalities** with explainable AI (Grad-CAM) to provide accurate and interpretable predictions.
 
-## 🔬 Methodology
+## Methodology
 
-- **Approach**: Multimodal data fusion (early fusion strategy)
-- **Datasets**: REAL patient data only - UCI Parkinson's, PaHaW Handwriting, PhysioNet Gait
-- **Features**: ~42 combined features from three modalities
-- **Primary Model**: Support Vector Machine (SVM) with kernel optimization (RBF, Polynomial, Linear, Sigmoid)
-- **Optimization**: GridSearchCV with cross-validation
-- **Evaluation**: Focus on recall to minimize false negatives
-- **Deployment**: Gunicorn WSGI server for reliable operation
+- **Architecture**: SE-ResNet 1D + Attention Fusion (multimodal deep learning)
+- **Modalities**: Speech (22 features), Handwriting (10 features), Gait (10 features)
+- **Explainability**: Grad-CAM feature importance, attention weights, SE channel weights
+- **Class Balancing**: SMOTE oversampling
+- **Framework**: PyTorch
+- **Fallback**: sklearn ensemble (SVM + LR) when DL model is not available
+- **Deployment**: Flask + Gunicorn WSGI server with JWT authentication
 
-## 📊 Datasets
+## Datasets
 
-This project uses THREE publicly available REAL datasets:
+This project uses three publicly available real datasets:
 
 ### 1. Speech Data - UCI Parkinson's Dataset
 - **Source**: https://archive.ics.uci.edu/ml/datasets/Parkinsons
-- **Features**: 22 acoustic measurements
+- **Features**: 22 acoustic measurements (jitter, shimmer, HNR, pitch, nonlinear dynamics)
 - **Samples**: 195 (147 PD, 48 healthy)
-- **Status**: ✅ Automatically downloaded
 
 ### 2. Handwriting Data - PaHaW / NewHandPD
 - **Features**: 10 kinematic measurements (pressure, velocity, tremor, etc.)
 - **Format**: Pre-extracted features in CSV
-- **Status**: ⚠️ Requires manual download (see DATASETS.md)
 
-### 3. Gait Data - PhysioNet Database  
+### 3. Gait Data - PhysioNet Database
 - **Source**: https://physionet.org/content/gaitpdb/1.0.0/
-- **Features**: 10 temporal-spatial parameters
+- **Features**: 10 temporal-spatial parameters (stride, cadence, speed, asymmetry)
 - **Format**: Processed stride data in CSV
-- **Status**: ⚠️ Requires download and processing (see DATASETS.md)
 
-**⚠️ IMPORTANT**: This system uses **ONLY REAL DATASETS** - **NO synthetic data generation whatsoever**.
-
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip package manager
+- Python 3.8+
+- pip
 
 ### Setup
 
 ```bash
-# Navigate to the project directory
 cd fn
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv venv
-
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-# venv\Scripts\activate
+source venv/bin/activate   # macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env with your MONGODB_URI and JWT_SECRET_KEY
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 fn/
-├── data/                   # Data storage
-│   ├── raw/               # Original datasets
-│   │   ├── speech/        # UCI Parkinson's dataset
-│   │   ├── handwriting/   # PaHaW features
-│   │   └── gait/          # PhysioNet features
-│   └── processed/         # Preprocessed data
-├── src/                   # Source code
+├── dl_models/            # Deep learning modules
+│   ├── networks.py       # SE-ResNet + Attention Fusion architecture
+│   ├── dataset.py        # PyTorch dataset for multimodal data
+│   ├── trainer.py        # Training loop with early stopping
+│   ├── inference.py      # DL predictor for production inference
+│   └── gradcam.py        # Grad-CAM explainability
+├── src/                  # sklearn fallback and utilities
+│   ├── core/             # Model manager, predictor
 │   ├── data/             # Data loading and preprocessing
-│   ├── features/         # Feature extraction (speech, handwriting, gait)
-│   ├── models/           # Model implementations (LR, SVM)
+│   ├── models/           # sklearn model implementations
 │   ├── evaluation/       # Evaluation metrics
-│   └── utils/            # Utility functions
-├── webapp/               # Web application
-│   ├── app.py           # Flask application
-│   ├── templates/       # HTML templates
-│   ├── static/          # CSS, JS, images
-│   └── api/             # API endpoints
-├── models/              # Saved trained models
-├── tests/              # Unit tests
-├── train.py            # Training pipeline
-├── wsgi.py            # WSGI entry point
-├── gunicorn_config.py # Gunicorn configuration
-├── DATASETS.md        # Dataset documentation
-└── README.md          # This file
+│   └── utils/            # Configuration utilities
+├── webapp/               # Flask web application
+│   ├── app.py            # Application factory
+│   ├── api/              # REST API (predict, auth, upload)
+│   ├── middleware/        # JWT authentication middleware
+│   ├── models/           # User model (MongoDB)
+│   ├── templates/        # Jinja2 HTML templates
+│   └── static/           # CSS, JS, images
+├── models/               # Saved trained models (.joblib, .pt)
+├── data/                 # Datasets
+├── train.py              # sklearn training pipeline
+├── train_dl.py           # Deep learning training pipeline
+├── wsgi.py               # WSGI entry point
+├── gunicorn_config.py    # Gunicorn configuration
+├── config.yaml           # Hyperparameters and paths
+└── requirements.txt      # Python dependencies
 ```
 
-## 💻 Usage
+## Usage
 
-### 1. Download Datasets
-
-**Speech data** is downloaded automatically. For handwriting and gait data:
+### 1. Train the Deep Learning Model
 
 ```bash
-# Check dataset status
-python -m src.data.data_loader
-
-# See DATASETS.md for detailed download instructions
+python train_dl.py
 ```
 
-**Important**: You must obtain real handwriting and gait datasets before training. See `DATASETS.md` for detailed instructions.
+This trains the SE-ResNet + Attention Fusion model and saves:
+- Model weights to `models/multimodal_pd_net.pt`
+- Feature scalers to `models/dl_*_scaler.joblib`
+- Training plots and metrics
 
-### 2. Train Model
-
-Train the multimodal SVM model:
-
-```bash
-python train.py
-```
-
-This will:
-- Load all three datasets (or fallback to speech-only if others unavailable)
-- Preprocess and split data
-- Train Logistic Regression baseline
-- Train SVM with kernel optimization
-- Save the best model to `models/`
-
-### 3. Run Application
-
-Start the application using Gunicorn:
+### 2. Run the Application
 
 ```bash
-chmod +x start_server.sh
-./start_server.sh
+./start.sh
 ```
 
 Or manually:
@@ -141,105 +117,70 @@ gunicorn -c gunicorn_config.py wsgi:app
 
 Visit `http://localhost:8000` in your browser.
 
-## 🎯 Model Performance
-
-### Expected Results (Multimodal)
-
-| Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
-|-------|----------|-----------|--------|----------|---------|
-| Logistic Regression (Baseline) | ~85-88% | ~86% | ~84% | ~85% | ~0.90 |
-| SVM (RBF - Optimized) | ~92-95% | ~93% | ~94% | ~93% | ~0.97 |
-
-*Multimodal fusion typically achieves 3-5% better performance than single modality*
-
-## 🧪 Testing
-
-Run the test suite:
+### 3. Stop the Application
 
 ```bash
-# Run all tests
-pytest tests/
-
-# Run with coverage report
-pytest tests/ --cov=src --cov-report=html
+./stop.sh
 ```
 
-## 🌐 Web Application Features
+## Architecture
 
-- **Multimodal Input**: Enter features from speech, handwriting, and gait
-- **Manual Entry**: Text input for all 42 features
-- **CSV Upload**: Upload file with all features
-- **Example Data**: Load sample data from real datasets
-- **Real-time Prediction**: Immediate classification results
-- **Confidence Scores**: Probability estimates for predictions
-- **Feature Reference**: Complete guide with accordions for each modality
+### SE-ResNet 1D + Attention Fusion
 
-## 🔧 Configuration
+Each modality is processed by its own SE-ResNet branch:
+1. **1D Convolution** - Extracts local patterns from feature vectors
+2. **Residual SE Blocks** - Skip connections + Squeeze-and-Excitation channel attention
+3. **Attention Fusion** - Learned weights combine modality embeddings
+4. **Dense Classifier** - Final prediction with dropout regularization
 
-Modify `config.yaml` to adjust:
+### Explainability
+
+- **Grad-CAM**: Per-feature importance scores showing which inputs drive the prediction
+- **Attention Weights**: How much each modality (speech, handwriting, gait) contributes
+- **SE Channel Weights**: Internal channel attention within each modality branch
+
+## API Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | No | Health check and model status |
+| `/api/predict` | POST | Yes | Single prediction |
+| `/api/predict_batch` | POST | Yes | Batch predictions |
+| `/api/model_info` | GET | Yes | Model information |
+| `/api/auth/register` | POST | No | User registration |
+| `/api/auth/login` | POST | No | User login |
+| `/api/auth/logout` | POST | Yes | User logout |
+| `/api/upload/audio` | POST | Yes | Upload audio for speech features |
+| `/api/upload/handwriting` | POST | Yes | Upload image for handwriting features |
+| `/api/upload/gait` | POST | Yes | Upload video for gait features |
+
+## Configuration
+
+Edit `config.yaml` to adjust:
+- Deep learning hyperparameters (learning rate, epochs, architecture)
 - Data split ratios
-- Model hyperparameters
 - Feature extraction parameters
 - Server settings
 
-## 📝 Key Features
+Environment variables (`.env`):
+- `MONGODB_URI` - MongoDB connection string
+- `JWT_SECRET_KEY` - Secret key for JWT token signing
 
-- ✅ Multimodal data fusion (speech + handwriting + gait)
-- ✅ ONLY real datasets - NO synthetic data generation
-- ✅ 42 total features across three modalities
-- ✅ Multiple kernel support (Linear, RBF, Polynomial, Sigmoid)
-- ✅ Automated hyperparameter optimization
-- ✅ Class imbalance handling with SMOTE
-- ✅ Comprehensive evaluation metrics
-- ✅ Cross-validation for robust performance
-- ✅ User-friendly multimodal web interface
-- ✅ Model persistence and versioning
-- ✅ Gunicorn WSGI server for deployment
+## Testing
 
-## 📖 Feature Descriptions
+```bash
+pytest tests/
+pytest tests/ --cov=src --cov-report=html
+```
 
-### Speech Features (22)
-Acoustic measurements including jitter, shimmer, HNR, pitch variations, and nonlinear dynamics.
+## Tech Stack
 
-### Handwriting Features (10)
-Kinematic measures including pressure, velocity, acceleration, tremor frequency, and fluency.
-
-### Gait Features (10)
-Temporal-spatial parameters including stride intervals, cadence, gait speed, and asymmetry.
-
-See `DATASETS.md` for complete feature descriptions.
-
-## 🎓 Research References
-
-This project uses data from:
-- **UCI Machine Learning Repository** - Parkinson's Dataset
-- **PaHaW Database** - Parkinson's Handwriting
-- **PhysioNet** - Gait in Parkinson's Disease Database
-
-See `DATASETS.md` for citations.
-
-## 📄 License
-
-This project is for educational and research purposes. Please cite the original dataset sources when using this code.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit issues or pull requests.
-
-## 🔮 Future Improvements
-
-- Deep learning models (CNN, LSTM) for feature extraction
-- Late fusion strategies for multimodal data
-- Real-time audio and handwriting capture
-- Mobile application development
-- Integration with telemedicine platforms
-
-## 📧 Contact
-
-For questions or collaboration opportunities, please open an issue on GitHub.
+- **Backend**: Flask, Gunicorn, PyTorch
+- **Frontend**: Jinja2, Bootstrap 5, Chart.js
+- **Database**: MongoDB (user auth)
+- **Auth**: JWT (PyJWT + bcrypt)
+- **ML Fallback**: scikit-learn, XGBoost, LightGBM
 
 ---
 
 **Disclaimer**: This system is for research and educational purposes only. It is not intended for clinical diagnosis. Always consult healthcare professionals for medical advice.
-
-**No Synthetic Data**: This system uses ONLY real patient datasets. There is NO synthetic data generation in this codebase.

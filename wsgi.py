@@ -1,5 +1,5 @@
-"""
-WSGI entry point for Parkinson's Disease Detection System.
+"""WSGI entry point for Parkinson's Disease Detection System.
+
 This file is used by WSGI servers like Gunicorn.
 """
 
@@ -18,5 +18,4 @@ if __name__ == "__main__":
     print("Please run the application using Gunicorn:")
     print("  gunicorn -c gunicorn_config.py wsgi:app")
     print("Or use the start script:")
-    print("  ./start_server.sh")
-
+    print("  ./start.sh")

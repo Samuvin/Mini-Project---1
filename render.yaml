@@ -12,9 +12,10 @@ services:
         value: 8000
       - key: PYTHONUNBUFFERED
         value: 1
-    # Auto-deploy on push to main branch
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
     autoDeploy: true
-    # Build settings
     dockerfilePath: ./Dockerfile
     dockerContext: .
-

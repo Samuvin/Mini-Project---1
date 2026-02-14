@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies (including build tools for praat-parselmouth)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -28,22 +28,19 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p logs models data/raw/speech data/raw/handwriting data/raw/gait data/processed
+RUN mkdir -p logs models data/raw/speech data/raw/handwriting data/raw/gait
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 ENV FLASK_ENV=production
 
-# Generate synthetic handwriting and gait datasets
-RUN python3 generate_modality_datasets.py
-
-# Train all models (speech data already in repo from git)
-RUN python3 train.py && \
-    python3 train_handwriting_model.py && \
-    python3 train_gait_model.py && \
+# Generate multimodal datasets and train models
+RUN python3 generate_modality_datasets.py && \
+    python3 train.py && \
     cp models/best_model.joblib models/speech_model.joblib && \
-    cp models/scaler.joblib models/speech_scaler.joblib
+    cp models/scaler.joblib models/speech_scaler.joblib && \
+    python3 train_dl.py
 
 # Expose port
 EXPOSE 8000

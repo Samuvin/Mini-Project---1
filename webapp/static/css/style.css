@@ -136,48 +136,8 @@ a:hover { color: #8b9ff5; }
 .footer-note  { color: rgba(255,255,255,.35); font-size: .8rem; }
 
 /* =================================================================
-   Glass Card (core reusable component)
+   Icon Badge (large, used on feature cards)
    ================================================================= */
-.glass-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    transition: transform .25s ease, box-shadow .25s ease;
-}
-.glass-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,0,0,.35);
-}
-
-/* Card that should NOT lift on hover (results panels, sticky) */
-.glass-card.no-hover:hover { transform: none; box-shadow: var(--shadow-card); }
-
-/* Inner padded region */
-.glass-card .card-inner { padding: 1.5rem; }
-
-/* Card header bar */
-.glass-card-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    font-weight: 600; font-size: 1rem;
-    display: flex; align-items: center; gap: .5rem;
-}
-
-/* Accent icon badge (small) */
-.icon-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
-}
-.icon-badge.accent  { background: linear-gradient(135deg, var(--accent-start), var(--accent-end)); color: #fff; }
-.icon-badge.success  { background: rgba(25,135,84,.2);  color: #75d9a0; }
-.icon-badge.warning  { background: rgba(255,193,7,.15); color: #ffc107; }
-.icon-badge.info     { background: rgba(13,202,240,.12); color: #0dcaf0; }
-.icon-badge.danger   { background: rgba(220,53,69,.15);  color: #ff6b7a; }
-
 /* Large icon badge for feature cards */
 .icon-badge-lg {
     display: inline-flex; align-items: center; justify-content: center;
@@ -215,12 +175,6 @@ strong { color: var(--text-primary); }
 .btn-accent:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102,126,234,.45); color: #fff; }
 .btn-accent:active { transform: translateY(0); }
 .btn-accent:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-
-.btn-glass {
-    background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary);
-    border-radius: var(--radius-sm); font-weight: 500; padding: .65rem 1.5rem; transition: all .2s ease;
-}
-.btn-glass:hover { background: var(--glass-hover); color: #fff; border-color: rgba(255,255,255,.18); }
 
 .btn-outline-glass {
     background: transparent; border: 1px solid rgba(255,255,255,.18); color: var(--text-primary);
