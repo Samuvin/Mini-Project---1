@@ -1,4 +1,15 @@
-// File Upload Based Prediction System - Real ML Feature Extraction
+/**
+ * predict.js — Prediction page logic.
+ *
+ * Fixes from plan:
+ *  1. Tab switch no longer clears extractedFeatures (data preserved across tabs).
+ *  2. Orphaned handler bindings removed.
+ *  3. resetForm() also clears combined status/inputs/checkboxes.
+ *  4. showNotification uses Bootstrap 5 Toast API (via main.js global).
+ *  5. Upload buttons show spinner & disable during upload.
+ *  6. Predict button tooltip when disabled.
+ *  7. Unified showNotification (falls through to main.js).
+ */
 
 let mediaRecorder;
 let audioChunks = [];
@@ -18,169 +29,175 @@ let uploadedFilenames = {
 
 let referenceCategory = null;
 
-$(document).ready(function() {
+/* ------------------------------------------------------------------ */
+/*  Bootstrap Ready                                                    */
+/* ------------------------------------------------------------------ */
+
+$(document).ready(function () {
+
+    // ---- Event Bindings ----
+
     // Voice recording
-    $('#recordBtn').click(function() {
-        if (!isRecording) {
-            startRecording();
-        } else {
-            stopRecording();
-        }
+    $('#recordBtn').click(function () {
+        if (!isRecording) startRecording(); else stopRecording();
     });
-    
-    // File upload buttons
-    $('#uploadAudioBtn').click(function() {
-        uploadAudioFile();
-    });
-    
-    $('#uploadHandwritingBtn').click(function() {
-        uploadHandwritingFile();
-    });
-    
-    $('#uploadGaitBtn').click(function() {
-        uploadGaitFile();
-    });
-    
-    // Combined video upload button
-    $('#uploadCombinedBtn').click(function() {
-        uploadCombinedVideo();
-    });
-    
-    // Example buttons in each tab
-    // Speech tab examples
-    $('#useSpeechHealthy').click(function() {
-        loadExample('healthy', 'speech');
-    });
-    
-    $('#useSpeechPD').click(function() {
-        loadExample('parkinsons', 'speech');
-    });
-    
-    // Handwriting tab examples
-    $('#useHandwritingHealthy').click(function() {
-        loadExample('healthy', 'handwriting');
-    });
-    
-    $('#useHandwritingPD').click(function() {
-        loadExample('parkinsons', 'handwriting');
-    });
-    
-    // Gait tab examples
-    $('#useGaitHealthy').click(function() {
-        loadExample('healthy', 'gait');
-    });
-    
-    $('#useGaitPD').click(function() {
-        loadExample('parkinsons', 'gait');
-    });
-    
-    // Combined tab examples
-    $('#useCombinedHealthy').click(function() {
-        loadExample('healthy', 'all');
-    });
-    
-    $('#useCombinedPD').click(function() {
-        loadExample('parkinsons', 'all');
-    });
-    
-    // Handwriting examples - Healthy
-    $('#useSpiralHealthyModal').click(function() {
-        useExampleImage('/static/examples/example_spiral_healthy.jpg', 'example_spiral_healthy.jpg');
-    });
-    
-    $('#useSentenceHealthyModal').click(function() {
-        useExampleImage('/static/examples/example_sentence_healthy.jpg', 'example_sentence_healthy.jpg');
-    });
-    
-    // Handwriting examples - PD
-    $('#useSpiralPDModal').click(function() {
-        useExampleImage('/static/examples/example_spiral_pd.jpg', 'example_spiral_pd.jpg');
-    });
-    
-    $('#useSentencePDModal').click(function() {
-        useExampleImage('/static/examples/example_sentence_pd.jpg', 'example_sentence_pd.jpg');
-    });
-    
-    $('#useWavePDModal').click(function() {
-        useExampleImage('/static/examples/example_wave_pd.jpg', 'example_wave_pd.jpg');
-    });
-    
-    // Gait example
-    $('#useGaitExampleModal').click(function() {
-        useExampleGait();
-    });
-    
+
+    // Upload buttons
+    $('#uploadAudioBtn').click(function () { uploadAudioFile(); });
+    $('#uploadHandwritingBtn').click(function () { uploadHandwritingFile(); });
+    $('#uploadGaitBtn').click(function () { uploadGaitFile(); });
+    $('#uploadCombinedBtn').click(function () { uploadCombinedVideo(); });
+
+    // Example buttons – Speech
+    $('#useSpeechHealthy').click(function () { loadExample('healthy', 'speech'); });
+    $('#useSpeechPD').click(function () { loadExample('parkinsons', 'speech'); });
+
+    // Example buttons – Handwriting
+    $('#useHandwritingHealthy').click(function () { loadExample('healthy', 'handwriting'); });
+    $('#useHandwritingPD').click(function () { loadExample('parkinsons', 'handwriting'); });
+
+    // Example buttons – Gait
+    $('#useGaitHealthy').click(function () { loadExample('healthy', 'gait'); });
+    $('#useGaitPD').click(function () { loadExample('parkinsons', 'gait'); });
+
+    // Example buttons – Combined
+    $('#useCombinedHealthy').click(function () { loadExample('healthy', 'all'); });
+    $('#useCombinedPD').click(function () { loadExample('parkinsons', 'all'); });
+
     // Image preview
-    $('#handwritingFileInput').change(function() {
-        previewHandwritingImage(this);
-    });
-    
+    $('#handwritingFileInput').change(function () { previewHandwritingImage(this); });
+
     // Track file selections
-    $('#audioFileInput').change(function() {
-        if (this.files && this.files[0]) {
-            uploadedFilenames.speech = this.files[0].name;
-        }
+    $('#audioFileInput').change(function () {
+        if (this.files && this.files[0]) uploadedFilenames.speech = this.files[0].name;
     });
-    
-    $('#handwritingFileInput').change(function() {
-        if (this.files && this.files[0]) {
-            uploadedFilenames.handwriting = this.files[0].name;
-        }
+    $('#handwritingFileInput').change(function () {
+        if (this.files && this.files[0]) uploadedFilenames.handwriting = this.files[0].name;
     });
-    
-    $('#gaitFileInput').change(function() {
-        if (this.files && this.files[0]) {
-            uploadedFilenames.gait = this.files[0].name;
-        }
+    $('#gaitFileInput').change(function () {
+        if (this.files && this.files[0]) uploadedFilenames.gait = this.files[0].name;
     });
-    
-    $('#combinedVideoInput').change(function() {
+    $('#combinedVideoInput').change(function () {
         if (this.files && this.files[0]) {
             uploadedFilenames.speech = this.files[0].name;
             uploadedFilenames.handwriting = this.files[0].name;
             uploadedFilenames.gait = this.files[0].name;
         }
     });
-    
-    // Predict button
-    $('#predictBtn').click(function() {
-        makePrediction();
+
+    // Predict & Reset
+    $('#predictBtn').click(function () { makePrediction(); });
+    $('#resetBtn').click(function () { resetForm(); });
+
+    // Initialize predict button tooltip (Bootstrap 5)
+    var predictBtn = document.getElementById('predictBtn');
+    if (predictBtn) new bootstrap.Tooltip(predictBtn);
+
+    // DL accordion toggles (event delegation)
+    $(document).on('click', '.dl-section-toggle', function () {
+        var targetId = $(this).data('target');
+        var $content = $('#' + targetId);
+        if ($content.is(':visible')) {
+            $content.slideUp(200);
+            $(this).addClass('collapsed');
+        } else {
+            $content.slideDown(200);
+            $(this).removeClass('collapsed');
+        }
     });
-    
-    // Reset button
-    $('#resetBtn').click(function() {
-        resetForm();
-    });
+
+    // Drag-and-drop zones
+    initDropZone('audioDropZone', 'audioFileInput');
+    initDropZone('handwritingDropZone', 'handwritingFileInput');
+    initDropZone('gaitDropZone', 'gaitFileInput');
+    initDropZone('combinedDropZone', 'combinedVideoInput');
 });
 
-// Voice Recording Functions
+/* ------------------------------------------------------------------ */
+/*  Drag & Drop Helper                                                 */
+/* ------------------------------------------------------------------ */
+
+function initDropZone(zoneId, inputId) {
+    var zone = document.getElementById(zoneId);
+    var input = document.getElementById(inputId);
+    if (!zone || !input) return;
+
+    zone.addEventListener('click', function () { input.click(); });
+
+    zone.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        zone.classList.add('dragover');
+    });
+    zone.addEventListener('dragleave', function () {
+        zone.classList.remove('dragover');
+    });
+    zone.addEventListener('drop', function (e) {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            $(input).trigger('change');
+        }
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step Indicator                                                     */
+/* ------------------------------------------------------------------ */
+
+function updateSteps(current) {
+    // current: 1 = select, 2 = provide, 3 = results
+    for (var i = 1; i <= 3; i++) {
+        var step = document.getElementById('step' + i);
+        if (!step) continue;
+        step.classList.remove('active', 'completed');
+        if (i < current) step.classList.add('completed');
+        else if (i === current) step.classList.add('active');
+    }
+    for (var j = 1; j <= 2; j++) {
+        var line = document.getElementById('stepLine' + j);
+        if (!line) continue;
+        line.classList.remove('active', 'completed');
+        if (j < current) line.classList.add('completed');
+        else if (j === current) line.classList.add('active');
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Tab Switch -- FIX #1: Do NOT clear extractedFeatures               */
+/* ------------------------------------------------------------------ */
+
+$('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+    // Only clear UI status for the CURRENT tab's displays.
+    // Do NOT reset extractedFeatures — data is preserved across tabs.
+    updateSteps(1);
+});
+
+/* ------------------------------------------------------------------ */
+/*  Voice Recording                                                    */
+/* ------------------------------------------------------------------ */
+
 async function startRecording() {
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        
+        var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
-        
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
-        };
-        
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+
+        mediaRecorder.ondataavailable = function (event) { audioChunks.push(event.data); };
+        mediaRecorder.onstop = function () {
+            var audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
             uploadRecordedAudio(audioBlob);
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach(function (t) { t.stop(); });
         };
-        
+
         mediaRecorder.start();
         isRecording = true;
-        
         $('#recordBtn').removeClass('btn-danger').addClass('btn-warning');
         $('#recordBtnText').text('Stop Recording');
         $('#recordingStatus').show();
-        
     } catch (error) {
-        console.error('Error accessing microphone:', error);
-        showNotification('❌ Could not access microphone. Please check permissions.', 'danger');
+        console.error('Microphone error:', error);
+        showNotification('Could not access microphone. Check permissions.', 'danger');
     }
 }
 
@@ -188,237 +205,198 @@ function stopRecording() {
     if (mediaRecorder && isRecording) {
         mediaRecorder.stop();
         isRecording = false;
-        
         $('#recordBtn').removeClass('btn-warning').addClass('btn-danger');
         $('#recordBtnText').text('Start Recording');
         $('#recordingStatus').hide();
-        
-        showNotification('✅ Recording stopped. Processing audio...', 'success');
+        showNotification('Recording stopped. Processing audio...', 'success');
     }
 }
 
-// Upload recorded audio
+/* ------------------------------------------------------------------ */
+/*  Upload Functions                                                   */
+/* ------------------------------------------------------------------ */
+
 function uploadRecordedAudio(audioBlob) {
-    const formData = new FormData();
+    var formData = new FormData();
     formData.append('file', audioBlob, 'recording.wav');
-    
-    uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus');
+    uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus', '#uploadAudioBtn');
 }
 
-// Upload audio file
 function uploadAudioFile() {
-    const fileInput = document.getElementById('audioFileInput');
-    if (!fileInput.files.length) {
-        showNotification('⚠️ Please select an audio file first', 'warning');
-        return;
-    }
-    
-    const formData = new FormData();
+    var fileInput = document.getElementById('audioFileInput');
+    if (!fileInput.files.length) { showNotification('Please select an audio file first', 'warning'); return; }
+    var formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    
     uploadedFilenames.speech = fileInput.files[0].name;
-    
-    $('#audioUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
-    
-    uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus');
+    $('#audioUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
+    uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus', '#uploadAudioBtn');
 }
 
-// Upload handwriting image
 function uploadHandwritingFile() {
-    const fileInput = document.getElementById('handwritingFileInput');
-    if (!fileInput.files.length) {
-        showNotification('⚠️ Please select an image file first', 'warning');
-        return;
-    }
-    
-    const formData = new FormData();
+    var fileInput = document.getElementById('handwritingFileInput');
+    if (!fileInput.files.length) { showNotification('Please select an image first', 'warning'); return; }
+    var formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    
     uploadedFilenames.handwriting = fileInput.files[0].name;
-    
-    $('#handwritingUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
-    
-    uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus');
+    $('#handwritingUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
+    uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus', '#uploadHandwritingBtn');
 }
 
-// Upload gait video
 function uploadGaitFile() {
-    const fileInput = document.getElementById('gaitFileInput');
-    if (!fileInput.files.length) {
-        showNotification('⚠️ Please select a video file first', 'warning');
-        return;
-    }
-    
-    const formData = new FormData();
+    var fileInput = document.getElementById('gaitFileInput');
+    if (!fileInput.files.length) { showNotification('Please select a video first', 'warning'); return; }
+    var formData = new FormData();
     formData.append('file', fileInput.files[0]);
-    
     uploadedFilenames.gait = fileInput.files[0].name;
-    
-    $('#gaitUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
-    
-    uploadFile('/api/upload/gait', formData, 'gait', 'gaitFeatureStatus');
+    $('#gaitUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
+    uploadFile('/api/upload/gait', formData, 'gait', 'gaitFeatureStatus', '#uploadGaitBtn');
 }
 
-// Upload combined video and extract selected modalities
-function uploadCombinedVideo() {
-    const fileInput = document.getElementById('combinedVideoInput');
-    if (!fileInput.files.length) {
-        showNotification('⚠️ Please select a video file first!', 'warning');
-        return;
-    }
-    
-    // Check which modalities are selected
-    const extractVoice = $('#extractVoiceCheck').is(':checked');
-    const extractHandwriting = $('#extractHandwritingCheck').is(':checked');
-    const extractGait = $('#extractGaitCheck').is(':checked');
-    
-    if (!extractVoice && !extractHandwriting && !extractGait) {
-        showNotification('⚠️ Please select at least one feature type to extract!', 'warning');
-        return;
-    }
-    
-    const modalitiesText = [
-        extractVoice ? 'Voice' : null,
-        extractHandwriting ? 'Handwriting' : null,
-        extractGait ? 'Gait' : null
-    ].filter(Boolean).join(', ');
-    
-    showNotification(`📤 Processing video for ${modalitiesText}...`, 'info');
-    
-    const formData = new FormData();
-    formData.append('video', fileInput.files[0]);
-    formData.append('extract_voice', extractVoice);
-    formData.append('extract_handwriting', extractHandwriting);
-    formData.append('extract_gait', extractGait);
-    
-    // Store filename for all selected modalities
-    const videoFilename = fileInput.files[0].name;
-    if (extractVoice) uploadedFilenames.speech = videoFilename;
-    if (extractHandwriting) uploadedFilenames.handwriting = videoFilename;
-    if (extractGait) uploadedFilenames.gait = videoFilename;
-    
-    $('#combinedUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Processing video and extracting features...</div>');
-    
-    $.ajax({
-        url: '/api/process_combined_video',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            if (response.success) {
-                // Store extracted features
-                if (response.voice_features) {
-                    extractedFeatures.speech = response.voice_features;
-                }
-                if (response.handwriting_features) {
-                    extractedFeatures.handwriting = response.handwriting_features;
-                }
-                if (response.gait_features) {
-                    extractedFeatures.gait = response.gait_features;
-                }
-                
-                // Build success message
-                let featuresExtracted = [];
-                if (response.voice_features) featuresExtracted.push(`<i class="fas fa-microphone text-primary"></i> Voice: ${response.voice_features.length} features`);
-                if (response.handwriting_features) featuresExtracted.push(`<i class="fas fa-pen text-success"></i> Handwriting: ${response.handwriting_features.length} features`);
-                if (response.gait_features) featuresExtracted.push(`<i class="fas fa-walking text-warning"></i> Gait: ${response.gait_features.length} features`);
-                
-                $('#combinedFeatureStatus').html(`
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i> 
-                        <strong>Combined analysis complete!</strong><br>
-                        ${featuresExtracted.join('<br>')}
-                        <br><small class="text-muted">Total: ${response.total_features} features extracted</small>
-                    </div>
-                `);
-                
-                $('#combinedUploadStatus').html('');
-                
-                updatePredictButton();
-                showNotification(`✅ Successfully extracted ${response.total_features} features!`, 'success');
-            } else {
-                $('#combinedUploadStatus').html(`<div class="alert alert-danger">${response.error}<br><small>${response.note || ''}</small></div>`);
-                showNotification('❌ Error: ' + response.error, 'danger');
-            }
-        },
-        error: function(xhr) {
-            const errorMsg = xhr.responseJSON?.error || 'Unknown error occurred';
-            const note = xhr.responseJSON?.note || '';
-            $('#combinedUploadStatus').html(`<div class="alert alert-danger">${errorMsg}<br><small>${note}</small></div>`);
-            showNotification('❌ Upload failed: ' + errorMsg, 'danger');
-        }
-    });
-}
-
-function uploadFile(endpoint, formData, modality, statusElementId) {
+/* FIX #5 — spinner + disable on upload button */
+function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) {
     referenceCategory = null;
-    
+    var $btn = btnSelector ? $(btnSelector) : null;
+    var btnOrigHtml = $btn ? $btn.html() : '';
+
+    if ($btn) {
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+    }
+
+    updateSteps(2);
+
     $.ajax({
         url: endpoint,
         type: 'POST',
         data: formData,
         processData: false,
         contentType: false,
-        success: function(response) {
+        success: function (response) {
+            if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
+
             if (response.success) {
-                // Store extracted features
                 extractedFeatures[modality] = response.features;
-                
-                // Update hidden input
                 $('#' + modality + 'Features').val(response.features.join(','));
-                
-                // Show success message
-                const modalityIcon = {
-                    'speech': '🎤',
-                    'handwriting': '✍️',
-                    'gait': '🚶'
-                };
-                
+
+                var modalityIcon = { speech: '🎤', handwriting: '✍️', gait: '🚶' };
                 $('#' + statusElementId).html(
-                    '<div class="alert alert-success">' +
+                    '<div class="alert alert-success small">' +
                     '<i class="fas fa-check-circle"></i> <strong>Success!</strong><br>' +
                     modalityIcon[modality] + ' Extracted ' + response.feature_count + ' features<br>' +
                     '<small>' + response.message + '</small>' +
                     (response.note ? '<br><small class="text-muted">' + response.note + '</small>' : '') +
                     '</div>'
                 );
-                
-                // Clear upload status
-                const uploadStatusId = modality === 'speech' ? 'audioUploadStatus' :
-                                      modality === 'handwriting' ? 'handwritingUploadStatus' :
-                                      'gaitUploadStatus';
-                $('#' + uploadStatusId).html('');
-                
-                // Enable predict button
+
+                clearUploadStatus(modality);
                 updatePredictButton();
             } else {
-                showNotification('❌ ' + response.error, 'danger');
+                showNotification(response.error, 'danger');
                 clearUploadStatus(modality);
             }
         },
-        error: function(xhr, status, error) {
-            const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? 
-                            xhr.responseJSON.error : 'Upload failed';
-            showNotification('❌ ' + errorMsg, 'danger');
+        error: function (xhr) {
+            if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
+            var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Upload failed';
+            showNotification(errorMsg, 'danger');
             clearUploadStatus(modality);
         }
     });
 }
 
-// Clear upload status
 function clearUploadStatus(modality) {
-    const uploadStatusId = modality === 'speech' ? 'audioUploadStatus' :
-                          modality === 'handwriting' ? 'handwritingUploadStatus' :
-                          'gaitUploadStatus';
-    $('#' + uploadStatusId).html('');
+    var id = modality === 'speech' ? 'audioUploadStatus' :
+             modality === 'handwriting' ? 'handwritingUploadStatus' :
+             'gaitUploadStatus';
+    $('#' + id).html('');
 }
 
-// Preview handwriting image
+/* ------------------------------------------------------------------ */
+/*  Combined Video Upload                                              */
+/* ------------------------------------------------------------------ */
+
+function uploadCombinedVideo() {
+    var fileInput = document.getElementById('combinedVideoInput');
+    if (!fileInput.files.length) { showNotification('Please select a video file first!', 'warning'); return; }
+
+    var extractVoice = $('#extractVoiceCheck').is(':checked');
+    var extractHandwriting = $('#extractHandwritingCheck').is(':checked');
+    var extractGait = $('#extractGaitCheck').is(':checked');
+
+    if (!extractVoice && !extractHandwriting && !extractGait) {
+        showNotification('Select at least one feature type to extract!', 'warning'); return;
+    }
+
+    var modalitiesText = [extractVoice ? 'Voice' : null, extractHandwriting ? 'Handwriting' : null, extractGait ? 'Gait' : null].filter(Boolean).join(', ');
+    showNotification('Processing video for ' + modalitiesText + '...', 'info');
+
+    var formData = new FormData();
+    formData.append('video', fileInput.files[0]);
+    formData.append('extract_voice', extractVoice);
+    formData.append('extract_handwriting', extractHandwriting);
+    formData.append('extract_gait', extractGait);
+
+    var videoFilename = fileInput.files[0].name;
+    if (extractVoice) uploadedFilenames.speech = videoFilename;
+    if (extractHandwriting) uploadedFilenames.handwriting = videoFilename;
+    if (extractGait) uploadedFilenames.gait = videoFilename;
+
+    var $btn = $('#uploadCombinedBtn');
+    var btnOrig = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+    $('#combinedUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Processing video and extracting features...</div>');
+    updateSteps(2);
+
+    $.ajax({
+        url: '/api/process_combined_video',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (response) {
+            $btn.prop('disabled', false).html(btnOrig);
+            if (response.success) {
+                if (response.voice_features) extractedFeatures.speech = response.voice_features;
+                if (response.handwriting_features) extractedFeatures.handwriting = response.handwriting_features;
+                if (response.gait_features) extractedFeatures.gait = response.gait_features;
+
+                var fe = [];
+                if (response.voice_features) fe.push('<i class="fas fa-microphone" style="color:var(--accent)"></i> Voice: ' + response.voice_features.length + ' features');
+                if (response.handwriting_features) fe.push('<i class="fas fa-pen" style="color:var(--success)"></i> Handwriting: ' + response.handwriting_features.length + ' features');
+                if (response.gait_features) fe.push('<i class="fas fa-walking" style="color:var(--warning)"></i> Gait: ' + response.gait_features.length + ' features');
+
+                $('#combinedFeatureStatus').html(
+                    '<div class="alert alert-success small">' +
+                    '<i class="fas fa-check-circle"></i> <strong>Combined analysis complete!</strong><br>' +
+                    fe.join('<br>') +
+                    '<br><small class="text-muted">Total: ' + response.total_features + ' features extracted</small></div>'
+                );
+                $('#combinedUploadStatus').html('');
+                updatePredictButton();
+                showNotification('Successfully extracted ' + response.total_features + ' features!', 'success');
+            } else {
+                $('#combinedUploadStatus').html('<div class="alert alert-danger small">' + response.error + '<br><small>' + (response.note || '') + '</small></div>');
+                showNotification('Error: ' + response.error, 'danger');
+            }
+        },
+        error: function (xhr) {
+            $btn.prop('disabled', false).html(btnOrig);
+            var errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error';
+            var note = xhr.responseJSON ? (xhr.responseJSON.note || '') : '';
+            $('#combinedUploadStatus').html('<div class="alert alert-danger small">' + errorMsg + '<br><small>' + note + '</small></div>');
+            showNotification('Upload failed: ' + errorMsg, 'danger');
+        }
+    });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Preview & Button State                                             */
+/* ------------------------------------------------------------------ */
+
 function previewHandwritingImage(input) {
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
             $('#handwritingImg').attr('src', e.target.result);
             $('#handwritingPreview').show();
         };
@@ -426,170 +404,153 @@ function previewHandwritingImage(input) {
     }
 }
 
-// Update predict button state
 function updatePredictButton() {
-    const hasAnyFeatures = extractedFeatures.speech !== null || 
-                          extractedFeatures.handwriting !== null || 
-                          extractedFeatures.gait !== null;
-    
-    $('#predictBtn').prop('disabled', !hasAnyFeatures);
+    var hasAny = extractedFeatures.speech !== null ||
+                 extractedFeatures.handwriting !== null ||
+                 extractedFeatures.gait !== null;
+
+    var btn = document.getElementById('predictBtn');
+    if (btn) {
+        btn.disabled = !hasAny;
+        var tip = bootstrap.Tooltip.getInstance(btn);
+        if (tip) {
+            btn.setAttribute('data-bs-original-title', hasAny ? 'Run AI prediction' : 'Load example data or upload a file first');
+            tip.hide();
+        }
+    }
+    if (hasAny) updateSteps(2);
 }
 
-// Make prediction
+/* ------------------------------------------------------------------ */
+/*  Prediction                                                         */
+/* ------------------------------------------------------------------ */
+
 function makePrediction() {
-    // Build request with extracted features
-    const requestData = {};
-    const modalitiesUsed = [];
-    let totalFeatures = 0;
-    
-    // Speech features (optional)
+    var requestData = {};
+    var modalitiesUsed = [];
+    var totalFeatures = 0;
+
     if (extractedFeatures.speech) {
         requestData.speech_features = extractedFeatures.speech;
-        modalitiesUsed.push('<span class="badge bg-primary"><i class="fas fa-microphone"></i> Speech (22)</span>');
+        modalitiesUsed.push('<span class="chip chip-accent"><i class="fas fa-microphone"></i> Speech (22)</span>');
         totalFeatures += 22;
     }
-    
-    // Handwriting features (optional)
     if (extractedFeatures.handwriting) {
         requestData.handwriting_features = extractedFeatures.handwriting;
-        modalitiesUsed.push('<span class="badge bg-success"><i class="fas fa-pen"></i> Handwriting (10)</span>');
+        modalitiesUsed.push('<span class="chip chip-success"><i class="fas fa-pen"></i> Handwriting (10)</span>');
         totalFeatures += 10;
     }
-    
-    // Gait features (optional)
     if (extractedFeatures.gait) {
         requestData.gait_features = extractedFeatures.gait;
-        modalitiesUsed.push('<span class="badge bg-warning text-dark"><i class="fas fa-walking"></i> Gait (10)</span>');
+        modalitiesUsed.push('<span class="chip chip-warning"><i class="fas fa-walking"></i> Gait (10)</span>');
         totalFeatures += 10;
     }
-    
-    // Check if at least one modality is available
+
     if (Object.keys(requestData).length === 0) {
-        showNotification('⚠️ Please upload at least one file first!', 'warning');
+        showNotification('Please upload at least one file first!', 'warning');
         return;
     }
-    
-    if (referenceCategory) {
-        requestData.sample_category = referenceCategory;
-    }
-    
-    requestData.filenames = {
-        speech: uploadedFilenames.speech,
-        handwriting: uploadedFilenames.handwriting,
-        gait: uploadedFilenames.gait
-    };
-    
-    // Show loading
-    $('#placeholderSection').hide();
-    $('#resultsSection').hide();
+
+    if (referenceCategory) requestData.sample_category = referenceCategory;
+    requestData.filenames = { speech: uploadedFilenames.speech, handwriting: uploadedFilenames.handwriting, gait: uploadedFilenames.gait };
+
     $('#loadingSection').show();
-    $('#loadingText').html(
-        'Analyzing <strong>' + totalFeatures + '</strong> features from <strong>' + 
-        modalitiesUsed.length + '</strong> modality/modalities<br>' +
-        modalitiesUsed.join(' ')
-    );
-    
-    const startTime = Date.now();
-    
-    // Make API request
+    $('#loadingText').html('Analyzing <strong>' + totalFeatures + '</strong> features from <strong>' + modalitiesUsed.length + '</strong> modality/modalities<br>' + modalitiesUsed.join(' '));
+
+    updateSteps(3);
+
+    var startTime = Date.now();
+
     $.ajax({
         url: '/api/predict',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(requestData),
-        success: function(response) {
-            const elapsedTime = Date.now() - startTime;
-            const remainingTime = Math.max(0, 1000 - elapsedTime);
-            
-            setTimeout(function() {
+        success: function (response) {
+            var elapsed = Date.now() - startTime;
+            var remaining = Math.max(0, 1000 - elapsed);
+            setTimeout(function () {
                 if (response.success) {
                     displayResults(response, modalitiesUsed, totalFeatures);
                 } else {
-                    showNotification('❌ Prediction failed: ' + response.error, 'danger');
+                    showNotification('Prediction failed: ' + response.error, 'danger');
                     $('#loadingSection').hide();
-                    $('#placeholderSection').show();
+                    updateSteps(2);
                 }
-            }, remainingTime);
+            }, remaining);
         },
-        error: function(xhr, status, error) {
-            setTimeout(function() {
-                const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? 
-                                xhr.responseJSON.error : 'Prediction failed';
-                showNotification('❌ ' + errorMsg, 'danger');
+        error: function (xhr) {
+            setTimeout(function () {
+                var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Prediction failed';
+                showNotification(errorMsg, 'danger');
                 $('#loadingSection').hide();
-                $('#placeholderSection').show();
+                updateSteps(2);
             }, 500);
         }
     });
 }
 
-// Toggle DL section expand/collapse
-function toggleDLSection(contentId, toggleEl) {
-    var $content = $('#' + contentId);
-    var $toggle = $(toggleEl);
-    if ($content.is(':visible')) {
-        $content.slideUp(200);
-        $toggle.addClass('collapsed');
-    } else {
-        $content.slideDown(200);
-        $toggle.removeClass('collapsed');
-    }
-}
+/* ------------------------------------------------------------------ */
+/*  Display Results                                                    */
+/* ------------------------------------------------------------------ */
 
-// Display results
 function displayResults(response, modalitiesUsed, totalFeatures) {
     $('#loadingSection').hide();
-    
-    const prediction = response.prediction;
-    const confidence = response.confidence;
-    const isDL = response.model_type === 'deep_learning';
-    
-    // Show model type badge
+
+    var prediction = response.prediction;
+    var confidence = response.confidence;
+    var isDL = response.model_type === 'deep_learning';
+
+    // Model type badge
     if (isDL) {
-        $('#modelTypeBadgeContainer').html(
-            '<span class="model-type-badge dl"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion</span>'
-        );
+        $('#modelTypeBadgeContainer').html('<span class="model-type-badge dl"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion</span>');
     } else {
-        $('#modelTypeBadgeContainer').html(
-            '<span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> sklearn Ensemble</span>'
-        );
+        $('#modelTypeBadgeContainer').html('<span class="model-type-badge sklearn"><i class="fas fa-cogs"></i> sklearn Ensemble</span>');
     }
-    
-    // Update prediction result
+
+    // Prediction icon and label
+    var $icon = $('#predictionIcon');
+    var $label = $('#predictionLabel');
+    var $text = $('#predictionText');
+
     if (prediction === 1) {
-        $('#predictionAlert').removeClass('alert-success').addClass('alert-warning');
-        $('#predictionLabel').html('<i class="fas fa-exclamation-triangle"></i> Parkinson\'s Disease Detected');
-        $('#predictionText').text('The AI model indicates a high probability of Parkinson\'s Disease based on your uploaded data.');
+        $icon.html('<i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i>');
+        $label.html("Parkinson's Disease Detected").css('color', 'var(--warning)');
+        $text.text("The AI model indicates a high probability of Parkinson's Disease based on your uploaded data.");
     } else {
-        $('#predictionAlert').removeClass('alert-warning').addClass('alert-success');
-        $('#predictionLabel').html('<i class="fas fa-check-circle"></i> Healthy');
-        $('#predictionText').text('The AI model indicates a low probability of Parkinson\'s Disease based on your uploaded data.');
+        $icon.html('<i class="fas fa-shield-alt" style="color:var(--success)"></i>');
+        $label.html('Healthy').css('color', 'var(--success)');
+        $text.text("The AI model indicates a low probability of Parkinson's Disease based on your uploaded data.");
     }
-    
-    // Show modalities
+
+    // Modalities used
     $('#modalitiesUsed').html(
-        modalitiesUsed.join(' ') + 
-        '<br><small class="text-muted">Total: ' + totalFeatures + ' features automatically extracted</small>'
+        modalitiesUsed.join(' ') +
+        '<br><small style="color:var(--text-3)">Total: ' + totalFeatures + ' features extracted</small>'
     );
-    
-    // Update confidence bar
-    const confidencePercent = (confidence * 100).toFixed(2);
-    $('#confidenceBar').css('width', confidencePercent + '%');
-    $('#confidenceText').text(confidencePercent + '%');
-    
-    if (confidence >= 0.8) {
-        $('#confidenceBar').removeClass('bg-warning bg-info').addClass('bg-success');
-    } else if (confidence >= 0.6) {
-        $('#confidenceBar').removeClass('bg-success bg-danger').addClass('bg-info');
-    } else {
-        $('#confidenceBar').removeClass('bg-success bg-info').addClass('bg-warning');
+
+    // Confidence ring (SVG) — r=60 in modal
+    var pct = (confidence * 100).toFixed(1);
+    var circumference = 2 * Math.PI * 60; // r=60
+    var offset = circumference - (confidence * circumference);
+    var ring = document.getElementById('confidenceRing');
+    if (ring) {
+        var ringColor = confidence >= 0.7 ? 'var(--success)' : confidence >= 0.5 ? 'var(--warning)' : 'var(--danger)';
+        ring.style.stroke = ringColor;
+        ring.style.strokeDasharray = circumference;
+        ring.style.strokeDashoffset = offset;
     }
-    
-    // Update probabilities
-    $('#healthyProb').text((response.probabilities.healthy * 100).toFixed(6) + '%');
-    $('#parkinsonsProb').text((response.probabilities.parkinsons * 100).toFixed(6) + '%');
-    
-    // DL Explainability sections
+    $('#confidenceText').text(pct + '%');
+
+    // Probability bars
+    var hp = (response.probabilities.healthy * 100).toFixed(2);
+    var pp = (response.probabilities.parkinsons * 100).toFixed(2);
+    $('#healthyBar').css('width', hp + '%').css('background', 'var(--success)');
+    $('#pdBar').css('width', pp + '%').css('background', 'var(--warning)');
+    $('#healthyProb').text(hp + '%');
+    $('#parkinsonsProb').text(pp + '%');
+
+    // DL Explainability
     if (isDL) {
         renderAttentionWeights(response.attention_weights);
         renderFeatureImportance(response.feature_importance, response.feature_names);
@@ -599,422 +560,312 @@ function displayResults(response, modalitiesUsed, totalFeatures) {
         $('#dlFeatureImportanceSection').hide();
         $('#dlSEWeightsSection').hide();
     }
-    
-    // Show results
-    $('#resultsSection').fadeIn('slow');
+
+    // Open results modal
+    var resultsModal = new bootstrap.Modal(document.getElementById('resultsModal'));
+    resultsModal.show();
+    updateSteps(3);
 }
 
-// ===== DL VISUALIZATION FUNCTIONS =====
+/* ------------------------------------------------------------------ */
+/*  DL Visualization                                                   */
+/* ------------------------------------------------------------------ */
 
-// Render modality attention weights as horizontal bars
 function renderAttentionWeights(weights) {
     if (!weights) { $('#dlAttentionSection').hide(); return; }
-    
-    var modalities = [
-        { key: 'speech',      label: 'Speech',      cls: 'speech',      icon: 'fa-microphone' },
-        { key: 'handwriting', label: 'Handwriting',  cls: 'handwriting', icon: 'fa-pen' },
-        { key: 'gait',        label: 'Gait',         cls: 'gait',        icon: 'fa-walking' }
+
+    var mods = [
+        { key: 'speech', label: 'Speech', cls: 'speech', icon: 'fa-microphone' },
+        { key: 'handwriting', label: 'Handwriting', cls: 'handwriting', icon: 'fa-pen' },
+        { key: 'gait', label: 'Gait', cls: 'gait', icon: 'fa-walking' }
     ];
-    
+
     var html = '';
-    modalities.forEach(function(m) {
+    mods.forEach(function (m) {
         var w = weights[m.key] || 0;
-        var pct = (w * 100).toFixed(1);
+        var p = (w * 100).toFixed(1);
         html += '<div class="attention-bar-row">' +
-                  '<div class="attention-bar-label"><i class="fas ' + m.icon + '"></i> ' + m.label + '</div>' +
-                  '<div class="attention-bar-track">' +
-                    '<div class="attention-bar-fill ' + m.cls + '" style="width:' + pct + '%;">' + pct + '%</div>' +
-                  '</div>' +
-                '</div>';
+            '<div class="attention-bar-label"><i class="fas ' + m.icon + '"></i> ' + m.label + '</div>' +
+            '<div class="attention-bar-track">' +
+            '<div class="attention-bar-fill ' + m.cls + '" style="width:' + p + '%;">' + p + '%</div>' +
+            '</div></div>';
     });
-    
     $('#attentionContent').html(html);
     $('#dlAttentionSection').show();
 }
 
-// Render per-modality feature importance bars (Grad-CAM)
 function renderFeatureImportance(importance, featureNames) {
     if (!importance) { $('#dlFeatureImportanceSection').hide(); return; }
-    
-    var colorMap = {
-        speech:      'var(--accent-start)',
-        handwriting: '#75d9a0',
-        gait:        '#ffc107'
-    };
-    
+
+    var colorMap = { speech: 'var(--accent)', handwriting: 'var(--success)', gait: 'var(--warning)' };
     var html = '';
-    var modalities = ['speech', 'handwriting', 'gait'];
-    
-    modalities.forEach(function(mod) {
+
+    ['speech', 'handwriting', 'gait'].forEach(function (mod) {
         var scores = importance[mod];
         var names = (featureNames && featureNames[mod]) ? featureNames[mod] : [];
         if (!scores || scores.length === 0) return;
-        
-        var color = colorMap[mod] || 'var(--accent-start)';
+
+        var color = colorMap[mod];
         var maxScore = Math.max.apply(null, scores);
         if (maxScore === 0) maxScore = 1;
-        
+
         html += '<div class="fi-modality-title" style="color:' + color + ';">' +
-                '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
-                mod.charAt(0).toUpperCase() + mod.slice(1) + ' Features</div>';
-        
-        // Sort by importance (descending) and take top 8
-        var indexed = scores.map(function(s, i) { return { score: s, idx: i }; });
-        indexed.sort(function(a, b) { return b.score - a.score; });
+            '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
+            mod.charAt(0).toUpperCase() + mod.slice(1) + ' Features</div>';
+
+        var indexed = scores.map(function (s, i) { return { score: s, idx: i }; });
+        indexed.sort(function (a, b) { return b.score - a.score; });
         var top = indexed.slice(0, 8);
-        
-        top.forEach(function(item) {
+
+        top.forEach(function (item) {
             var pct = ((item.score / maxScore) * 100).toFixed(0);
             var name = names[item.idx] || ('Feature ' + item.idx);
-            // Shorten long names
             if (name.length > 18) name = name.substring(0, 16) + '..';
             html += '<div class="fi-bar-row">' +
-                      '<div class="fi-bar-name" title="' + (names[item.idx] || '') + '">' + name + '</div>' +
-                      '<div class="fi-bar-track">' +
-                        '<div class="fi-bar-fill" style="width:' + pct + '%;background:' + color + ';opacity:.8;"></div>' +
-                      '</div>' +
-                      '<div class="fi-bar-value">' + (item.score * 100).toFixed(1) + '%</div>' +
-                    '</div>';
+                '<div class="fi-bar-name" title="' + (names[item.idx] || '') + '">' + name + '</div>' +
+                '<div class="fi-bar-track"><div class="fi-bar-fill" style="width:' + pct + '%;background:' + color + ';opacity:.8;"></div></div>' +
+                '<div class="fi-bar-value">' + (item.score * 100).toFixed(1) + '%</div></div>';
         });
-        
         html += '<div style="margin-bottom:.8rem;"></div>';
     });
-    
     $('#featureImportanceContent').html(html);
     $('#dlFeatureImportanceSection').show();
 }
 
-// Render SE channel weights as mini bar charts
 function renderSEWeights(seWeights) {
     if (!seWeights) { $('#dlSEWeightsSection').hide(); return; }
-    
-    var colorMap = {
-        speech:      'var(--accent-start)',
-        handwriting: '#75d9a0',
-        gait:        '#ffc107'
-    };
-    
+
+    var colorMap = { speech: 'var(--accent)', handwriting: 'var(--success)', gait: 'var(--warning)' };
     var html = '';
-    ['speech', 'handwriting', 'gait'].forEach(function(mod) {
-        var weights = seWeights[mod];
-        if (!weights || weights.length === 0) return;
-        
-        var maxW = Math.max.apply(null, weights);
+
+    ['speech', 'handwriting', 'gait'].forEach(function (mod) {
+        var w = seWeights[mod];
+        if (!w || w.length === 0) return;
+
+        var maxW = Math.max.apply(null, w);
         if (maxW === 0) maxW = 1;
         var color = colorMap[mod];
-        
+
         html += '<div class="fi-modality-title" style="color:' + color + ';">' +
-                '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
-                mod.charAt(0).toUpperCase() + mod.slice(1) + ' (' + weights.length + ' channels)</div>';
-        
+            '<i class="fas ' + (mod === 'speech' ? 'fa-microphone' : mod === 'handwriting' ? 'fa-pen' : 'fa-walking') + '"></i> ' +
+            mod.charAt(0).toUpperCase() + mod.slice(1) + ' (' + w.length + ' channels)</div>';
+
         html += '<div class="se-weights-container">';
-        weights.forEach(function(w) {
-            var h = Math.max(2, (w / maxW) * 28);
-            html += '<div class="se-weight-bar" style="height:' + h.toFixed(0) + 'px;background:' + color + ';opacity:' + (0.3 + 0.7 * w / maxW).toFixed(2) + ';"></div>';
+        w.forEach(function (v) {
+            var h = Math.max(2, (v / maxW) * 28);
+            html += '<div class="se-weight-bar" style="height:' + h.toFixed(0) + 'px;background:' + color + ';opacity:' + (0.3 + 0.7 * v / maxW).toFixed(2) + ';"></div>';
         });
         html += '</div><div style="margin-bottom:.8rem;"></div>';
     });
-    
     $('#seWeightsContent').html(html);
     $('#dlSEWeightsSection').show();
 }
 
-// Reset form
+/* ------------------------------------------------------------------ */
+/*  Reset — FIX #3: Also clear combined inputs/status/checkboxes       */
+/* ------------------------------------------------------------------ */
+
 function resetForm() {
     // Clear file inputs
     $('#audioFileInput').val('');
     $('#handwritingFileInput').val('');
     $('#gaitFileInput').val('');
-    
+    $('#combinedVideoInput').val('');
+
     // Clear hidden inputs
     $('#speechFeatures').val('');
     $('#handwritingFeatures').val('');
     $('#gaitFeatures').val('');
-    
-    extractedFeatures = {
-        speech: null,
-        handwriting: null,
-        gait: null
-    };
-    
-    uploadedFilenames = {
-        speech: null,
-        handwriting: null,
-        gait: null
-    };
-    
+
+    extractedFeatures = { speech: null, handwriting: null, gait: null };
+    uploadedFilenames = { speech: null, handwriting: null, gait: null };
     referenceCategory = null;
-    
-    // Clear status displays
-    $('#speechFeatureStatus').html('');
-    $('#handwritingFeatureStatus').html('');
-    $('#gaitFeatureStatus').html('');
-    $('#audioUploadStatus').html('');
-    $('#handwritingUploadStatus').html('');
-    $('#gaitUploadStatus').html('');
-    
-    // Hide handwriting preview
+
+    // Clear ALL status displays
+    $('#speechFeatureStatus, #handwritingFeatureStatus, #gaitFeatureStatus').html('');
+    $('#audioUploadStatus, #handwritingUploadStatus, #gaitUploadStatus').html('');
+    $('#combinedUploadStatus, #combinedFeatureStatus').html('');
+
+    // Reset combined checkboxes
+    $('#extractVoiceCheck').prop('checked', true);
+    $('#extractHandwritingCheck').prop('checked', false);
+    $('#extractGaitCheck').prop('checked', false);
+
+    // Hide previews
     $('#handwritingPreview').hide();
-    
-    // Stop recording if active
-    if (isRecording) {
-        stopRecording();
-    }
-    
-    // Disable predict button
+
+    // Stop recording
+    if (isRecording) stopRecording();
+
+    // Disable predict
     $('#predictBtn').prop('disabled', true);
-    
-    // Hide results
-    $('#resultsSection').hide();
+    var tip = bootstrap.Tooltip.getInstance(document.getElementById('predictBtn'));
+    if (tip) {
+        document.getElementById('predictBtn').setAttribute('data-bs-original-title', 'Load example data or upload a file first');
+    }
+
+    // Hide loading and dismiss results modal if open
     $('#loadingSection').hide();
-    $('#placeholderSection').show();
-    
-    // Hide DL sections
-    $('#dlAttentionSection').hide();
-    $('#dlFeatureImportanceSection').hide();
-    $('#dlSEWeightsSection').hide();
+    var modalEl = document.getElementById('resultsModal');
+    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+    // Reset DL sections
+    $('#dlAttentionSection, #dlFeatureImportanceSection, #dlSEWeightsSection').hide();
     $('#modelTypeBadgeContainer').empty();
-    
-    // Switch to first tab
+
+    // Reset to first tab
     $('#speech-tab').tab('show');
-    
-    showNotification('🔄 Form reset - ready for new files', 'info');
+
+    // Reset steps
+    updateSteps(1);
+
+    showNotification('Form reset — ready for new data', 'info');
 }
 
-// ===== EXAMPLE FUNCTIONS =====
+/* ------------------------------------------------------------------ */
+/*  Example Functions                                                  */
+/* ------------------------------------------------------------------ */
 
 function loadExample(sampleType, modality) {
-    const typeName = sampleType === 'healthy' ? 'Healthy' : 'Parkinson\'s Disease';
-    
+    var typeName = sampleType === 'healthy' ? 'Healthy' : "Parkinson's Disease";
     referenceCategory = sampleType;
-    
-    uploadedFilenames.speech = null;
-    uploadedFilenames.handwriting = null;
-    uploadedFilenames.gait = null;
-    
-    // Determine which status element to use based on modality
-    let statusElement;
-    if (modality === 'speech') {
-        statusElement = '#speechFeatureStatus';
-    } else if (modality === 'handwriting') {
-        statusElement = '#handwritingFeatureStatus';
-    } else if (modality === 'gait') {
-        statusElement = '#gaitFeatureStatus';
-    } else if (modality === 'all') {
-        statusElement = '#combinedFeatureStatus';
-    } else {
-        statusElement = '#speechFeatureStatus';
-    }
-    
-    $(statusElement).html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
-    
+
+    var statusElement;
+    if (modality === 'speech') statusElement = '#speechFeatureStatus';
+    else if (modality === 'handwriting') statusElement = '#handwritingFeatureStatus';
+    else if (modality === 'gait') statusElement = '#gaitFeatureStatus';
+    else if (modality === 'all') statusElement = '#combinedFeatureStatus';
+    else statusElement = '#speechFeatureStatus';
+
+    $(statusElement).html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Loading example data...</div>');
+    updateSteps(2);
+
     fetch('/static/examples/real_examples.json')
-        .then(response => response.json())
-        .then(data => {
-            const sample = data[sampleType];
-            
-            // Load based on requested modality
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var sample = data[sampleType];
+
             if (modality === 'all') {
-                // Load all modalities
                 extractedFeatures.speech = sample.speech_features;
                 extractedFeatures.handwriting = sample.handwriting_features;
                 extractedFeatures.gait = sample.gait_features;
             } else if (modality === 'speech') {
                 extractedFeatures.speech = sample.speech_features;
-                extractedFeatures.handwriting = null;
-                extractedFeatures.gait = null;
             } else if (modality === 'handwriting') {
-                // Load ONLY handwriting features (speech required separately)
-                extractedFeatures.speech = null;
                 extractedFeatures.handwriting = sample.handwriting_features;
-                extractedFeatures.gait = null;
             } else if (modality === 'gait') {
-                // Load ONLY gait features (speech required separately)
-                extractedFeatures.speech = null;
-                extractedFeatures.handwriting = null;
                 extractedFeatures.gait = sample.gait_features;
             }
-            
-            // Build status message
-            let features = [];
-            let alertClass = 'success';
-            let infoMessage = '';
-            
-            if (extractedFeatures.speech) features.push(`🎤 Speech: ${sample.speech_features.length} features`);
-            if (extractedFeatures.handwriting) features.push(`✍️ Handwriting: ${sample.handwriting_features.length} features`);
-            if (extractedFeatures.gait) features.push(`🚶 Gait: ${sample.gait_features.length} features`);
-            
-            // Show info if only one modality loaded
+
+            var features = [];
+            if (extractedFeatures.speech) features.push('🎤 Speech: ' + sample.speech_features.length + ' features');
+            if (extractedFeatures.handwriting) features.push('✍️ Handwriting: ' + sample.handwriting_features.length + ' features');
+            if (extractedFeatures.gait) features.push('🚶 Gait: ' + sample.gait_features.length + ' features');
+
+            var infoMessage = '';
             if (!extractedFeatures.speech && (extractedFeatures.handwriting || extractedFeatures.gait)) {
-                infoMessage = '<br><small class="text-info"><i class="fas fa-info-circle"></i> <strong>Tip:</strong> For best accuracy, combine with speech data from the Speech tab, or use the Combined tab to load all modalities at once.</small>';
+                infoMessage = '<br><small style="color:var(--info)"><i class="fas fa-info-circle"></i> Tip: Combine with speech for better accuracy.</small>';
             }
-            
-            const statusHtml = `
-                <div class="alert alert-${alertClass}">
-                    <i class="fas fa-database"></i> 
-                    <strong>${typeName} Sample Loaded</strong><br>
-                    <small>${features.join('<br>')}</small><br>
-                    <small class="text-muted">Source: Real patient data</small>
-                    ${infoMessage}
-                </div>
-            `;
-            $(statusElement).html(statusHtml);
-            
+
+            $(statusElement).html(
+                '<div class="alert alert-success small">' +
+                '<i class="fas fa-database"></i> <strong>' + typeName + ' Sample Loaded</strong><br>' +
+                '<small>' + features.join('<br>') + '</small><br>' +
+                '<small class="text-muted">Source: Real patient data</small>' +
+                infoMessage + '</div>'
+            );
+
             updatePredictButton();
-            // Success notification removed - status shown in panel
         })
-        .catch(error => {
-            showNotification('❌ Error loading example: ' + error, 'danger');
+        .catch(function (error) {
+            showNotification('Error loading example: ' + error, 'danger');
             $(statusElement).html('');
         });
 }
 
-// Generic function to load handwriting image examples
-function useExampleImage(imageUrl, filename) {
-    // Removed loading notification
-    $('#handwritingUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
-    
-    fetch(imageUrl)
-        .then(response => response.blob())
-        .then(blob => {
-            const formData = new FormData();
-            formData.append('file', blob, filename);
-            uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus');
-        })
-        .catch(error => {
-            showNotification('❌ Error loading example: ' + error, 'danger');
-            $('#handwritingUploadStatus').html('');
-        });
-}
+/* ------------------------------------------------------------------ */
+/*  View Example Functions (for modals)                                */
+/* ------------------------------------------------------------------ */
 
-// Use Gait Example
-function useExampleGait() {
-    // Removed loading notification
-    $('#gaitUploadStatus').html('<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Loading example...</div>');
-    
-    fetch('/static/examples/example_gait.mp4')
-        .then(response => response.blob())
-        .then(blob => {
-            const formData = new FormData();
-            formData.append('file', blob, 'example_gait.mp4');
-            uploadFile('/api/upload/gait', formData, 'gait', 'gaitFeatureStatus');
-        })
-        .catch(error => {
-            showNotification('❌ Error loading example: ' + error, 'danger');
-            $('#gaitUploadStatus').html('');
-        });
-}
-
-// View functions for handwriting examples
 function viewExampleHealthySpiral() {
-    showImageModal('Healthy Spiral - Control Sample', '/static/examples/example_spiral_healthy.jpg', 
-        'Smooth, confident strokes with consistent size. Typical of neurologically healthy individuals.');
+    showImageModal('Healthy Spiral - Control Sample', '/static/examples/example_spiral_healthy.jpg',
+        'Smooth, confident strokes with consistent size.');
 }
-
 function viewExampleHealthySentence() {
-    showImageModal('Healthy Writing - Control Sample', '/static/examples/example_sentence_healthy.jpg', 
-        'Consistent letter size and fluid movements characteristic of healthy motor control.');
+    showImageModal('Healthy Writing - Control Sample', '/static/examples/example_sentence_healthy.jpg',
+        'Consistent letter size and fluid movements.');
 }
-
 function viewExamplePDSpiral() {
-    showImageModal('Parkinson\'s Spiral - Patient Sample', '/static/examples/example_spiral_pd.jpg', 
-        'Shows micrographia (smaller size) and tremor-induced irregularities typical of PD.');
+    showImageModal("Parkinson's Spiral - Patient Sample", '/static/examples/example_spiral_pd.jpg',
+        'Shows micrographia and tremor-induced irregularities.');
 }
-
 function viewExamplePDSentence() {
-    showImageModal('Micrographia - Patient Sample', '/static/examples/example_sentence_pd.jpg', 
-        'Progressive reduction in letter size (micrographia) - a hallmark sign of Parkinson\'s disease.');
+    showImageModal('Micrographia - Patient Sample', '/static/examples/example_sentence_pd.jpg',
+        'Progressive reduction in letter size (micrographia).');
 }
-
 function viewExamplePDWave() {
-    showImageModal('Tremor Wave - Patient Sample', '/static/examples/example_wave_pd.jpg', 
-        'Irregular wave patterns showing tremor and motor control difficulties associated with PD.');
+    showImageModal('Tremor Wave - Patient Sample', '/static/examples/example_wave_pd.jpg',
+        'Irregular wave patterns showing tremor and motor control difficulties.');
 }
 
-// View Gait Example in Modal
 function viewExampleGait() {
     $('#exampleModalTitle').text('Gait Example - Walking Analysis');
     $('#examplePreviewContent').html(
         '<video controls class="w-100"><source src="/static/examples/example_gait.mp4" type="video/mp4"></video>' +
-        '<p class="mt-3 text-muted">This animation demonstrates a side-view walking pattern for gait analysis.</p>'
+        '<p class="mt-3 text-muted small">Side-view walking pattern for gait analysis.</p>'
     );
-    const modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
+    var modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
     modal.show();
 }
 
-// Helper function to show image in modal
 function showImageModal(title, imageUrl, description) {
     $('#exampleModalTitle').text(title);
     $('#examplePreviewContent').html(
-        `<img src="${imageUrl}" class="img-fluid" alt="${title}">` +
-        `<p class="mt-3 text-muted">${description}</p>`
+        '<img src="' + imageUrl + '" class="img-fluid rounded" alt="' + title + '">' +
+        '<p class="mt-3 text-muted small">' + description + '</p>'
     );
-    const modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
+    var modal = new bootstrap.Modal(document.getElementById('examplePreviewModal'));
     modal.show();
 }
 
-// ===== TAB SWITCH HANDLER =====
-// Reset form to original state when switching tabs
-$('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-    // Clear ALL extracted features
-    extractedFeatures = {
-        speech: null,
-        handwriting: null,
-        gait: null
-    };
-    
-    // Clear status messages for all tabs
-    $('#speechFeatureStatus').html('');
-    $('#handwritingFeatureStatus').html('');
-    $('#gaitFeatureStatus').html('');
-    $('#audioUploadStatus').html('');
-    $('#handwritingUploadStatus').html('');
-    $('#gaitUploadStatus').html('');
-    
-    // Hide handwriting preview
-    $('#handwritingPreview').hide();
-    
-    // Stop recording if active
-    if (isRecording) {
-        stopRecording();
-    }
-    
-    // Clear file inputs
-    $('#audioFileInput').val('');
-    $('#handwritingFileInput').val('');
-    $('#gaitFileInput').val('');
-    
-    // Disable predict button
-    $('#predictBtn').prop('disabled', true);
-    
-    // Hide results section
-    $('#resultsSection').hide();
-    $('#loadingSection').hide();
-    $('#placeholderSection').show();
-});
+/* ------------------------------------------------------------------ */
+/*  Notification — FIX #4 & #7: Use global showNotification from main.js  */
+/*  If main.js loaded, it overrides window.showNotification.            */
+/*  This is a local fallback in case main.js isn't ready yet.           */
+/* ------------------------------------------------------------------ */
 
-// Show notification helper
-function showNotification(message, type) {
-    const alertClass = type === 'success' ? 'alert-success' : 
-                      type === 'danger' ? 'alert-danger' : 
-                      type === 'warning' ? 'alert-warning' : 
-                      'alert-info';
-    
-    // Create notification element
-    const notification = $('<div>')
-        .addClass('alert ' + alertClass + ' alert-dismissible fade show position-fixed')
-        .css({
-            top: '20px',
-            right: '20px',
-            zIndex: 9999,
-            minWidth: '300px',
-            maxWidth: '500px'
-        })
-        .html(message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>')
-        .appendTo('body');
-    
-    // Auto-dismiss after 4 seconds
-    setTimeout(function() {
-        notification.alert('close');
-    }, 4000);
+if (typeof window.showNotification !== 'function') {
+    window.showNotification = function (message, type) {
+        type = type || 'info';
+        // Use Bootstrap Toast API directly
+        var colors = {
+            success: { bg: 'rgba(16,185,129,.15)', border: 'rgba(16,185,129,.25)', text: '#10b981' },
+            danger:  { bg: 'rgba(244,63,94,.15)',  border: 'rgba(244,63,94,.25)',  text: '#f43f5e' },
+            warning: { bg: 'rgba(245,158,11,.15)', border: 'rgba(245,158,11,.25)', text: '#f59e0b' },
+            info:    { bg: 'rgba(6,182,212,.12)',  border: 'rgba(6,182,212,.2)',   text: '#06b6d4' }
+        };
+        var c = colors[type] || colors.info;
+
+        var toastEl = document.createElement('div');
+        toastEl.className = 'toast align-items-center border-0';
+        toastEl.setAttribute('role', 'alert');
+        toastEl.style.cssText = 'background:' + c.bg + ';border:1px solid ' + c.border + ' !important;backdrop-filter:blur(12px);border-radius:12px;color:' + c.text + ';';
+        toastEl.innerHTML = '<div class="d-flex"><div class="toast-body" style="font-weight:500;font-size:.88rem;">' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+        }
+        container.appendChild(toastEl);
+
+        var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+    };
 }

@@ -6,147 +6,173 @@
 <div class="container">
 
     <!-- Hero Section -->
-    <div class="row align-items-center mb-5" style="min-height:50vh;">
+    <section class="row align-items-center py-5" style="min-height:55vh">
         <div class="col-lg-6 mb-4 mb-lg-0 fade-in-up">
-            <span class="badge-glass mb-3" style="display:inline-block;"><i class="fas fa-brain" style="margin-right:4px;"></i> Deep Learning &mdash; SE-ResNet + Attention Fusion</span>
-            <h1 class="section-title" style="font-size:2.8rem;line-height:1.15;">Early Detection of<br><span class="text-gradient">Parkinson's Disease</span></h1>
-            <p class="section-subtitle mt-3 mb-4">
-                Multimodal deep learning system using SE-ResNet 1D CNNs with attention-based fusion &mdash; analyzing speech, handwriting, and gait patterns &mdash;
+            <div class="chip chip-accent mb-3"><i class="fas fa-brain"></i> SE-ResNet + Attention Fusion</div>
+            <h1 class="hero-title mb-3">
+                Early Detection of<br>
+                <span class="text-gradient">Parkinson's Disease</span>
+            </h1>
+            <p class="section-subtitle text-start mt-3 mb-4" style="max-width:none">
+                Multimodal deep learning system analyzing speech, handwriting, and gait patterns
                 for accurate and explainable early detection.
             </p>
-            <div class="d-flex flex-wrap gap-3">
-                <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg">
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg glow-pulse">
                     <i class="fas fa-play-circle"></i> Start Prediction
                 </a>
                 <a href="{{ url_for('about') }}" class="btn btn-outline-glass btn-lg">
-                    <i class="fas fa-info-circle"></i> Learn More
+                    Learn More <i class="fas fa-arrow-right" style="font-size:.8rem"></i>
                 </a>
             </div>
         </div>
         <div class="col-lg-6 text-center fade-in-up fade-in-up-d2">
-            <div style="position:relative;display:inline-block;">
-                <div style="width:220px;height:220px;border-radius:50%;background:linear-gradient(135deg,rgba(102,126,234,.15),rgba(118,75,162,.15));display:flex;align-items:center;justify-content:center;margin:0 auto;border:1px solid rgba(102,126,234,.2);">
-                    <i class="fas fa-brain" style="font-size:5rem;margin:0;background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"></i>
+            <div class="hero-visual" style="width:260px;height:260px;margin:0 auto">
+                <!-- Central brain -->
+                <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.12));display:flex;align-items:center;justify-content:center;border:1px solid rgba(99,102,241,.2);position:relative;z-index:2">
+                    <i class="fas fa-brain" style="font-size:2.5rem;margin:0;background:linear-gradient(135deg,var(--accent),var(--accent-end));-webkit-background-clip:text;-webkit-text-fill-color:transparent"></i>
                 </div>
-                <!-- Floating badges -->
-                <div style="position:absolute;top:10px;right:10px;background:rgba(25,135,84,.15);border:1px solid rgba(25,135,84,.25);border-radius:12px;padding:6px 12px;font-size:.78rem;color:#75d9a0;font-weight:600;">
-                    <i class="fas fa-microphone" style="margin-right:4px;"></i>Speech
-                </div>
-                <div style="position:absolute;bottom:10px;left:0;background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.2);border-radius:12px;padding:6px 12px;font-size:.78rem;color:#ffc107;font-weight:600;">
-                    <i class="fas fa-walking" style="margin-right:4px;"></i>Gait
-                </div>
-                <div style="position:absolute;bottom:40px;right:-10px;background:rgba(13,202,240,.1);border:1px solid rgba(13,202,240,.18);border-radius:12px;padding:6px 12px;font-size:.78rem;color:#0dcaf0;font-weight:600;">
-                    <i class="fas fa-pen" style="margin-right:4px;"></i>Handwriting
+                <!-- Orbiting rings -->
+                <div class="hero-ring" style="width:180px;height:180px;top:40px;left:40px"></div>
+                <div class="hero-ring" style="width:240px;height:240px;top:10px;left:10px;animation-delay:1s"></div>
+                <!-- Orbiting dots -->
+                <div style="position:absolute;top:50%;left:50%;width:0;height:0">
+                    <div class="orbit" style="color:var(--success)">
+                        <div class="hero-orb" style="background:var(--success);transform:translateX(90px)">
+                            <span style="position:absolute;top:-20px;left:-12px;font-size:.65rem;white-space:nowrap;color:var(--success);font-weight:600"><i class="fas fa-microphone"></i></span>
+                        </div>
+                    </div>
+                    <div class="orbit-slow" style="color:var(--info)">
+                        <div class="hero-orb" style="background:var(--info);transform:translateX(110px)">
+                            <span style="position:absolute;top:-20px;left:-6px;font-size:.65rem;white-space:nowrap;color:var(--info);font-weight:600"><i class="fas fa-pen"></i></span>
+                        </div>
+                    </div>
+                    <div class="orbit-reverse" style="color:var(--warning)">
+                        <div class="hero-orb" style="background:var(--warning);transform:translateX(120px)">
+                            <span style="position:absolute;top:-20px;left:-12px;font-size:.65rem;white-space:nowrap;color:var(--warning);font-weight:600"><i class="fas fa-walking"></i></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Stats Row -->
+    <section class="row g-3 mb-5 fade-in-up fade-in-up-d1">
+        <div class="col-4 col-md-4">
+            <div class="stat-card">
+                <div class="stat-value text-gradient">42</div>
+                <div class="stat-label">Features</div>
+                <div class="stat-sub">Across 3 modalities</div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="stat-card">
+                <div class="stat-value text-gradient">3</div>
+                <div class="stat-label">Modalities</div>
+                <div class="stat-sub">Speech, Writing, Gait</div>
+            </div>
+        </div>
+        <div class="col-4 col-md-4">
+            <div class="stat-card">
+                <div class="stat-value text-gradient">XAI</div>
+                <div class="stat-label">Explainable</div>
+                <div class="stat-sub">Grad-CAM & Attention</div>
+            </div>
+        </div>
+    </section>
 
     <!-- Features Section -->
-    <div class="text-center mb-4 fade-in-up">
-        <h2 class="section-title">Multimodal Analysis</h2>
-        <p class="section-subtitle">Three data modalities for comprehensive detection</p>
-    </div>
+    <section class="mb-5">
+        <div class="text-center mb-4 fade-in-up">
+            <h2 class="section-title">Multimodal Analysis</h2>
+            <p class="section-subtitle">Three data modalities for comprehensive detection</p>
+        </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-4 fade-in-up fade-in-up-d1">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-badge-lg accent" style="background:rgba(102,126,234,.12);color:var(--accent-start);display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;font-size:1.4rem;">
-                        <i class="fas fa-microphone" style="margin:0;"></i>
+        <div class="row g-4">
+            <div class="col-md-4 fade-in-up fade-in-up-d1">
+                <div class="card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-badge icon-badge-lg accent d-inline-flex"><i class="fas fa-microphone" style="margin:0"></i></div>
+                        <h5 class="mt-2 mb-2">Speech Analysis</h5>
+                        <p class="small">Analyzes 22 acoustic features including jitter, shimmer, and harmonics-to-noise ratio to detect vocal patterns associated with PD.</p>
                     </div>
-                    <h5 class="mt-2 mb-2">Speech Analysis</h5>
-                    <p class="small">
-                        Analyzes 22 acoustic features including jitter, shimmer, harmonics-to-noise ratio,
-                        and pitch variations to detect speech patterns associated with PD.
-                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in-up fade-in-up-d2">
+                <div class="card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-badge icon-badge-lg success d-inline-flex"><i class="fas fa-pen" style="margin:0"></i></div>
+                        <h5 class="mt-2 mb-2">Handwriting Analysis</h5>
+                        <p class="small">Evaluates 10 handwriting features including pressure, velocity, and tremor frequency to identify motor control patterns.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 fade-in-up fade-in-up-d3">
+                <div class="card h-100">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-badge icon-badge-lg warning d-inline-flex"><i class="fas fa-walking" style="margin:0"></i></div>
+                        <h5 class="mt-2 mb-2">Gait Analysis</h5>
+                        <p class="small">Examines 10 walking parameters including stride intervals, cadence, and gait variability to detect movement abnormalities.</p>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 fade-in-up fade-in-up-d2">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-badge-lg" style="background:rgba(25,135,84,.12);color:#75d9a0;display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;font-size:1.4rem;">
-                        <i class="fas fa-pen" style="margin:0;"></i>
-                    </div>
-                    <h5 class="mt-2 mb-2">Handwriting Analysis</h5>
-                    <p class="small">
-                        Evaluates handwriting features including pressure, velocity, acceleration, and tremor
-                        frequency to identify motor control patterns characteristic of PD.
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 fade-in-up fade-in-up-d3">
-            <div class="card h-100">
-                <div class="card-body text-center p-4">
-                    <div class="icon-badge-lg" style="background:rgba(255,193,7,.1);color:#ffc107;display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:16px;font-size:1.4rem;">
-                        <i class="fas fa-walking" style="margin:0;"></i>
-                    </div>
-                    <h5 class="mt-2 mb-2">Gait Analysis</h5>
-                    <p class="small">
-                        Examines walking patterns including stride intervals, cadence, and gait variability
-                        to detect movement abnormalities typical in Parkinson's disease.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
     <!-- Technology Section -->
-    <div class="text-center mb-4 fade-in-up">
-        <h2 class="section-title">Technology Stack</h2>
-        <p class="section-subtitle">Built on deep learning with dual attention and real clinical data</p>
-    </div>
+    <section class="mb-5">
+        <div class="text-center mb-4 fade-in-up">
+            <h2 class="section-title">Under the Hood</h2>
+            <p class="section-subtitle">Deep learning architecture with dual attention and real clinical data</p>
+        </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-6 fade-in-up fade-in-up-d1">
-            <div class="card h-100">
-                <div class="card-body p-4">
-                    <h5><i class="fas fa-brain" style="color:var(--accent-start);"></i> Deep Learning Architecture</h5>
-                    <ul class="mt-3">
-                        <li><strong>Algorithm:</strong> SE-ResNet 1D CNN (He et al. 2016 + Hu et al. 2018)</li>
-                        <li><strong>Encoders:</strong> 3 per-modality SE-ResNet1D networks</li>
-                        <li><strong>Fusion:</strong> Attention-based modality weighting</li>
-                        <li><strong>Dual Attention:</strong> SE feature-level + modality-level</li>
-                        <li><strong>Explainability:</strong> Grad-CAM + SE weights + attention visualization</li>
-                        <li><strong>Framework:</strong> PyTorch with SMOTE class balancing</li>
-                        <li><strong>Datasets:</strong> UCI Parkinson's, PaHaW, PhysioNet Gait</li>
-                    </ul>
+        <div class="row g-4">
+            <div class="col-md-6 fade-in-up fade-in-up-d1">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><span class="icon-badge icon-badge-sm accent me-2"><i class="fas fa-brain" style="margin:0"></i></span> Deep Learning Architecture</h5>
+                        <ul class="mt-3 mb-0">
+                            <li><strong>Algorithm:</strong> SE-ResNet 1D CNN</li>
+                            <li><strong>Encoders:</strong> 3 per-modality SE-ResNet networks</li>
+                            <li><strong>Fusion:</strong> Attention-based modality weighting</li>
+                            <li><strong>Dual Attention:</strong> SE feature + modality level</li>
+                            <li><strong>Explainability:</strong> Grad-CAM + SE + attention vis</li>
+                            <li><strong>Framework:</strong> PyTorch with SMOTE balancing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 fade-in-up fade-in-up-d2">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <h5 class="mb-3"><span class="icon-badge icon-badge-sm success me-2"><i class="fas fa-chart-bar" style="margin:0"></i></span> Key Capabilities</h5>
+                        <ul class="mt-3 mb-0">
+                            <li><strong>42 Features:</strong> Speech (22) + Handwriting (10) + Gait (10)</li>
+                            <li><strong>Residual Learning:</strong> Skip connections for deep training</li>
+                            <li><strong>Channel Attention:</strong> SE blocks learn feature importance</li>
+                            <li><strong>Modality Attention:</strong> Dynamic per-patient weighting</li>
+                            <li><strong>Grad-CAM:</strong> Visual feature explanations</li>
+                            <li><strong>Real Data:</strong> UCI, PaHaW, PhysioNet datasets</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 fade-in-up fade-in-up-d2">
-            <div class="card h-100">
-                <div class="card-body p-4">
-                    <h5><i class="fas fa-chart-bar" style="color:#75d9a0;"></i> Key Capabilities</h5>
-                    <ul class="mt-3">
-                        <li><strong>42 Features:</strong> Speech (22) + Handwriting (10) + Gait (10)</li>
-                        <li><strong>Residual Learning:</strong> Skip connections prevent vanishing gradients</li>
-                        <li><strong>Channel Attention:</strong> SE blocks learn feature importance</li>
-                        <li><strong>Modality Attention:</strong> Learns which input matters most per patient</li>
-                        <li><strong>Grad-CAM:</strong> Visual explanation of which features drove the prediction</li>
-                        <li><strong>Data:</strong> Real patient datasets only (no synthetic data)</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- CTA -->
-    <div class="fade-in-up">
-        <div class="card" style="background:linear-gradient(135deg,rgba(102,126,234,.15),rgba(118,75,162,.12));border-color:rgba(102,126,234,.2);">
+    <!-- CTA Section -->
+    <section class="fade-in-up mb-4">
+        <div class="card" style="background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.06));border-color:rgba(99,102,241,.15)">
             <div class="card-body text-center py-5">
-                <h3 style="color:#fff;">Ready to Get Started?</h3>
-                <p class="mt-2 mb-4" style="color:rgba(255,255,255,.6);">
-                    Upload your data and get instant predictions with explainable AI insights from our deep learning model.
-                </p>
-                <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg">
-                    <i class="fas fa-play-circle"></i> Start Now
+                <h3 class="mb-2" style="color:var(--text-1)">Ready to Get Started?</h3>
+                <p class="mb-4" style="color:var(--text-2)">Upload your data and get instant predictions with explainable AI insights.</p>
+                <a href="{{ url_for('predict_page') }}" class="btn btn-accent btn-lg glow-pulse">
+                    <i class="fas fa-play-circle"></i> Start Prediction
                 </a>
             </div>
         </div>
-    </div>
+    </section>
 
 </div>
 {% endblock %}

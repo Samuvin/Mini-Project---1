@@ -2,108 +2,6 @@
 
 {% block title %}Sign In - Parkinson's Disease Detection{% endblock %}
 
-{% block extra_css %}
-<style>
-    .auth-wrapper { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 180px); padding: 2rem 1rem; }
-
-    .auth-card {
-        background: rgba(255, 255, 255, .07);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, .12);
-        border-radius: 20px;
-        padding: 2.5rem 2rem;
-        width: 100%;
-        max-width: 440px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
-        animation: cardSlideUp .5s ease-out;
-    }
-    .auth-card:hover { transform: none; box-shadow: 0 8px 32px rgba(0, 0, 0, .35); }
-    @keyframes cardSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-    .auth-brand { text-align: center; margin-bottom: 1.8rem; }
-    .auth-brand .brain-icon {
-        display: inline-flex; align-items: center; justify-content: center;
-        width: 64px; height: 64px; border-radius: 16px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff; font-size: 1.8rem; margin-bottom: .75rem;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, .4);
-    }
-    .auth-brand h4 { color: #fff; font-weight: 700; margin-bottom: .25rem; }
-    .auth-brand p { color: rgba(255,255,255,.5); font-size: .88rem; margin: 0; }
-
-    /* Tabs */
-    .auth-tabs { display: flex; background: rgba(255,255,255,.06); border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; }
-    .auth-tabs .tab-btn {
-        flex: 1; padding: .65rem 1rem; border: none; border-radius: 10px;
-        background: transparent; color: rgba(255,255,255,.5);
-        font-weight: 600; font-size: .92rem; cursor: pointer; transition: all .25s ease;
-    }
-    .auth-tabs .tab-btn.active { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; box-shadow: 0 2px 10px rgba(102,126,234,.35); }
-    .auth-tabs .tab-btn:hover:not(.active) { color: rgba(255,255,255,.8); }
-
-    /* Form */
-    .auth-card label { color: rgba(255,255,255,.7); font-size: .85rem; font-weight: 500; margin-bottom: .35rem; }
-    .auth-card .form-control {
-        background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-        border-radius: 10px; color: #fff; padding: .7rem 1rem; font-size: .95rem;
-    }
-    .auth-card .form-control::placeholder { color: rgba(255,255,255,.3); }
-    .auth-card .form-control:focus { background: rgba(255,255,255,.1); border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,.2); color: #fff; }
-
-    .auth-card .input-group-text {
-        background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
-        border-right: none; color: rgba(255,255,255,.4); border-radius: 10px 0 0 10px;
-    }
-    .auth-card .input-group .form-control { border-left: none; border-radius: 0 10px 10px 0; }
-
-    .auth-btn {
-        width: 100%; padding: .75rem; border: none; border-radius: 10px;
-        font-weight: 600; font-size: 1rem; cursor: pointer;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff; transition: all .3s ease; position: relative; overflow: hidden;
-    }
-    .auth-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(102,126,234,.4); }
-    .auth-btn:active { transform: translateY(0); }
-    .auth-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
-
-    /* Loader dots */
-    .btn-loader { display: inline-flex; align-items: center; gap: 4px; }
-    .btn-loader .dot {
-        width: 7px; height: 7px; border-radius: 50%; background: #fff;
-        animation: dotPulse .8s ease-in-out infinite;
-    }
-    .btn-loader .dot:nth-child(2) { animation-delay: .15s; }
-    .btn-loader .dot:nth-child(3) { animation-delay: .3s; }
-    @keyframes dotPulse { 0%, 80%, 100% { opacity: .3; transform: scale(.8); } 40% { opacity: 1; transform: scale(1.1); } }
-
-    /* Alert */
-    .auth-alert {
-        border-radius: 10px; padding: .7rem 1rem; font-size: .88rem; font-weight: 500;
-        display: none; margin-bottom: 1rem; border: none;
-        animation: alertFadeIn .3s ease;
-    }
-    .auth-alert.show { display: block; }
-    .auth-alert.alert-danger { background: rgba(220,53,69,.18); color: #ff6b7a; border: 1px solid rgba(220,53,69,.25); }
-    .auth-alert.alert-warning { background: rgba(255,193,7,.15); color: #ffc107; border: 1px solid rgba(255,193,7,.2); }
-    .auth-alert.alert-success { background: rgba(25,135,84,.18); color: #75d9a0; border: 1px solid rgba(25,135,84,.25); }
-    @keyframes alertFadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-    .auth-footer { text-align: center; margin-top: 1.2rem; }
-    .auth-footer span { color: rgba(255,255,255,.45); font-size: .88rem; }
-    .auth-footer a { color: #667eea; text-decoration: none; font-weight: 600; }
-    .auth-footer a:hover { color: #8b9ff5; text-decoration: underline; }
-
-    .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: rgba(255,255,255,.4); cursor: pointer; z-index: 5; padding: 0; }
-    .password-toggle:hover { color: rgba(255,255,255,.7); }
-
-    /* Hide the pane that's not active */
-    .auth-pane { display: none; animation: paneFadeIn .3s ease; }
-    .auth-pane.active { display: block; }
-    @keyframes paneFadeIn { from { opacity: 0; } to { opacity: 1; } }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="auth-wrapper">
     <div class="auth-card">
@@ -114,10 +12,10 @@
             <p>Secure access to Parkinson's analysis</p>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs (using addEventListener, no onclick) -->
         <div class="auth-tabs">
-            <button class="tab-btn active" id="loginTab" onclick="switchTab('login')">Sign In</button>
-            <button class="tab-btn" id="registerTab" onclick="switchTab('register')">Create Account</button>
+            <button class="tab-btn active" id="loginTab" type="button">Sign In</button>
+            <button class="tab-btn" id="registerTab" type="button">Create Account</button>
         </div>
 
         <!-- Alert -->
@@ -140,7 +38,9 @@
                             <span class="input-group-text"><i class="fas fa-lock" style="margin:0"></i></span>
                             <input type="password" class="form-control" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password">
                         </div>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)" style="right:12px;top:50%;position:absolute;transform:translateY(-50%)"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="password-toggle" id="loginPasswordToggle" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                 </div>
                 <button type="submit" class="auth-btn" id="loginBtn">
@@ -148,7 +48,7 @@
                 </button>
             </form>
             <div class="auth-footer">
-                <span>Don't have an account? </span><a href="#" onclick="switchTab('register'); return false;">Create one</a>
+                <span>Don't have an account? </span><a href="#" id="switchToRegister">Create one</a>
             </div>
         </div>
 
@@ -169,8 +69,15 @@
                             <span class="input-group-text"><i class="fas fa-lock" style="margin:0"></i></span>
                             <input type="password" class="form-control" id="registerPassword" placeholder="Min 8 characters" required minlength="8" autocomplete="new-password">
                         </div>
-                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)" style="right:12px;top:50%;position:absolute;transform:translateY(-50%)"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="password-toggle" id="registerPasswordToggle" aria-label="Toggle password visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
+                    <!-- Password strength indicator -->
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="bar" id="passwordStrengthBar"></div>
+                    </div>
+                    <small id="passwordStrengthText" style="color:var(--text-3);font-size:.72rem"></small>
                 </div>
                 <div class="mb-3">
                     <label for="registerConfirm">Confirm Password</label>
@@ -184,7 +91,7 @@
                 </button>
             </form>
             <div class="auth-footer">
-                <span>Already have an account? </span><a href="#" onclick="switchTab('login'); return false;">Sign in</a>
+                <span>Already have an account? </span><a href="#" id="switchToLogin">Sign in</a>
             </div>
         </div>
     </div>
@@ -194,29 +101,76 @@
 {% block extra_js %}
 <script>
 (function () {
-    // If already logged in, redirect
+    'use strict';
+
+    // Redirect if already logged in
     if (localStorage.getItem('access_token')) { window.location.href = '/'; return; }
 
     var authAlert = document.getElementById('authAlert');
 
-    window.switchTab = function (tab) {
+    // --- Tab switching via addEventListener (accessibility fix) ---
+    function switchTab(tab) {
         document.getElementById('loginPane').classList.toggle('active', tab === 'login');
         document.getElementById('registerPane').classList.toggle('active', tab === 'register');
         document.getElementById('loginTab').classList.toggle('active', tab === 'login');
         document.getElementById('registerTab').classList.toggle('active', tab === 'register');
         hideAlert();
-    };
+    }
 
-    window.togglePassword = function (inputId, btn) {
+    document.getElementById('loginTab').addEventListener('click', function () { switchTab('login'); });
+    document.getElementById('registerTab').addEventListener('click', function () { switchTab('register'); });
+    document.getElementById('switchToRegister').addEventListener('click', function (e) { e.preventDefault(); switchTab('register'); });
+    document.getElementById('switchToLogin').addEventListener('click', function (e) { e.preventDefault(); switchTab('login'); });
+
+    // --- Password toggle via addEventListener ---
+    function togglePassword(inputId, btn) {
         var input = document.getElementById(inputId);
         var icon = btn.querySelector('i');
         if (input.type === 'password') { input.type = 'text'; icon.className = 'fas fa-eye-slash'; }
         else { input.type = 'password'; icon.className = 'fas fa-eye'; }
-    };
+    }
+    document.getElementById('loginPasswordToggle').addEventListener('click', function () { togglePassword('loginPassword', this); });
+    document.getElementById('registerPasswordToggle').addEventListener('click', function () { togglePassword('registerPassword', this); });
 
+    // --- Password strength indicator ---
+    var pwInput = document.getElementById('registerPassword');
+    var strengthBar = document.getElementById('passwordStrengthBar');
+    var strengthText = document.getElementById('passwordStrengthText');
+
+    pwInput.addEventListener('input', function () {
+        var pw = pwInput.value;
+        var score = 0;
+        if (pw.length >= 8) score++;
+        if (pw.length >= 12) score++;
+        if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+        if (/\d/.test(pw)) score++;
+        if (/[^a-zA-Z0-9]/.test(pw)) score++;
+
+        strengthBar.className = 'bar';
+        strengthText.textContent = '';
+
+        if (pw.length === 0) return;
+
+        if (score <= 2) {
+            strengthBar.classList.add('weak');
+            strengthText.textContent = 'Weak';
+            strengthText.style.color = 'var(--danger)';
+        } else if (score <= 3) {
+            strengthBar.classList.add('medium');
+            strengthText.textContent = 'Medium';
+            strengthText.style.color = 'var(--warning)';
+        } else {
+            strengthBar.classList.add('strong');
+            strengthText.textContent = 'Strong';
+            strengthText.style.color = 'var(--success)';
+        }
+    });
+
+    // --- Alerts ---
     function showAlert(message, type) {
+        var iconMap = { danger: 'exclamation-circle', warning: 'exclamation-triangle', success: 'check-circle' };
         authAlert.className = 'auth-alert alert-' + type + ' show';
-        authAlert.innerHTML = '<i class="fas fa-' + (type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'check-circle') + '" style="margin-right:6px"></i>' + message;
+        authAlert.innerHTML = '<i class="fas fa-' + (iconMap[type] || 'info-circle') + '" style="margin-right:6px"></i>' + message;
     }
     function hideAlert() { authAlert.className = 'auth-alert'; authAlert.innerHTML = ''; }
 
@@ -232,7 +186,7 @@
         }
     }
 
-    // Login
+    // --- Login ---
     document.getElementById('loginForm').addEventListener('submit', function (e) {
         e.preventDefault(); hideAlert();
         var email = document.getElementById('loginEmail').value.trim();
@@ -241,20 +195,20 @@
         var btn = document.getElementById('loginBtn');
         setLoading(btn, true);
         fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: password }) })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-            setLoading(btn, false);
-            if (res.ok && res.data.success) {
-                localStorage.setItem('access_token', res.data.access_token);
-                localStorage.setItem('user_email', email);
-                showAlert('Success! Redirecting...', 'success');
-                setTimeout(function () { window.location.href = new URLSearchParams(window.location.search).get('next') || '/'; }, 600);
-            } else { showAlert(res.data.error || 'Login failed.', 'danger'); }
-        })
-        .catch(function () { setLoading(btn, false); showAlert('Network error. Please try again.', 'danger'); });
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+            .then(function (res) {
+                setLoading(btn, false);
+                if (res.ok && res.data.success) {
+                    localStorage.setItem('access_token', res.data.access_token);
+                    localStorage.setItem('user_email', email);
+                    showAlert('Success! Redirecting...', 'success');
+                    setTimeout(function () { window.location.href = new URLSearchParams(window.location.search).get('next') || '/'; }, 600);
+                } else { showAlert(res.data.error || 'Login failed.', 'danger'); }
+            })
+            .catch(function () { setLoading(btn, false); showAlert('Network error. Please try again.', 'danger'); });
     });
 
-    // Register
+    // --- Register ---
     document.getElementById('registerForm').addEventListener('submit', function (e) {
         e.preventDefault(); hideAlert();
         var email = document.getElementById('registerEmail').value.trim();
@@ -266,19 +220,23 @@
         var btn = document.getElementById('registerBtn');
         setLoading(btn, true);
         fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: password }) })
-        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-        .then(function (res) {
-            setLoading(btn, false);
-            if (res.ok && res.data.success) {
-                showAlert('Account created! Signing you in...', 'success');
-                fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: password }) })
-                .then(function (r) { return r.json(); })
-                .then(function (d) {
-                    if (d.success) { localStorage.setItem('access_token', d.access_token); localStorage.setItem('user_email', email); setTimeout(function () { window.location.href = '/'; }, 600); }
-                });
-            } else { showAlert(res.data.error || 'Registration failed.', 'danger'); }
-        })
-        .catch(function () { setLoading(btn, false); showAlert('Network error. Please try again.', 'danger'); });
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+            .then(function (res) {
+                setLoading(btn, false);
+                if (res.ok && res.data.success) {
+                    showAlert('Account created! Signing you in...', 'success');
+                    fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email, password: password }) })
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            if (d.success) {
+                                localStorage.setItem('access_token', d.access_token);
+                                localStorage.setItem('user_email', email);
+                                setTimeout(function () { window.location.href = '/'; }, 600);
+                            }
+                        });
+                } else { showAlert(res.data.error || 'Registration failed.', 'danger'); }
+            })
+            .catch(function () { setLoading(btn, false); showAlert('Network error. Please try again.', 'danger'); });
     });
 })();
 </script>

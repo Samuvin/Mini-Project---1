@@ -37,7 +37,7 @@
     /* ------------------------------------------------------------------ */
 
     // Pages that anyone can see without logging in.
-    var publicPaths = ['/', '/login', '/about', '/documentation', '/performance'];
+    var publicPaths = ['/', '/login', '/about', '/documentation'];
 
     function isPublicPage() {
         var path = window.location.pathname.replace(/\/+$/, '') || '/';
@@ -89,26 +89,31 @@
     };
 
     /* ------------------------------------------------------------------ */
-    /*  Patch jQuery $.ajax (if jQuery is loaded) to attach the token       */
+    /*  Patch jQuery $.ajax (if jQuery is loaded later) to attach token     */
     /* ------------------------------------------------------------------ */
 
-    if (typeof $ !== 'undefined' && $.ajaxSetup) {
-        $.ajaxSetup({
-            beforeSend: function (xhr, settings) {
-                if (settings.url && settings.url.indexOf('/api/') !== -1 && getToken()) {
-                    xhr.setRequestHeader('Authorization', 'Bearer ' + getToken());
-                }
-            },
-            statusCode: {
-                401: function () {
-                    // Avoid redirect loop on auth endpoints.
-                    if (window.location.pathname !== '/login') {
-                        logout();
+    function patchJQueryIfLoaded() {
+        if (typeof $ !== 'undefined' && $.ajaxSetup) {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    if (settings.url && settings.url.indexOf('/api/') !== -1 && getToken()) {
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + getToken());
+                    }
+                },
+                statusCode: {
+                    401: function () {
+                        if (window.location.pathname !== '/login') {
+                            logout();
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     }
+
+    // Patch now if jQuery exists, or wait for DOMContentLoaded
+    patchJQueryIfLoaded();
+    document.addEventListener('DOMContentLoaded', patchJQueryIfLoaded);
 
     /* ------------------------------------------------------------------ */
     /*  Navbar – swap Login / Logout button                                */
