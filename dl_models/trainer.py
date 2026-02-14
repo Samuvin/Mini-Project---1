@@ -114,7 +114,7 @@ class Trainer:
             model.parameters(), lr=lr, weight_decay=weight_decay,
         )
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode="min", factor=0.5, patience=5, verbose=False,
+            self.optimizer, mode="min", factor=0.5, patience=5,
         )
 
         # History
