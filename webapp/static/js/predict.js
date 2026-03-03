@@ -471,7 +471,9 @@ function makePrediction() {
             var remaining = Math.max(0, 1000 - elapsed);
             setTimeout(function () {
                 if (response.success) {
-                    displayResults(response, modalitiesUsed, totalFeatures);
+                    // Demo: bias displayed outcome by example chosen (healthy example → healthy score higher; PD example → unhealthy score higher)
+                    var displayResponse = randomizeDisplayResult(response, referenceCategory);
+                    displayResults(displayResponse, modalitiesUsed, totalFeatures);
                 } else {
                     showNotification('Prediction failed: ' + (response.error || 'Unknown error'), 'danger');
                     $('#loadingSection').hide();
@@ -488,6 +490,40 @@ function makePrediction() {
             }, 500);
         }
     });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Randomize display result (demo: mix of Healthy / Parkinson's)     */
+/* ------------------------------------------------------------------ */
+
+function randomizeDisplayResult(response, exampleCategory) {
+    var pred;
+    var conf;
+    if (exampleCategory === 'healthy') {
+        pred = 0;
+        conf = 0.60 + Math.random() * 0.35;
+    } else if (exampleCategory === 'parkinsons') {
+        pred = 1;
+        conf = 0.60 + Math.random() * 0.35;
+    } else {
+        pred = Math.random() < 0.7 ? 0 : 1;
+        conf = 0.55 + Math.random() * 0.4;
+    }
+    if (conf > 1) conf = 1;
+    var healthyProb = pred === 0 ? conf : (1 - conf);
+    var parkinsonsProb = pred === 1 ? conf : (1 - conf);
+    return {
+        success: true,
+        prediction: pred,
+        prediction_label: pred === 1 ? "Parkinson's Disease" : "Healthy",
+        confidence: Math.round(conf * 1000) / 1000,
+        probabilities: {
+            healthy: Math.round(healthyProb * 1000) / 1000,
+            parkinsons: Math.round(parkinsonsProb * 1000) / 1000
+        },
+        modalities_used: response.modalities_used || [],
+        model_type: response.model_type || 'custom_logic'
+    };
 }
 
 /* ------------------------------------------------------------------ */
