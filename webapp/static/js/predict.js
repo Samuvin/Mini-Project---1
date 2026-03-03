@@ -822,12 +822,18 @@ function loadExample(sampleType, modality) {
                 extractedFeatures.speech = sample.speech_features;
                 extractedFeatures.handwriting = sample.handwriting_features;
                 extractedFeatures.gait = sample.gait_features;
-            } else if (modality === 'speech') {
-                extractedFeatures.speech = sample.speech_features;
-            } else if (modality === 'handwriting') {
-                extractedFeatures.handwriting = sample.handwriting_features;
-            } else if (modality === 'gait') {
-                extractedFeatures.gait = sample.gait_features;
+            } else {
+                extractedFeatures.speech = null;
+                extractedFeatures.handwriting = null;
+                extractedFeatures.gait = null;
+                if (modality === 'speech') {
+                    extractedFeatures.speech = sample.speech_features;
+                } else if (modality === 'handwriting') {
+                    extractedFeatures.handwriting = sample.handwriting_features;
+                } else if (modality === 'gait') {
+                    extractedFeatures.gait = sample.gait_features;
+                }
+                $('#speechFeatureStatus, #handwritingFeatureStatus, #gaitFeatureStatus, #combinedFeatureStatus').html('');
             }
 
             var features = [];
