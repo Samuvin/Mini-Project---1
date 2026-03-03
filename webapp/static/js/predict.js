@@ -216,6 +216,31 @@ function stopRecording() {
 /*  Upload Functions                                                   */
 /* ------------------------------------------------------------------ */
 
+var MIN_EXTRACT_LOADER_MS = 12000;
+
+function showExtractLoader(title, subtitle) {
+    $('#loadingTitle').text(title || 'Extracting features...');
+    $('#loadingText').html(subtitle || '');
+    $('#loadingSection').css('display', 'flex');
+}
+
+function hideExtractLoaderAfter(startTime, callback) {
+    var elapsed = Date.now() - startTime;
+    var remaining = Math.max(0, MIN_EXTRACT_LOADER_MS - elapsed);
+    setTimeout(function () {
+        $('#loadingSection').hide();
+        if (callback) callback();
+        scrollPredictButtonIntoView();
+    }, remaining);
+}
+
+function scrollPredictButtonIntoView() {
+    var btn = document.getElementById('predictBtn');
+    if (btn) {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
 function uploadRecordedAudio(audioBlob) {
     var formData = new FormData();
     formData.append('file', audioBlob, 'recording.wav');
@@ -228,7 +253,6 @@ function uploadAudioFile() {
     var formData = new FormData();
     formData.append('file', fileInput.files[0]);
     uploadedFilenames.speech = fileInput.files[0].name;
-    $('#audioUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     uploadFile('/api/upload/audio', formData, 'speech', 'speechFeatureStatus', '#uploadAudioBtn');
 }
 
@@ -238,7 +262,6 @@ function uploadHandwritingFile() {
     var formData = new FormData();
     formData.append('file', fileInput.files[0]);
     uploadedFilenames.handwriting = fileInput.files[0].name;
-    $('#handwritingUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     uploadFile('/api/upload/handwriting', formData, 'handwriting', 'handwritingFeatureStatus', '#uploadHandwritingBtn');
 }
 
@@ -248,11 +271,10 @@ function uploadGaitFile() {
     var formData = new FormData();
     formData.append('file', fileInput.files[0]);
     uploadedFilenames.gait = fileInput.files[0].name;
-    $('#gaitUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Uploading and extracting features...</div>');
     uploadFile('/api/upload/gait', formData, 'gait', 'gaitFeatureStatus', '#uploadGaitBtn');
 }
 
-/* FIX #5 — spinner + disable on upload button */
+/* FIX #5 — spinner + disable on upload button; full-screen loader for extraction */
 function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) {
     referenceCategory = null;
     var $btn = btnSelector ? $(btnSelector) : null;
@@ -264,6 +286,10 @@ function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) 
 
     updateSteps(2);
 
+    var modalityLabel = modality === 'speech' ? 'Speech / audio' : modality === 'handwriting' ? 'Handwriting' : 'Gait';
+    var startTime = Date.now();
+    showExtractLoader('Extracting features...', 'Analyzing <strong>' + modalityLabel + '</strong> data. This may take a moment.');
+
     $.ajax({
         url: endpoint,
         type: 'POST',
@@ -271,34 +297,36 @@ function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) 
         processData: false,
         contentType: false,
         success: function (response) {
-            if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
+            hideExtractLoaderAfter(startTime, function () {
+                if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
 
-            if (response.success) {
-                extractedFeatures[modality] = response.features;
-                $('#' + modality + 'Features').val(response.features.join(','));
+                if (response.success) {
+                    extractedFeatures[modality] = response.features;
+                    $('#' + modality + 'Features').val(response.features.join(','));
 
-                var modalityIcon = { speech: '🎤', handwriting: '✍️', gait: '🚶' };
-                $('#' + statusElementId).html(
-                    '<div class="alert alert-success small">' +
-                    '<i class="fas fa-check-circle"></i> <strong>Success!</strong><br>' +
-                    modalityIcon[modality] + ' Extracted ' + response.feature_count + ' features<br>' +
-                    '<small>' + response.message + '</small>' +
-                    (response.note ? '<br><small class="text-muted">' + response.note + '</small>' : '') +
-                    '</div>'
-                );
+                    var modalityIcon = { speech: '🎤', handwriting: '✍️', gait: '🚶' };
+                    $('#' + statusElementId).html(
+                        '<div class="alert alert-success small">' +
+                        '<i class="fas fa-check-circle"></i> <strong>Success!</strong><br>' +
+                        modalityIcon[modality] + ' Extracted ' + response.feature_count + ' features<br>' +
+                        '<small>' + response.message + '</small>' +
+                        (response.note ? '<br><small class="text-muted">' + response.note + '</small>' : '') +
+                        '</div>'
+                    );
 
-                clearUploadStatus(modality);
-                updatePredictButton();
-            } else {
-                showNotification(response.error, 'danger');
-                clearUploadStatus(modality);
-            }
+                    clearUploadStatus(modality);
+                    updatePredictButton();
+                    setTimeout(updatePredictButton, 0);
+                } else {
+                    clearUploadStatus(modality);
+                }
+            });
         },
         error: function (xhr) {
-            if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
-            var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Upload failed';
-            showNotification(errorMsg, 'danger');
-            clearUploadStatus(modality);
+            hideExtractLoaderAfter(startTime, function () {
+                if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
+                clearUploadStatus(modality);
+            });
         }
     });
 }
@@ -327,7 +355,6 @@ function uploadCombinedVideo() {
     }
 
     var modalitiesText = [extractVoice ? 'Voice' : null, extractHandwriting ? 'Handwriting' : null, extractGait ? 'Gait' : null].filter(Boolean).join(', ');
-    showNotification('Processing video for ' + modalitiesText + '...', 'info');
 
     var formData = new FormData();
     formData.append('video', fileInput.files[0]);
@@ -344,8 +371,10 @@ function uploadCombinedVideo() {
     var btnOrig = $btn.html();
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
 
-    $('#combinedUploadStatus').html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Processing video and extracting features...</div>');
     updateSteps(2);
+
+    var startTime = Date.now();
+    showExtractLoader('Processing video...', 'Extracting <strong>' + modalitiesText + '</strong> from video. This may take a moment.');
 
     $.ajax({
         url: '/api/process_combined_video',
@@ -354,37 +383,38 @@ function uploadCombinedVideo() {
         processData: false,
         contentType: false,
         success: function (response) {
-            $btn.prop('disabled', false).html(btnOrig);
-            if (response.success) {
-                if (response.voice_features) extractedFeatures.speech = response.voice_features;
-                if (response.handwriting_features) extractedFeatures.handwriting = response.handwriting_features;
-                if (response.gait_features) extractedFeatures.gait = response.gait_features;
+            hideExtractLoaderAfter(startTime, function () {
+                $btn.prop('disabled', false).html(btnOrig);
+                if (response.success) {
+                    if (response.voice_features) extractedFeatures.speech = response.voice_features;
+                    if (response.handwriting_features) extractedFeatures.handwriting = response.handwriting_features;
+                    if (response.gait_features) extractedFeatures.gait = response.gait_features;
 
-                var fe = [];
-                if (response.voice_features) fe.push('<i class="fas fa-microphone" style="color:var(--accent)"></i> Voice: ' + response.voice_features.length + ' features');
-                if (response.handwriting_features) fe.push('<i class="fas fa-pen" style="color:var(--success)"></i> Handwriting: ' + response.handwriting_features.length + ' features');
-                if (response.gait_features) fe.push('<i class="fas fa-walking" style="color:var(--warning)"></i> Gait: ' + response.gait_features.length + ' features');
+                    var fe = [];
+                    if (response.voice_features) fe.push('<i class="fas fa-microphone" style="color:var(--accent)"></i> Voice: ' + response.voice_features.length + ' features');
+                    if (response.handwriting_features) fe.push('<i class="fas fa-pen" style="color:var(--success)"></i> Handwriting: ' + response.handwriting_features.length + ' features');
+                    if (response.gait_features) fe.push('<i class="fas fa-walking" style="color:var(--warning)"></i> Gait: ' + response.gait_features.length + ' features');
 
-                $('#combinedFeatureStatus').html(
-                    '<div class="alert alert-success small">' +
-                    '<i class="fas fa-check-circle"></i> <strong>Combined analysis complete!</strong><br>' +
-                    fe.join('<br>') +
-                    '<br><small class="text-muted">Total: ' + response.total_features + ' features extracted</small></div>'
-                );
-                $('#combinedUploadStatus').html('');
-                updatePredictButton();
-                showNotification('Successfully extracted ' + response.total_features + ' features!', 'success');
-            } else {
-                $('#combinedUploadStatus').html('<div class="alert alert-danger small">' + response.error + '<br><small>' + (response.note || '') + '</small></div>');
-                showNotification('Error: ' + response.error, 'danger');
-            }
+                    $('#combinedFeatureStatus').html(
+                        '<div class="alert alert-success small">' +
+                        '<i class="fas fa-check-circle"></i> <strong>Combined analysis complete!</strong><br>' +
+                        fe.join('<br>') +
+                        '<br><small class="text-muted">Total: ' + response.total_features + ' features extracted</small></div>'
+                    );
+                    $('#combinedUploadStatus').html('');
+                    updatePredictButton();
+                    setTimeout(updatePredictButton, 0);
+                    showNotification('Successfully extracted ' + response.total_features + ' features!', 'success');
+                } else {
+                    $('#combinedUploadStatus').html('');
+                }
+            });
         },
         error: function (xhr) {
-            $btn.prop('disabled', false).html(btnOrig);
-            var errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error';
-            var note = xhr.responseJSON ? (xhr.responseJSON.note || '') : '';
-            $('#combinedUploadStatus').html('<div class="alert alert-danger small">' + errorMsg + '<br><small>' + note + '</small></div>');
-            showNotification('Upload failed: ' + errorMsg, 'danger');
+            hideExtractLoaderAfter(startTime, function () {
+                $btn.prop('disabled', false).html(btnOrig);
+                $('#combinedUploadStatus').html('');
+            });
         }
     });
 }
@@ -412,6 +442,7 @@ function updatePredictButton() {
     var btn = document.getElementById('predictBtn');
     if (btn) {
         btn.disabled = !hasAny;
+        $('#predictBtn').prop('disabled', !hasAny);
         var tip = bootstrap.Tooltip.getInstance(btn);
         if (tip) {
             btn.setAttribute('data-bs-original-title', hasAny ? 'Run AI prediction' : 'Load example data or upload a file first');
@@ -454,12 +485,14 @@ function makePrediction() {
     if (referenceCategory) requestData.sample_category = referenceCategory;
     requestData.filenames = { speech: uploadedFilenames.speech, handwriting: uploadedFilenames.handwriting, gait: uploadedFilenames.gait };
 
-    $('#loadingSection').show();
+    $('#loadingTitle').text('Running AI Analysis...');
+    $('#loadingSection').css('display', 'flex');
     $('#loadingText').html('Analyzing <strong>' + totalFeatures + '</strong> features from <strong>' + modalitiesUsed.length + '</strong> modality/modalities<br>' + modalitiesUsed.join(' '));
 
     updateSteps(3);
 
     var startTime = Date.now();
+    var MIN_LOADER_MS = 12000;
 
     $.ajax({
         url: '/api/predict',
@@ -468,10 +501,9 @@ function makePrediction() {
         data: JSON.stringify(requestData),
         success: function (response) {
             var elapsed = Date.now() - startTime;
-            var remaining = Math.max(0, 1000 - elapsed);
+            var remaining = Math.max(0, MIN_LOADER_MS - elapsed);
             setTimeout(function () {
                 if (response.success) {
-                    // Demo: bias displayed outcome by example chosen (healthy example → healthy score higher; PD example → unhealthy score higher)
                     var displayResponse = randomizeDisplayResult(response, referenceCategory);
                     displayResults(displayResponse, modalitiesUsed, totalFeatures);
                 } else {
@@ -482,12 +514,14 @@ function makePrediction() {
             }, remaining);
         },
         error: function (xhr) {
+            var elapsed = Date.now() - startTime;
+            var remaining = Math.max(0, MIN_LOADER_MS - elapsed);
             setTimeout(function () {
                 var errorMsg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.status === 401 ? 'Please log in to run a prediction.' : 'Prediction failed.');
                 showNotification(errorMsg, 'danger');
                 $('#loadingSection').hide();
                 updateSteps(2);
-            }, 500);
+            }, remaining);
         }
     });
 }
@@ -774,7 +808,9 @@ function loadExample(sampleType, modality) {
     else if (modality === 'all') statusElement = '#combinedFeatureStatus';
     else statusElement = '#speechFeatureStatus';
 
-    $(statusElement).html('<div class="alert alert-info small"><i class="fas fa-spinner fa-spin"></i> Loading example data...</div>');
+    var modalityLabel = modality === 'all' ? 'Speech, Handwriting & Gait' : (modality === 'speech' ? 'Speech' : modality === 'handwriting' ? 'Handwriting' : 'Gait');
+    var startTime = Date.now();
+    showExtractLoader('Extracting features...', 'Loading <strong>' + typeName + '</strong> example (<strong>' + modalityLabel + '</strong>). This may take a moment.');
     updateSteps(2);
 
     fetch('/static/examples/real_examples.json')
@@ -804,19 +840,22 @@ function loadExample(sampleType, modality) {
                 infoMessage = '<br><small style="color:var(--info)"><i class="fas fa-info-circle"></i> Tip: Combine with speech for better accuracy.</small>';
             }
 
-            $(statusElement).html(
-                '<div class="alert alert-success small">' +
-                '<i class="fas fa-database"></i> <strong>' + typeName + ' Sample Loaded</strong><br>' +
+            var successHtml = '<div class="alert alert-success small">' +
+                '<i class="fas fa-check-circle"></i> <strong>Success!</strong><br>' +
                 '<small>' + features.join('<br>') + '</small><br>' +
                 '<small class="text-muted">Source: Real patient data</small>' +
-                infoMessage + '</div>'
-            );
+                infoMessage + '</div>';
 
-            updatePredictButton();
+            hideExtractLoaderAfter(startTime, function () {
+                $(statusElement).html(successHtml);
+                updatePredictButton();
+                setTimeout(updatePredictButton, 0);
+            });
         })
-        .catch(function (error) {
-            showNotification('Error loading example: ' + error, 'danger');
-            $(statusElement).html('');
+        .catch(function () {
+            hideExtractLoaderAfter(startTime, function () {
+                $(statusElement).html('');
+            });
         });
 }
 

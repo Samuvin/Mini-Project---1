@@ -309,13 +309,15 @@
         </div>
     </div>
 
-    <!-- Inline Loading (below predict button) -->
-    <div id="loadingSection" style="display:none" class="text-center py-4 fade-in-up">
-        <div class="loader-dots mb-3">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <!-- Full-screen loading overlay (visible for 10–15s while predicting) -->
+    <div id="loadingSection" style="display:none" class="predict-loader-overlay">
+        <div class="predict-loader-box">
+            <div class="loader-dots mb-3">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+            <h5 id="loadingTitle" class="mb-2" style="color:var(--text-1)">Running AI Analysis...</h5>
+            <p id="loadingText" class="small mb-0" style="color:var(--text-2)">Processing data...</p>
         </div>
-        <h6 style="color:var(--text-1)">Running AI Analysis...</h6>
-        <p id="loadingText" class="small" style="color:var(--text-2)">Processing data...</p>
     </div>
 </div>
 
