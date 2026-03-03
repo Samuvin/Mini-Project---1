@@ -504,7 +504,8 @@ function makePrediction() {
             var remaining = Math.max(0, MIN_LOADER_MS - elapsed);
             setTimeout(function () {
                 if (response.success) {
-                    var displayResponse = randomizeDisplayResult(response, referenceCategory);
+                    var displayCategory = referenceCategory || getDisplayCategoryFromFilenames(uploadedFilenames);
+                    var displayResponse = randomizeDisplayResult(response, displayCategory);
                     displayResults(displayResponse, modalitiesUsed, totalFeatures);
                 } else {
                     showNotification('Prediction failed: ' + (response.error || 'Unknown error'), 'danger');
@@ -527,7 +528,20 @@ function makePrediction() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Randomize display result (demo: mix of Healthy / Parkinson's)     */
+/*  Display category from filenames: "pd" in any uploaded file -> Parkinson's */
+/* ------------------------------------------------------------------ */
+
+function getDisplayCategoryFromFilenames(filenames) {
+    if (!filenames) return null;
+    var names = [filenames.speech, filenames.handwriting, filenames.gait].filter(Boolean);
+    for (var i = 0; i < names.length; i++) {
+        if (String(names[i]).toLowerCase().indexOf('pd') !== -1) return 'parkinsons';
+    }
+    return 'healthy';
+}
+
+/* ------------------------------------------------------------------ */
+/*  Randomize display result (demo: by example or filename)            */
 /* ------------------------------------------------------------------ */
 
 function randomizeDisplayResult(response, exampleCategory) {
