@@ -27,7 +27,8 @@ plotly>=5.14.0
 flask>=2.3.0
 flask-cors>=4.0.0
 werkzeug>=2.3.0
-gunicorn>=21.2.0
+# Production WSGI server (Windows + Linux + Mac); no Gunicorn (Unix-only).
+waitress>=3.0.0
 
 # Data Storage and Configuration
 pyyaml>=6.0

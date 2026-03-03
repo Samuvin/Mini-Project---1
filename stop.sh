@@ -27,11 +27,10 @@ print_error() {
     echo -e "${RED}✗ $1${NC}"
 }
 
-# Check if server is running
+# Check if server is running (Waitress or python wsgi.py)
 print_info "Looking for running server..."
 
-# Find Gunicorn processes
-PIDS=$(pgrep -f "gunicorn.*wsgi:app")
+PIDS=$(pgrep -f "waitress-serve.*wsgi:app" || pgrep -f "wsgi:app" || pgrep -f "wsgi.py" || true)
 
 if [ -z "$PIDS" ]; then
     print_info "No server is currently running"
@@ -41,19 +40,22 @@ fi
 
 # Stop the server
 print_info "Stopping server (PIDs: $PIDS)..."
-pkill -TERM -f "gunicorn.*wsgi:app"
+pkill -TERM -f "waitress-serve.*wsgi:app" 2>/dev/null
+pkill -TERM -f "wsgi:app" 2>/dev/null
+pkill -TERM -f "wsgi.py" 2>/dev/null
 
 # Wait for graceful shutdown
 sleep 2
 
-# Check if processes are still running
-REMAINING=$(pgrep -f "gunicorn.*wsgi:app")
+REMAINING=$(pgrep -f "waitress-serve.*wsgi:app" || pgrep -f "wsgi:app" || pgrep -f "wsgi.py" || true)
 
 if [ -z "$REMAINING" ]; then
     print_success "Server stopped successfully"
 else
     print_info "Force stopping remaining processes..."
-    pkill -KILL -f "gunicorn.*wsgi:app"
+    pkill -KILL -f "waitress-serve.*wsgi:app" 2>/dev/null
+    pkill -KILL -f "wsgi:app" 2>/dev/null
+    pkill -KILL -f "wsgi.py" 2>/dev/null
     sleep 1
     print_success "Server stopped"
 fi

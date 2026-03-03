@@ -155,9 +155,7 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("Parkinson's Disease Prediction System")
     print("="*60)
-    print("\nThis application should be run using Gunicorn:")
-    print("  gunicorn -c gunicorn_config.py wsgi:app")
-    print("\nOr use the start script:")
-    print("  ./start.sh")
+    print("\nRun the app with:  python wsgi.py")
+    print("Or use the start script:  start.bat (Windows)  or  ./start.sh (Linux/Mac)")
     print("="*60 + "\n")
 

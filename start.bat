@@ -105,18 +105,16 @@ if exist "models\multimodal_pd_net.pt" (
 echo All models ready
 echo.
 
-REM Step 8: Stop any existing server
-echo Checking for running server...
-taskkill /F /IM python.exe /FI "WINDOWTITLE eq *wsgi*" >nul 2>&1
+REM Step 8: If the app is already running in another window, stop it with Ctrl+C there first.
 echo.
 
-REM Step 9: Start the Server (using Flask dev server for Windows)
+REM Step 9: Start the Server (Waitress - same as Linux/Mac, works on Windows)
 echo Starting server...
 echo.
 echo ============================================================
 echo Server Configuration:
 echo   URL: http://localhost:8000
-echo   Mode: Development (Flask - Windows compatible)
+echo   Mode: Production (Waitress)
 echo   Backend: SE-ResNet + Attention Fusion (DL) / sklearn fallback
 echo ============================================================
 echo.
@@ -124,11 +122,8 @@ echo Server is starting...
 echo Press Ctrl+C to stop the server
 echo.
 
-REM Use Flask's development server on Windows (gunicorn doesn't work)
-set FLASK_APP=wsgi:app
-set FLASK_ENV=development
 set PORT=8000
-python -m flask run --host=0.0.0.0 --port=8000
+python wsgi.py
 
 echo.
 echo Server stopped

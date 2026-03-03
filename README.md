@@ -14,7 +14,7 @@ Parkinson's Disease is the second most common neurodegenerative disorder, causin
 - **Class Balancing**: SMOTE oversampling
 - **Framework**: PyTorch
 - **Fallback**: sklearn ensemble (SVM + LR) when DL model is not available
-- **Deployment**: Flask + Gunicorn WSGI server with JWT authentication
+- **Deployment**: Flask + Waitress WSGI server (Windows/Linux/Mac) with JWT authentication
 
 ## Datasets
 
@@ -84,8 +84,7 @@ fn/
 ├── data/                 # Datasets
 ├── train.py              # sklearn training pipeline
 ├── train_dl.py           # Deep learning training pipeline
-├── wsgi.py               # WSGI entry point
-├── gunicorn_config.py    # Gunicorn configuration
+├── wsgi.py               # WSGI entry point (Waitress)
 ├── config.yaml           # Hyperparameters and paths
 └── requirements.txt      # Python dependencies
 ```
@@ -105,14 +104,13 @@ This trains the SE-ResNet + Attention Fusion model and saves:
 
 ### 2. Run the Application
 
-```bash
-./start.sh
-```
+**Windows:** run `start.bat`  
+**Linux/Mac:** run `./start.sh`
 
-Or manually:
+Or manually (any platform):
 
 ```bash
-gunicorn -c gunicorn_config.py wsgi:app
+python wsgi.py
 ```
 
 Visit `http://localhost:8000` in your browser.
@@ -175,7 +173,7 @@ pytest tests/ --cov=src --cov-report=html
 
 ## Tech Stack
 
-- **Backend**: Flask, Gunicorn, PyTorch
+- **Backend**: Flask, Waitress, PyTorch
 - **Frontend**: Jinja2, Bootstrap 5, Chart.js
 - **Database**: MongoDB (user auth)
 - **Auth**: JWT (PyJWT + bcrypt)

@@ -1,12 +1,17 @@
 """WSGI entry point for Parkinson's Disease Prediction System.
 
-This file is used by WSGI servers like Gunicorn.
+Uses Waitress as the production WSGI server (works on Windows, Linux, and Mac).
+Run with: python wsgi.py   or   waitress-serve --host=0.0.0.0 --port=8000 wsgi:app
 """
+
+import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load environment variables from .env before anything else.
-load_dotenv()
+# Load .env from project root so it works regardless of current working directory.
+_project_root = Path(__file__).resolve().parent
+load_dotenv(_project_root / ".env")
 
 from webapp.app import create_app
 
@@ -14,17 +19,9 @@ from webapp.app import create_app
 app = create_app()
 
 if __name__ == "__main__":
-    # For Windows compatibility, allow direct Flask run
-    import sys
-    import os
-    
-    # Check if running on Windows
-    if sys.platform == "win32":
-        print("Running Flask development server (Windows)...")
-        print("For production on Linux/Mac, use: gunicorn -c gunicorn_config.py wsgi:app")
-        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), debug=False)
-    else:
-        print("Please run the application using Gunicorn:")
-        print("  gunicorn -c gunicorn_config.py wsgi:app")
-        print("Or use the start script:")
-        print("  ./start.sh")
+    import waitress
+
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting Waitress server at http://0.0.0.0:{port}")
+    print("Press Ctrl+C to stop.")
+    waitress.serve(app, host="0.0.0.0", port=port, threads=4)

@@ -133,21 +133,21 @@ echo ""
 
 # Step 8: Stop any existing server
 print_info "Checking for running server..."
-pkill -f "gunicorn.*wsgi:app" 2>/dev/null
+pkill -f "waitress-serve.*wsgi:app" 2>/dev/null
+pkill -f "wsgi:app" 2>/dev/null
 if [ $? -eq 0 ]; then
     print_info "Stopped existing server"
     sleep 2
 fi
 echo ""
 
-# Step 9: Start the Server
+# Step 9: Start the Server (Waitress - works on Linux, Mac, Windows)
 print_success "Starting server..."
 echo ""
 echo "============================================================"
 echo "Server Configuration:"
 echo "  • URL: http://localhost:8000"
-echo "  • Workers: 2"
-echo "  • Mode: Production (Gunicorn)"
+echo "  • Mode: Production (Waitress)"
 echo "  • Backend: SE-ResNet + Attention Fusion (DL) / sklearn fallback"
 echo "============================================================"
 echo ""
@@ -155,12 +155,7 @@ print_info "Server is starting..."
 echo "Press Ctrl+C to stop the server"
 echo ""
 
-gunicorn --bind 0.0.0.0:8000 \
-         --workers 2 \
-         --timeout 120 \
-         --access-logfile - \
-         --error-logfile - \
-         wsgi:app
+python wsgi.py
 
 echo ""
 print_info "Server stopped"
