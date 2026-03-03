@@ -13,8 +13,15 @@ sys.path.insert(0, str(project_root))
 from flask import Flask, render_template, jsonify
 from flask_cors import CORS
 
-from src.utils.config import Config
-from webapp.api.predict import predict_bp, get_manager
+# Light mode: no NumPy/sklearn/PyTorch/OpenCV/Librosa. Use custom logic only.
+USE_LIGHT_MODE = os.environ.get('USE_LIGHT_MODE', '').strip().lower() in ('1', 'true', 'yes')
+
+if USE_LIGHT_MODE:
+    from webapp.api.predict_light import predict_bp
+else:
+    from src.utils.config import Config
+    from webapp.api.predict import predict_bp, get_manager
+
 from webapp.api.auth import auth_bp
 from webapp.middleware.auth import enforce_auth
 
@@ -54,8 +61,8 @@ def create_app(config_path=None):
     """
     app = Flask(__name__)
     
-    # Load configuration
-    config = Config(config_path)
+    if not USE_LIGHT_MODE:
+        Config(config_path)
     
     # Application configuration
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB for video uploads
@@ -68,6 +75,9 @@ def create_app(config_path=None):
     # Setup logging
     setup_logging(app)
     
+    if USE_LIGHT_MODE:
+        app.logger.info("Running in LIGHT mode (custom logic only; no ML libraries)")
+    
     # Enable CORS
     CORS(app)
     
@@ -75,28 +85,27 @@ def create_app(config_path=None):
     app.register_blueprint(predict_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     
-    # Import and register upload blueprint for file uploads
-    from webapp.api.file_upload import upload_bp
-    app.register_blueprint(upload_bp, url_prefix='/api/upload')
+    if not USE_LIGHT_MODE:
+        # Upload and combined need OpenCV, Librosa, etc.
+        from webapp.api.file_upload import upload_bp
+        app.register_blueprint(upload_bp, url_prefix='/api/upload')
+        from webapp.api.combined_processing import combined_bp
+        app.register_blueprint(combined_bp, url_prefix='/api')
+        
+        # Load models on startup
+        try:
+            manager = get_manager()
+            loaded_models = manager.get_loaded_modalities()
+            app.logger.info("Models loaded on startup: %s", ', '.join(loaded_models))
+        except Exception as e:
+            app.logger.warning("Could not load models on startup: %s", e)
     
-    # Import and register combined processing blueprint
-    from webapp.api.combined_processing import combined_bp
-    app.register_blueprint(combined_bp, url_prefix='/api')
-    
-    # Import and register results blueprint
+    # Results (MongoDB) works in both modes
     from webapp.api.results import results_bp
     app.register_blueprint(results_bp, url_prefix='/api')
     
     # Enforce JWT authentication on all routes except public ones.
     app.before_request(enforce_auth)
-    
-    # Load models on startup
-    try:
-        manager = get_manager()
-        loaded_models = manager.get_loaded_modalities()
-        app.logger.info("Models loaded on startup: %s", ', '.join(loaded_models))
-    except Exception as e:
-        app.logger.warning("Could not load models on startup: %s", e)
     
     # Routes
     @app.route('/')

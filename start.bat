@@ -1,14 +1,13 @@
 @echo off
-REM Parkinson's Disease Prediction System - Start Script for Windows
-REM Handles setup, installation, dataset generation, training, and server start
+REM Parkinson's Disease Prediction System - Start Script (Light mode only)
+REM Uses custom logic only; no ML libraries
 
 echo ============================================================
 echo Parkinson's Disease Prediction System
-echo Automated Setup ^& Start (Windows)
+echo Automated Setup ^& Start (Light mode - Windows)
 echo ============================================================
 echo.
 
-REM Get the directory where the script is located
 cd /d "%~dp0"
 
 REM Step 1: Check Python
@@ -35,94 +34,31 @@ call venv\Scripts\activate.bat
 echo Virtual environment activated
 echo.
 
-REM Step 3: Install/Update Requirements
-echo Checking dependencies...
+REM Step 3: Install light dependencies only
+echo Installing dependencies (light mode)...
 python -m pip install --upgrade pip -q
-echo Installing required packages (this may take a few minutes)...
-pip install -r requirements.txt -q
+pip install -r requirements-light.txt -q
 
 if errorlevel 1 (
     echo ERROR: Failed to install dependencies
     exit /b 1
 )
-echo All dependencies installed
+echo Dependencies installed
 echo.
 
-REM Step 4: Check datasets
-echo Checking datasets...
-if not exist "data\raw\speech\parkinsons.csv" (
-    echo ERROR: Speech dataset not found at data\raw\speech\parkinsons.csv
-    echo Please ensure the UCI Parkinson's dataset is available.
-    exit /b 1
-)
-echo Speech dataset found
-
-REM Step 5: Generate multimodal datasets if missing
-echo Checking multimodal datasets...
-if not exist "data\raw\handwriting\handwriting_data.csv" (
-    echo Generating handwriting and gait datasets...
-    python generate_modality_datasets.py
-    if errorlevel 1 (
-        echo ERROR: Failed to generate datasets
-        exit /b 1
-    )
-    echo Multimodal datasets generated
-) else (
-    echo Multimodal datasets found
-)
-echo.
-
-REM Step 6: Check and train sklearn fallback models
-echo Checking sklearn fallback models...
-if not exist "models\speech_model.joblib" (
-    if not exist "models\best_model.joblib" (
-        echo Training sklearn speech model...
-        python train.py
-        if errorlevel 1 (
-            echo ERROR: sklearn speech model training failed
-            exit /b 1
-        )
-        copy models\best_model.joblib models\speech_model.joblib >nul
-        copy models\scaler.joblib models\speech_scaler.joblib >nul
-        echo sklearn speech model trained
-    ) else (
-        copy models\best_model.joblib models\speech_model.joblib >nul
-        copy models\scaler.joblib models\speech_scaler.joblib >nul
-        echo sklearn speech model ready
-    )
-) else (
-    echo sklearn speech model found
-)
-
-REM Step 7: Check DL model (optional)
-if exist "models\multimodal_pd_net.pt" (
-    echo Deep learning model found (SE-ResNet + Attention Fusion)
-) else (
-    echo Deep learning model not found. Using sklearn fallback.
-    echo To train the DL model, run: python train_dl.py
-)
-
-echo All models ready
-echo.
-
-REM Step 8: If the app is already running in another window, stop it with Ctrl+C there first.
-echo.
-
-REM Step 9: Start the Server (Waitress - same as Linux/Mac, works on Windows)
-echo Starting server...
+REM Step 4: Start the server (light mode)
+set USE_LIGHT_MODE=1
+set PORT=8000
+echo Starting server (light mode - custom logic only)...
 echo.
 echo ============================================================
-echo Server Configuration:
 echo   URL: http://localhost:8000
-echo   Mode: Production (Waitress)
-echo   Backend: SE-ResNet + Attention Fusion (DL) / sklearn fallback
+echo   Mode: Light (custom logic; no ML libraries)
 echo ============================================================
 echo.
-echo Server is starting...
 echo Press Ctrl+C to stop the server
 echo.
 
-set PORT=8000
 python wsgi.py
 
 echo.

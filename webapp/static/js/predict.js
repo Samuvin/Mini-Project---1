@@ -473,7 +473,7 @@ function makePrediction() {
                 if (response.success) {
                     displayResults(response, modalitiesUsed, totalFeatures);
                 } else {
-                    showNotification('Prediction failed: ' + response.error, 'danger');
+                    showNotification('Prediction failed: ' + (response.error || 'Unknown error'), 'danger');
                     $('#loadingSection').hide();
                     updateSteps(2);
                 }
@@ -481,7 +481,7 @@ function makePrediction() {
         },
         error: function (xhr) {
             setTimeout(function () {
-                var errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Prediction failed';
+                var errorMsg = (xhr.responseJSON && xhr.responseJSON.error) ? xhr.responseJSON.error : (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : (xhr.status === 401 ? 'Please log in to run a prediction.' : 'Prediction failed.');
                 showNotification(errorMsg, 'danger');
                 $('#loadingSection').hide();
                 updateSteps(2);
