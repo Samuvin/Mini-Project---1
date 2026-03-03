@@ -297,13 +297,14 @@ function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) 
         processData: false,
         contentType: false,
         success: function (response) {
+            if (response.success) {
+                extractedFeatures[modality] = response.features;
+                $('#' + modality + 'Features').val(response.features.join(','));
+                updatePredictButton();
+            }
             hideExtractLoaderAfter(startTime, function () {
                 if ($btn) $btn.prop('disabled', false).html(btnOrigHtml);
-
                 if (response.success) {
-                    extractedFeatures[modality] = response.features;
-                    $('#' + modality + 'Features').val(response.features.join(','));
-
                     var modalityIcon = { speech: '🎤', handwriting: '✍️', gait: '🚶' };
                     $('#' + statusElementId).html(
                         '<div class="alert alert-success small">' +
@@ -313,10 +314,7 @@ function uploadFile(endpoint, formData, modality, statusElementId, btnSelector) 
                         (response.note ? '<br><small class="text-muted">' + response.note + '</small>' : '') +
                         '</div>'
                     );
-
                     clearUploadStatus(modality);
-                    updatePredictButton();
-                    setTimeout(updatePredictButton, 0);
                 } else {
                     clearUploadStatus(modality);
                 }
@@ -383,13 +381,15 @@ function uploadCombinedVideo() {
         processData: false,
         contentType: false,
         success: function (response) {
+            if (response.success) {
+                if (response.voice_features) extractedFeatures.speech = response.voice_features;
+                if (response.handwriting_features) extractedFeatures.handwriting = response.handwriting_features;
+                if (response.gait_features) extractedFeatures.gait = response.gait_features;
+                updatePredictButton();
+            }
             hideExtractLoaderAfter(startTime, function () {
                 $btn.prop('disabled', false).html(btnOrig);
                 if (response.success) {
-                    if (response.voice_features) extractedFeatures.speech = response.voice_features;
-                    if (response.handwriting_features) extractedFeatures.handwriting = response.handwriting_features;
-                    if (response.gait_features) extractedFeatures.gait = response.gait_features;
-
                     var fe = [];
                     if (response.voice_features) fe.push('<i class="fas fa-microphone" style="color:var(--accent)"></i> Voice: ' + response.voice_features.length + ' features');
                     if (response.handwriting_features) fe.push('<i class="fas fa-pen" style="color:var(--success)"></i> Handwriting: ' + response.handwriting_features.length + ' features');
@@ -402,8 +402,6 @@ function uploadCombinedVideo() {
                         '<br><small class="text-muted">Total: ' + response.total_features + ' features extracted</small></div>'
                     );
                     $('#combinedUploadStatus').html('');
-                    updatePredictButton();
-                    setTimeout(updatePredictButton, 0);
                     showNotification('Successfully extracted ' + response.total_features + ' features!', 'success');
                 } else {
                     $('#combinedUploadStatus').html('');
@@ -441,11 +439,11 @@ function updatePredictButton() {
 
     var btn = document.getElementById('predictBtn');
     if (btn) {
-        btn.disabled = !hasAny;
-        $('#predictBtn').prop('disabled', !hasAny);
+        btn.disabled = false;
+        $('#predictBtn').prop('disabled', false);
         var tip = bootstrap.Tooltip.getInstance(btn);
         if (tip) {
-            btn.setAttribute('data-bs-original-title', hasAny ? 'Run AI prediction' : 'Load example data or upload a file first');
+            btn.setAttribute('data-bs-original-title', 'Run AI prediction' + (hasAny ? '' : ' (load example or upload data first)'));
             tip.hide();
         }
     }
@@ -781,11 +779,10 @@ function resetForm() {
     // Stop recording
     if (isRecording) stopRecording();
 
-    // Disable predict
-    $('#predictBtn').prop('disabled', true);
+    // Keep predict button enabled (clicking without data shows a message)
     var tip = bootstrap.Tooltip.getInstance(document.getElementById('predictBtn'));
     if (tip) {
-        document.getElementById('predictBtn').setAttribute('data-bs-original-title', 'Load example data or upload a file first');
+        document.getElementById('predictBtn').setAttribute('data-bs-original-title', 'Run AI prediction (load example or upload data first)');
     }
 
     // Hide loading and dismiss results modal if open
@@ -849,6 +846,7 @@ function loadExample(sampleType, modality) {
                 }
                 $('#speechFeatureStatus, #handwritingFeatureStatus, #gaitFeatureStatus, #combinedFeatureStatus').html('');
             }
+            updatePredictButton();
 
             var features = [];
             if (extractedFeatures.speech) features.push('🎤 Speech: ' + sample.speech_features.length + ' features');
@@ -868,8 +866,6 @@ function loadExample(sampleType, modality) {
 
             hideExtractLoaderAfter(startTime, function () {
                 $(statusElement).html(successHtml);
-                updatePredictButton();
-                setTimeout(updatePredictButton, 0);
             });
         })
         .catch(function () {

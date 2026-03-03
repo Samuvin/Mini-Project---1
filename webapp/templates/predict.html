@@ -289,9 +289,9 @@
                     <!-- Action Buttons -->
                     <div class="divider pt-3 mt-3">
                         <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-accent btn-lg" id="predictBtn" disabled
+                            <button type="button" class="btn btn-accent btn-lg" id="predictBtn"
                                     data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="Load example data or upload a file first">
+                                    title="Run AI prediction (load example or upload data first)">
                                 <i class="fas fa-play-circle"></i> Make Prediction
                             </button>
                             <button type="button" class="btn btn-secondary btn-sm" id="resetBtn">
@@ -463,5 +463,5 @@
 {% block extra_js %}
 <!-- jQuery only on predict page -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="{{ url_for('static', filename='js/predict.js') }}?v=17.0"></script>
+<script src="{{ url_for('static', filename='js/predict.js') }}?v=17.1"></script>
 {% endblock %}
